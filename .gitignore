@@ -1,0 +1,12 @@
+.svn/
+.vs/
+/Library/
+/Temp/
+/obj/
+/Logs/
+/CustomCloudAssets/
+/Assets/AutoStreamingData/
+*.csproj
+*.sln
+*.vsconfig
+UserSettings/Layouts/default-2022.dwlt
