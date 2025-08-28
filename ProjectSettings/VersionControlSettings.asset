@@ -1,0 +1,8 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!890905787 &1
+VersionControlSettings:
+  m_ObjectHideFlags: 0
+  m_Mode: Visible Meta Files
+  m_CollabEditorSettings:
+    inProgressEnabled: 1

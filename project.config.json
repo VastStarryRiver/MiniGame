@@ -1,0 +1,23 @@
+{
+    "appid": "tta5acd3113aa3d89107",
+    "projectname": "EliminateFruit",
+    "unity": {
+        "build": {
+            "webgl": "E:\\MyGame\\BuildRoot\\webgl_package-20250819_152711.zip",
+            "native": {
+                "il2cpp": "",
+                "apk": "",
+                "fullApk": ""
+            },
+            "instantGame": ""
+        },
+        "publishType": "1",
+        "starkSdkVersion": "Without StarkSDK",
+        "unityToolsVersion": "",
+        "unityEngineVersion": "2022.3.61t4",
+        "arch": ""
+    },
+    "setting": {
+        "urlCheck": true
+    }
+}

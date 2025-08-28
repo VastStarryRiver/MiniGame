@@ -1,0 +1,185 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!1200 &1
+AutoStreamingSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  mSearchMode: 7
+  mCustomSearchFile: 
+  mTextureSearchString: 
+  mMeshSearchString: 
+  mTextures:
+  - serializedVersion: 2
+    onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Atlas/Atlas02/Atlas.spriteatlasv2
+    localFileId: 100100200
+    rtMem: 0
+    warningFlag: 0
+    refs:
+    - 0
+    - prefabs/ui/eliminatefruitpanel/eliminatefruitmainpanel.prefab_ab
+    maxPlaceholderSize: 1114112
+    width: 0
+    height: 0
+    abSize: 247033
+  - serializedVersion: 2
+    onDemandDownload: 0
+    assetPath: Assets/ToolPackage/TextMesh Pro/Resources/Fonts & Materials/Chinese.asset
+    localFileId: -8575265364760887151
+    rtMem: 4194304
+    warningFlag: 1
+    refs:
+    - 0
+    - prefabs/ui/eliminatefruitpanel/eliminatefruitmainpanel.prefab_ab
+    - res
+    maxPlaceholderSize: 589856
+    width: 2048
+    height: 2048
+    abSize: 0
+  - serializedVersion: 2
+    onDemandDownload: 0
+    assetPath: Assets/ToolPackage/TextMesh Pro/Resources/Fonts & Materials/Number.asset
+    localFileId: 5483831089936235002
+    rtMem: 4194304
+    warningFlag: 1
+    refs:
+    - 0
+    - prefabs/ui/eliminatefruitpanel/eliminatefruitmainpanel.prefab_ab
+    - res
+    maxPlaceholderSize: 589856
+    width: 2048
+    height: 2048
+    abSize: 0
+  - serializedVersion: 2
+    onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Atlas/Atlas01/Atlas01.png
+    localFileId: 2800000
+    rtMem: 935712
+    warningFlag: 0
+    refs:
+    - 0
+    - prefabs/ui/eliminatefruitpanel/eliminatefruitmainpanel.prefab_ab
+    maxPlaceholderSize: 196640
+    width: 2048
+    height: 1024
+    abSize: 229289
+  - serializedVersion: 2
+    onDemandDownload: 1
+    assetPath: Assets/ToolPackage/TextMesh Pro/Resources/Sprite Assets/emoji.png
+    localFileId: 2800000
+    rtMem: 935712
+    warningFlag: 0
+    refs:
+    - 0
+    - prefabs/ui/eliminatefruitpanel/eliminatefruitmainpanel.prefab_ab
+    - res
+    maxPlaceholderSize: 196640
+    width: 2048
+    height: 1024
+    abSize: 501615
+  - serializedVersion: 2
+    onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/VFX/Eliminate/Textures/gradient_circle.png
+    localFileId: 2800000
+    rtMem: 158432
+    warningFlag: 0
+    refs:
+    - 0
+    maxPlaceholderSize: 196640
+    width: 512
+    height: 512
+    abSize: 72398
+  - serializedVersion: 2
+    onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/VFX/Eliminate/Textures/magic_line.png
+    localFileId: 2800000
+    rtMem: 79696
+    warningFlag: 0
+    refs:
+    - 0
+    maxPlaceholderSize: 196640
+    width: 512
+    height: 256
+    abSize: 38078
+  - serializedVersion: 2
+    onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/VFX/Eliminate/Textures/magic_orb2.png
+    localFileId: 2800000
+    rtMem: 158432
+    warningFlag: 0
+    refs:
+    - 0
+    maxPlaceholderSize: 196640
+    width: 512
+    height: 512
+    abSize: 79710
+  mAudios:
+  - onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Audios/Sounds/eliminate.wav
+    localFileId: 8300000
+    rtMem: 38118
+    warningFlag: 0
+    refs:
+    - 0
+  - onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Audios/Sounds/defeat.mp3
+    localFileId: 8300000
+    rtMem: 29740
+    warningFlag: 0
+    refs:
+    - 0
+  - onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Audios/Sounds/win.mp3
+    localFileId: 8300000
+    rtMem: 26857
+    warningFlag: 0
+    refs:
+    - 0
+  - onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Audios/Sounds/moreScore_1.mp3
+    localFileId: 8300000
+    rtMem: 13442
+    warningFlag: 0
+    refs:
+    - 0
+  - onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Audios/Sounds/moreScore_2.mp3
+    localFileId: 8300000
+    rtMem: 41256
+    warningFlag: 0
+    refs:
+    - 0
+  - onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Audios/Sounds/moreScore_3.mp3
+    localFileId: 8300000
+    rtMem: 44620
+    warningFlag: 0
+    refs:
+    - 0
+  - onDemandDownload: 1
+    assetPath: Assets/UpdateAssets/Audios/Musics/bgm.mp3
+    localFileId: 8300000
+    rtMem: 3391560
+    warningFlag: 0
+    refs:
+    - 0
+    - prefabs/ui/eliminatefruitpanel/eliminatefruitmainpanel.prefab_ab
+  mMeshes: []
+  mAnimations: []
+  mSharedSceneAssets: []
+  mScenes:
+  - onDemandDownload: 1
+    assetPath: Assets/Scenes/Start.scene
+    localFileId: -1
+    rtMem: 11750031
+    warningFlag: 0
+    refs: []
+  mConfigCCD:
+    useCCD: 0
+    uosSecret: 
+    uosAppid: 
+    bucketUuid: 
+    bucketName: 
+    badgeName: 
+    ttAppid: 
+    targetPlatfrom: 
