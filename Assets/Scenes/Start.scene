@@ -718,8 +718,6 @@ MonoBehaviour:
   m_clips: []
   m_gameObjects: []
   m_materials:
-  - {fileID: 2100000, guid: 30c1911a9e5b91a48bc5b89b8d6a88e0, type: 2}
-  - {fileID: 2100000, guid: 158398fa161fb404c9ed270eed3d2264, type: 2}
   - {fileID: 2100000, guid: 1ca157b2b5c3f264ebe2c48b9e3f76e0, type: 2}
   - {fileID: 2100000, guid: ae3b2b184851e0e4c81b00afa25f44d4, type: 2}
   m_effects: []

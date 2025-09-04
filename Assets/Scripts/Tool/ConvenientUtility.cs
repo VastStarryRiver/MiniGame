@@ -292,11 +292,11 @@ public static partial class ConvenientUtility
 
             if (isMask)
             {
-                material = AssetsManager.Instance.m_materials[2];
+                material = AssetsManager.Instance.m_materials[0];
             }
             else
             {
-                material = AssetsManager.Instance.m_materials[3];
+                material = AssetsManager.Instance.m_materials[1];
             }
 
             if (image != null)

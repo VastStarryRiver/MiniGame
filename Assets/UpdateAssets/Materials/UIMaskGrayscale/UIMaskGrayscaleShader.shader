@@ -2,7 +2,14 @@ Shader "MyShader/UIMaskGrayscale"
 {
     Properties
     {
-        [PerRendererData] _MainTex ("Base (RGB)", 2D) = "white" {}
+        _MainTex ("Base (RGB)", 2D) = "white" {}
+        _StencilComp ("Stencil Comparison", Float) = 8
+        _Stencil ("Stencil ID", Float) = 0
+        _StencilOp ("Stencil Operation", Float) = 0
+        _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        _StencilReadMask ("Stencil Read Mask", Float) = 255
+        _ColorMask ("Color Mask", Float) = 15
+        [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
     }
 
     SubShader
@@ -10,58 +17,86 @@ Shader "MyShader/UIMaskGrayscale"
         Tags
         {
             "Queue"="Transparent"
+            "IgnoreProjector"="True"
+            "RenderType"="Transparent"
+            "PreviewType"="Plane"
+            "CanUseSpriteAtlas"="True"
         }
+
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+
+        ColorMask [_ColorMask]
 
         Pass
         {
-            // 渲染指令
             Blend SrcAlpha OneMinusSrcAlpha
-
-            Stencil {
-                Ref 1
-                Comp Equal
-                Pass Keep
-            }
+            Cull Off
+            ZWrite Off
+            ZTest [unity_GUIZTestMode]
 
             HLSLPROGRAM
-            #pragma vertex analyzeInputData// 指定顶点着色器函数
-            #pragma fragment getOutputData// 指定片段着色器函数
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile __ UNITY_UI_CLIP_RECT
+            #pragma multi_compile __ UNITY_UI_ALPHACLIP
+            
             #include "UnityCG.cginc"
+            #include "UnityUI.cginc"
 
-            sampler2D _MainTex; // 实际的2D纹理对象
-            float4 _MainTex_ST; // 与纹理坐标相关的变换信息（平移和缩放）
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            float4 _ClipRect;
 
-            struct vertexStruct
+            struct appdata
             {
-                float4 vertex : POSITION; // 顶点位置（世界空间或对象空间）
-                float3 normal : NORMAL; // 顶点法线
-                float4 color : COLOR; // 顶点颜色（如果有的话）
-                float2 uv : TEXCOORD0; // 纹理坐标
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+                float4 color : COLOR;
+                float3 normal : NORMAL;
             };
 
-            struct fragmentStruct
+            struct v2f
             {
-                float4 pos : SV_POSITION; // 顶点在裁剪空间中的位置
-                float4 color : COLOR; // 顶点颜色（经过插值）
-                float2 uv : TEXCOORD0; // 纹理坐标（经过插值）
-                float3 normal : TEXCOORD1; // 顶点法线（经过插值）
+                float4 pos : SV_POSITION;
+                float2 uv : TEXCOORD0;
+                float4 color : COLOR;
+                float3 normal : TEXCOORD1;
+                float4 worldPosition : TEXCOORD2;
             };
 
-            fragmentStruct analyzeInputData(vertexStruct v)
+            v2f vert (appdata v)
             {
-                fragmentStruct o;
+                v2f o;
+                o.worldPosition = v.vertex;
                 o.pos = UnityObjectToClipPos(v.vertex);
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 o.color = v.color;
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex); // 自动将_MainTex_ST的内容应用到uv坐标上
-                o.normal = v.normal; // 添加法线的初始化
+                o.normal = v.normal;
                 return o;
             }
 
-            half4 getOutputData(fragmentStruct i) : SV_Target
+            half4 frag (v2f i) : SV_Target
             {
                 half4 color = tex2D(_MainTex, i.uv);
-                float gray = dot(color.rgb, half3(0.299, 0.587, 0.114));//灰度公式
-                color.rgb = gray.xxx;//float3(gray, gray, gray)
+                float gray = dot(color.rgb, half3(0.299, 0.587, 0.114));
+                color.rgb = gray.xxx;
+                color *= i.color;
+                
+                #ifdef UNITY_UI_CLIP_RECT
+                    color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);
+                #endif
+                
+                #ifdef UNITY_UI_ALPHACLIP
+                    clip(color.a - 0.001);
+                #endif
+                
                 return color;
             }
             ENDHLSL

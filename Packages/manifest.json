@@ -1,8 +1,9 @@
 {
   "dependencies": {
-    "cn.tuanjie.minihost": "1.0.8",
+    "cn.tuanjie.minihost": "1.0.9",
     "cn.tuanjie.wx-uploader": "0.1.4",
     "com.bytedance.starksdk": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.4.5",
+    "com.coffee.ui-particle": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
     "com.kuaishou.minigame": "https://github.com/ksminigame/minigame-tuanjie-transform-sdk.git",
     "com.qq.weixin.minigame": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git",
     "com.unity.2d.sprite": "1.0.0",
