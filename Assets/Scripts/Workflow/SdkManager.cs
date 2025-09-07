@@ -6,6 +6,9 @@ using WeChatWASM;
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
 using TTSDK;
+
+#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_KUAISHOU
+using KSWASM;
 #endif
 
 
@@ -19,6 +22,9 @@ public class SdkManager : Singleton<SdkManager>
     SafeArea lastSafeArea;
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
+    SafeArea lastSafeArea;
+
+#elif MINIGAME_SUBPLATFORM_KUAISHOU
     SafeArea lastSafeArea;
 #endif
 
@@ -76,6 +82,29 @@ public class SdkManager : Singleton<SdkManager>
                 }
             });
         });
+
+#elif MINIGAME_SUBPLATFORM_KUAISHOU
+        KS.InitSDK((code) =>
+        {
+            KSUpdateManager kSUpdateManager = KS.GetUpdateManager();
+
+            kSUpdateManager.OnUpdateReady((result) =>
+            {
+                callBack?.Invoke();
+            });
+
+            kSUpdateManager.OnCheckForUpdate((result) =>
+            {
+                if (result.hasUpdate)
+                {
+                    kSUpdateManager.ApplyUpdate();
+                }
+                else
+                {
+                    callBack?.Invoke();
+                }
+            });
+        });
 #endif
     }
 
@@ -89,6 +118,9 @@ public class SdkManager : Singleton<SdkManager>
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
         TT.Save<string>(data, key);
+
+#elif MINIGAME_SUBPLATFORM_KUAISHOU
+        KS.StorageSetStringSync(key, data);
 #endif
     }
 
@@ -104,6 +136,9 @@ public class SdkManager : Singleton<SdkManager>
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
         data = TT.LoadSaving<string>(key);
+
+#elif MINIGAME_SUBPLATFORM_KUAISHOU
+        data = KS.StorageGetStringSync(key, defaultValue);
 #endif
 
         if (string.IsNullOrEmpty(data))
@@ -130,6 +165,10 @@ public class SdkManager : Singleton<SdkManager>
         SafeArea safeArea = TT.GetSystemInfo().safeArea;
         return lastSafeArea.left != safeArea.left || lastSafeArea.right != safeArea.right || lastSafeArea.top != safeArea.top || lastSafeArea.bottom != safeArea.bottom || lastSafeArea.width != safeArea.width || lastSafeArea.height != safeArea.height;
 
+#elif MINIGAME_SUBPLATFORM_KUAISHOU
+        SafeArea safeArea = KS.GetWindowInfo().safeArea;
+        return lastSafeArea.left != safeArea.left || lastSafeArea.right != safeArea.right || lastSafeArea.top != safeArea.top || lastSafeArea.bottom != safeArea.bottom || lastSafeArea.width != safeArea.width || lastSafeArea.height != safeArea.height;
+
 #else
         return false;
 #endif
@@ -145,6 +184,9 @@ public class SdkManager : Singleton<SdkManager>
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
         lastSafeArea = TT.GetSystemInfo().safeArea;
+
+#elif MINIGAME_SUBPLATFORM_KUAISHOU
+        lastSafeArea = KS.GetWindowInfo().safeArea;
 #endif
     }
 
@@ -174,6 +216,18 @@ public class SdkManager : Singleton<SdkManager>
 #elif MINIGAME_SUBPLATFORM_DOUYIN
         SafeArea safeArea = TT.GetSystemInfo().safeArea;//原点在左上角
         double pixelRatio = TT.GetSystemInfo().pixelRatio;//获取设备像素比
+
+        float left = (float)(safeArea.left * pixelRatio);
+        float right = (float)(safeArea.right * pixelRatio);
+        float top = (float)(safeArea.top * pixelRatio);
+        float bottom = (float)(safeArea.bottom * pixelRatio);
+
+        anchorMin = new Vector2(left, Screen.height - bottom);
+        anchorMax = new Vector2(right, Screen.height - top);
+
+#elif MINIGAME_SUBPLATFORM_KUAISHOU
+        SafeArea safeArea = KS.GetWindowInfo().safeArea;//原点在左上角
+        double pixelRatio = KS.GetWindowInfo().pixelRatio;//获取设备像素比
 
         float left = (float)(safeArea.left * pixelRatio);
         float right = (float)(safeArea.right * pixelRatio);

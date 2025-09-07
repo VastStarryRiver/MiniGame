@@ -73,7 +73,7 @@ AutoStreamingSettings:
     - 0
     - prefabs/ui/eliminatefruitpanel/eliminatefruitmainpanel.prefab_ab
     - res
-    maxPlaceholderSize: 196640
+    maxPlaceholderSize: 196610
     width: 2048
     height: 1024
     abSize: 501615
