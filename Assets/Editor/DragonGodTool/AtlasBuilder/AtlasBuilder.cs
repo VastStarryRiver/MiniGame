@@ -10,6 +10,7 @@ using System.Linq;
 public class AtlasBuilder : ScriptableObject
 {
     public string atlasName;
+    public SpriteAlignment alignment;
     public Object[] directorys;
 
     private string m_atlasRootPath = Application.dataPath + "/UpdateAssets/Atlas";//Í¼¼¯´æ´¢Â·¾¶
@@ -82,7 +83,7 @@ public class AtlasBuilder : ScriptableObject
         SetAtlasImportSettings(assetsAtlasPath, atlas, textures, rects);
     }
 
-    private static void SetAtlasImportSettings(string assetsAtlasPath, Texture2D atlas, Texture2D[] textures, Rect[] rects)
+    private void SetAtlasImportSettings(string assetsAtlasPath, Texture2D atlas, Texture2D[] textures, Rect[] rects)
     {
         TextureImporter atlasImporter = AssetImporter.GetAtPath(assetsAtlasPath) as TextureImporter;
 
@@ -108,11 +109,11 @@ public class AtlasBuilder : ScriptableObject
         AssetDatabase.Refresh();
     }
 
-    private static SpriteMetaData GetSpriteMetaData(Rect rect, string name)
+    private SpriteMetaData GetSpriteMetaData(Rect rect, string name)
     {
         SpriteMetaData spriteMetaData = new SpriteMetaData();
 
-        spriteMetaData.alignment = (int)SpriteAlignment.Center;
+        spriteMetaData.alignment = (int)alignment;
         spriteMetaData.name = name;
         spriteMetaData.rect = new Rect(rect.x, rect.y, rect.width, rect.height);
 

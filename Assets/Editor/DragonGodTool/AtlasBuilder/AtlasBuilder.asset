@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 503a1ce47909faf449d645b4099dd4a5, type: 3}
   m_Name: AtlasBuilder
   m_EditorClassIdentifier: 
-  atlasName: Atlas01
-  directorys:
-  - {fileID: 102900000, guid: 901abcc316d6d2849a623dd19f020351, type: 3}
+  atlasName: 
+  alignment: 0
+  directorys: []
