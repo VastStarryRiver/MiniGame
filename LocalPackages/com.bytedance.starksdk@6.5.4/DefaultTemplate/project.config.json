@@ -1,0 +1,11 @@
+{
+  "appid": "$APP_ID",
+  "projectname": "$PROJECT_NAME",
+
+   "packOptions": {
+    "ignore": [
+      { "type": "folder", "value": "native" },
+      { "type": "folder", "value": "__MACOSX" }
+    ]
+  }
+}

@@ -20,7 +20,7 @@
       "url": "https://packages.tuanjie.cn"
     },
     "com.bytedance.starksdk": {
-      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.4.5",
+      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.5.4",
       "depth": 0,
       "source": "local",
       "dependencies": {}
@@ -39,10 +39,8 @@
       "version": "https://github.com/ksminigame/minigame-tuanjie-transform-sdk.git",
       "depth": 0,
       "source": "git",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.2.1"
-      },
-      "hash": "d37dda5e764b33e743d2c3e4689b3c90c87c89c4"
+      "dependencies": {},
+      "hash": "f9bb0aacb83fe9a3edd89417b56178b066e4a3e8"
     },
     "com.qq.weixin.minigame": {
       "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git",

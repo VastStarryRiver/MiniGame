@@ -98,7 +98,8 @@ namespace TTSDK.Tool
                         EditorGUILayout.LabelField(string.Empty, GUILayout.Width(_snapPadding));
                     });
                 CreateBoolean("profiling", "显示性能面板");
-                
+                CreateBoolean("isOldBuildFormat", "是否采用旧格式打包");
+
                 EditorGUILayout.EndVertical();
             }
             
@@ -226,6 +227,10 @@ namespace TTSDK.Tool
             _editingBooleanData["clearStreamingAssets"] = ReadProperty<bool>(miniGameProperty, "clearStreamingAssets");
 
             _editingEnumData["orientation"] = ReadProperty<int>(miniGameProperty, "orientation");
+
+            _editingBooleanData["isOldBuildFormat"] = ReadProperty<bool>(miniGameProperty, "isOldBuildFormat");
+
+            
         }
         
         /// <summary>
@@ -250,6 +255,9 @@ namespace TTSDK.Tool
             SaveProperty(miniGameProperty, "clearStreamingAssets", _editingBooleanData["clearStreamingAssets"]);
             
             SaveProperty(miniGameProperty, "orientation", _editingEnumData["orientation"]);
+
+            SaveProperty(miniGameProperty, "isOldBuildFormat", _editingBooleanData["isOldBuildFormat"]);
+            
         }
 
         /// <summary>
@@ -315,6 +323,7 @@ namespace TTSDK.Tool
                 {
                     var elm = property.GetArrayElementAtIndex(i);
                     elm.stringValue = arr[i];
+                    elm.stringValue = elm.stringValue.Trim();
                 }
             }
             else if (rt == typeof(bool))

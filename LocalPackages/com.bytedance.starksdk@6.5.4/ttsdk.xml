@@ -1866,6 +1866,12 @@
             </summary>
             <returns>TTGameRecorder</returns>
         </member>
+        <member name="M:TTSDK.ITTAPI.GetTTRecorderManager">
+            <summary>
+            获取录音相关接口
+            </summary>
+            <returns>TTRecorderManager</returns>
+        </member>
         <member name="M:TTSDK.ITTAPI.Authorize(System.String,System.Action{System.String,TTSDK.UNBridgeLib.LitJson.JsonData},System.Action{System.String,System.String})">
             <summary>
             提前向用户发出授权请求。该方法不会调用对应接口，只会弹框咨询用户是否授权或者获取用户信息。如果用户之前有授权，该接口直接返回成功，不会跟用户产生交互。
@@ -2143,6 +2149,12 @@
             宿主事件监听
             </summary>
         </member>
+        <member name="M:TTSDK.ITTAPI.CleanAllFileCache(System.Action{System.Boolean})">
+            <summary>
+            清理缓存（异步）
+            </summary>
+            <param name="callback"></param>
+        </member>
         <member name="M:TTSDK.ITTAPI.CreateUDPSocket">
             <summary>
             创建一个 UDP Socket 实例。
@@ -2295,6 +2307,65 @@
             普通小游戏转端使用，暂不支持云抖小，不支持iOS
             </summary>
             <param name="param"></param>
+        </member>
+        <member name="M:TTSDK.ITTAPI.ShowToast(TTSDK.TTShowToastParam)">
+            <summary>
+            显示灰色背景的消息提示框
+            /// </summary>
+            <param name="TTShowToastParam">TTShowToastParam</param>
+        </member>
+        <member name="M:TTSDK.ITTAPI.HideToast(TTSDK.TTHideToastParam)">
+            <summary>
+            隐藏灰色背景的消息提示框。
+            </summary>
+        </member>
+        <member name="M:TTSDK.ITTAPI.ShowModal(TTSDK.TTShowModalParam)">
+            <summary>
+            显示模态弹窗
+            </summary>
+            <param name="param">TTShowModalParam</param>
+        </member>
+        <member name="M:TTSDK.ITTAPI.ShowActionSheet(TTSDK.TTShowActionSheetParam)">
+            <summary>
+            显示操作菜单
+            </summary>
+            <param name="param">TTShowActionSheetParam</param>
+        </member>
+        <member name="M:TTSDK.ITTAPI.ShowLoading(TTSDK.TTShowLoadingParam)">
+            <summary>
+            显示灰色背景的 loading 提示框。该提示框不会主动隐藏。
+            </summary>
+            <param name="param">TTShowLoadingParam</param>
+        </member>
+        <member name="M:TTSDK.ITTAPI.HideLoading(TTSDK.TTHideLoadingParam)">
+            <summary>
+            隐藏 loading 提示框。
+            </summary>
+            <param name="param">TTHideLoadingParam</param>
+        </member>
+        <member name="M:TTSDK.ITTAPI.GetTTCompassManager">
+            <summary>
+            获取指南针管理器对象
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TTSDK.ITTAPI.GetTTApp">
+            <summary>
+            获取应用管理器对象
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TTSDK.ITTAPI.GetLocation(TTSDK.TTGetLocationParam)">
+            <summary>
+            获取设备当前地理位置
+            </summary>
+            <param name="param"> 位置回调，参数为位置信息 </param>
+        </member>
+        <member name="M:TTSDK.ITTAPI.ScanCode(TTSDK.TTScanCodeParam)">
+            <summary>
+            扫描二维码并返回扫描结果
+            </summary>
+            <param name="param"> 扫码回调，参数为扫码结果 </param>
         </member>
         <member name="T:TTSDK.TTInvite.OnInviteStateChanged">
             <summary>
@@ -3123,12 +3194,38 @@
             </summary>
             <param name="result"></param>
         </member>
+        <member name="M:TTSDK.TTLiveManagerImpl.OnInstantPlayStatusChangeListener(TTSDK.OnInstantPlayStatusChangeResult)">
+            <summary>
+            端上回调的X分屏变化事件
+            </summary>
+            <param name="result"></param>
+        </member>
         <member name="T:TTSDK.TTShareImpl">
             分享模块
         </member>
         <member name="T:TTSDK.ICallBridge">
             <summary>
             UNBridge 调用的接口形式封装，方便分发各平台的独立实现
+            </summary>
+        </member>
+        <member name="F:TTSDK.TTShowToastSuccessCallbackResult.path">
+            <summary>
+            返回图片的本地路径，若为网络图片则该 API 首先会下载图片再返回下载到本地后的临时路径
+            </summary>
+        </member>
+        <member name="F:TTSDK.TTShowToastSuccessCallbackResult.width">
+            <summary>
+            返回图片的宽度
+            </summary>
+        </member>
+        <member name="F:TTSDK.TTShowToastSuccessCallbackResult.height">
+            <summary>
+            返回图片的高度
+            </summary>
+        </member>
+        <member name="F:TTSDK.TTShowToastSuccessCallbackResult.type">
+            <summary>
+            返回图片的格式
             </summary>
         </member>
         <member name="T:TTSDK.FavoriteMockMoudle">
@@ -5118,6 +5215,12 @@
             </summary>
             <returns> TTGameRecorder </returns>
         </member>
+        <member name="M:TTSDK.TT.GetTTRecorderManager">
+            <summary>
+            获取录音相关接口
+            </summary>
+            <returns> TTRecorderManager </returns>
+        </member>
         <member name="M:TTSDK.TT.GetRTCEngineManager">
             <summary>
             需要白名单
@@ -5553,6 +5656,23 @@
             监听邀请状态变化事件
             </summary>
         </member>
+        <member name="M:TTSDK.TT.CleanAllFileCache(System.Action{System.Boolean})">
+            <summary>
+            清理所有文件缓存
+            </summary>
+        </member>
+        <member name="M:TTSDK.TT.GetLocation(TTSDK.TTGetLocationParam)">
+            <summary>
+            获取当前位置
+            </summary>
+            <param name="param"> 位置回调，参数为位置信息 </param>
+        </member>
+        <member name="M:TTSDK.TT.ScanCode(TTSDK.TTScanCodeParam)">
+            <summary>
+            打开扫码界面
+            </summary>
+            <param name="param"> 扫码回调，参数为扫码结果 </param>
+        </member>
         <member name="M:TTSDK.TT.Collect(System.Action{System.Boolean})">
             <summary>
             游戏收藏
@@ -5825,6 +5945,24 @@
             停止监听加速度数据
             </summary>
             <param name="statusCallback">接口调用状态回调，(bool success, string errMsg) => {}</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:TTSDK.TT.StartCompass(TTSDK.TTStartCompassParam)" -->
+        <member name="M:TTSDK.TT.StopCompass(TTSDK.TTStopCompassParam)">
+            <summary>
+            停止监听罗盘数据
+            </summary>
+        </member>
+        <member name="M:TTSDK.TT.OnCompassChange(System.Action{TTSDK.OnCompassChangedResult})">
+            <summary>
+            监听罗盘数据变化事件
+            </summary>
+            <param name="onCompassChanged">罗盘数据变化事件</param>
+        </member>
+        <member name="M:TTSDK.TT.OffCompassChange(System.Action{TTSDK.OnCompassChangedResult})">
+            <summary>
+            取消监听罗盘数据变化事件
+            </summary>
+            <param name="onCompassChanged">罗盘数据变化事件</param>
         </member>
         <member name="M:TTSDK.TT.GetSystemFont(System.Action{UnityEngine.Font})">
             <summary>
@@ -6122,6 +6260,42 @@
             普通小游戏转端使用，暂不支持云抖小，不支持iOS
             </summary>
             <param name="param"></param>
+        </member>
+        <member name="M:TTSDK.TT.ShowToast(TTSDK.TTShowToastParam)">
+            <summary>
+            显示灰色背景的消息提示框。
+            </summary>
+            <param name="param"></param>
+        </member>
+        <member name="M:TTSDK.TT.HideToast(TTSDK.TTHideToastParam)">
+            <summary>
+            隐藏提示框
+            </summary>
+            <param name="param">TTHideToastParam</param>
+        </member>
+        <member name="M:TTSDK.TT.ShowModal(TTSDK.TTShowModalParam)">
+            <summary>
+            显示模态弹窗
+            </summary>
+            <param name="param">TTShowModalParam</param>
+        </member>
+        <member name="M:TTSDK.TT.ShowActionSheet(TTSDK.TTShowActionSheetParam)">
+            <summary>
+            显示操作菜单
+            </summary>
+            <param name="param">TTShowActionSheetParam</param>
+        </member>
+        <member name="M:TTSDK.TT.ShowLoading(TTSDK.TTShowLoadingParam)">
+            <summary>
+            显示灰色背景的 loading 提示框。该提示框不会主动隐藏。
+            </summary>
+            <param name="param">TTShowLoadingParam</param>
+        </member>
+        <member name="M:TTSDK.TT.HideLoading(TTSDK.TTHideLoadingParam)">
+            <summary>
+            隐藏 loading 提示框。
+            </summary>
+            <param name="param">TTHideLoadingParam</param>
         </member>
         <member name="T:TTSDK.DouyinCloudImpl.DyCloudDownloadUploadProgressUpdateListener">
             <summary>
@@ -6589,6 +6763,16 @@
             <param name="success">请求'成功'的回调</param>
             <param name="fail">请求失败的回调</param>
         </member>
+        <member name="F:TTSDK.Error.message">
+            <summary>
+            错误
+            </summary>
+        </member>
+        <member name="F:TTSDK.Error.stack">
+            <summary>
+            错误调用堆栈
+            </summary>
+        </member>
         <member name="F:TTSDK.GiftResult.GiftId">
             <summary>
             礼包类型id
@@ -6793,6 +6977,25 @@
             移除宿主事件监听
             </summary>
             <param name="eventName">事件名</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:TTSDK.TTCompassManager.StartCompass(TTSDK.TTStartCompassParam)" -->
+        <member name="M:TTSDK.TTCompassManager.StopCompass(TTSDK.TTStopCompassParam)">
+            <summary>
+            停止监听罗盘数据。
+            </summary>
+            <param name="param">TTStopCompassParam</param>
+        </member>
+        <member name="M:TTSDK.TTCompassManager.OnCompassChanged(System.Action{TTSDK.OnCompassChangedResult})">
+            <summary>
+            监听罗盘数据变化事件。
+            </summary>
+            <param name="onCompassChanged">罗盘数据变化回调</param>
+        </member>
+        <member name="M:TTSDK.TTCompassManager.OffCompassChanged(System.Action{TTSDK.OnCompassChangedResult})">
+            <summary>
+            取消监听罗盘数据变化事件。
+            </summary>
+            <param name="onCompassChanged">罗盘数据变化回调</param>
         </member>
         <member name="T:TTSDK.TTSDKComponent">
             <summary>
@@ -7223,6 +7426,81 @@
             
             </summary>
         </member>
+        <member name="T:TTSDK.OnInstantPlayStatusChangeCallback">
+            <summary>
+            即玩开关状态变化事件
+            </summary>
+        </member>
+        <member name="F:TTSDK.GetLiveSettingResult.InstantPlay">
+            <summary>
+            即玩开关是否打开
+            </summary>
+        </member>
+        <member name="F:TTSDK.GetLiveSettingResult.IsAnchor">
+            <summary>
+            当前用户是否为主播
+            </summary>
+        </member>
+        <member name="F:TTSDK.GetLiveSettingResult.IsVideoLive">
+            <summary>
+            是否视频直播
+            </summary>
+        </member>
+        <member name="F:TTSDK.GetLiveSettingResult.ErrMsg">
+            <summary>
+            "LiveManager.getLiveSetting:ok"
+            </summary>
+        </member>
+        <member name="F:TTSDK.GetLiveSettingParam.Success">
+            <summary>
+            接口调用成功的回调函数
+            </summary>
+        </member>
+        <member name="F:TTSDK.GetLiveSettingParam.Fail">
+            <summary>
+            接口调用失败的回调函数
+            </summary>
+        </member>
+        <member name="F:TTSDK.GetLiveSettingParam.Complete">
+            <summary>
+            接口调用结束的回调函数（调用成功、失败都会执行）
+            </summary>
+        </member>
+        <member name="F:TTSDK.UploadGameProgressResult.ErrMsg">
+            <summary>
+            "LiveManager.uploadGameProgress:ok"
+            </summary>
+        </member>
+        <member name="F:TTSDK.UploadGameProgressParam.Success">
+            <summary>
+            接口调用成功的回调函数
+            </summary>
+        </member>
+        <member name="F:TTSDK.UploadGameProgressParam.Fail">
+            <summary>
+            接口调用失败的回调函数
+            </summary>
+        </member>
+        <member name="F:TTSDK.UploadGameProgressParam.Complete">
+            <summary>
+            接口调用结束的回调函数（调用成功、失败都会执行）
+            </summary>
+        </member>
+        <member name="F:TTSDK.UploadGameProgressParam.Data">
+            <summary>
+            游玩场景配置信息，长度不超过xxx个字符
+            </summary>
+        </member>
+        <member name="F:TTSDK.SyncGameProgressResult.ErrMsg">
+            <summary>
+            "LiveManager.syncGameProgress:ok"
+            </summary>
+        </member>
+        <member name="F:TTSDK.SyncGameProgressResult.Data">
+            <summary>
+            主播游玩场景配置信息
+            </summary>
+        </member>
         <member name="M:TTSDK.TTLiveManager.CheckRoomIsValid(TTSDK.UNBridgeLib.LitJson.JsonData,System.Action{TTSDK.UNBridgeLib.LitJson.JsonData},System.Action{System.Int32,System.String},System.Action)">
             <summary>
             检查直播间/小游戏挂载状态是否有效
@@ -7263,6 +7541,36 @@
             <summary>
             开启小游戏直播（打开直播引导弹窗）
             </summary>
+        </member>
+        <member name="M:TTSDK.TTLiveManager.OnInstantPlayStatusChange(TTSDK.OnInstantPlayStatusChangeCallback)">
+            <summary>
+            侦听即玩开关状态变化
+            </summary>
+            <param name="callback">必传，要添加的callback对象</param>
+        </member>
+        <member name="M:TTSDK.TTLiveManager.OffInstantPlayStatusChange(TTSDK.OnInstantPlayStatusChangeCallback)">
+            <summary>
+            取消侦听即玩开关状态变化
+            </summary>
+            <param name="callback">必传，要添加的callback对象</param>
+        </member>
+        <member name="M:TTSDK.TTLiveManager.GetLiveSetting(TTSDK.GetLiveSettingParam)">
+            <summary>
+            获取直播间设置信息
+            </summary>
+            <param name="param"></param>
+        </member>
+        <member name="M:TTSDK.TTLiveManager.UploadGameProgress(TTSDK.UploadGameProgressParam)">
+            <summary>
+            主播上报游戏进度
+            </summary>
+            <param name="param"></param>
+        </member>
+        <member name="M:TTSDK.TTLiveManager.SyncGameProgress(TTSDK.SyncGameProgressParam)">
+            <summary>
+            观众获取当前主播的游戏进度
+            </summary>
+            <param name="param"></param>
         </member>
         <member name="T:TTSDK.AndroidStarkCallBridge">
             <summary>
@@ -8813,6 +9121,104 @@
             <param name="type"></param>
             <returns></returns>
         </member>
+        <member name="M:TTSDK.TTRecorderManager.Start(TTSDK.TTStartRecordParam)">
+            <summary>
+            开始录制
+            </summary>
+            <param name="param">TTStartRecordParam</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.Stop">
+            <summary>
+            停止录制
+            </summary>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.Pause">
+            <summary>
+            暂停录音
+            </summary>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.Resume">
+            <summary>
+            恢复录音
+            </summary>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OnStart(System.Action)">
+            <summary>
+            监听录音开始事件。
+            </summary>
+            <param name="onStart">录音开始回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OffStart(System.Action)">
+            <summary>
+            取消监听录音开始事件。
+            </summary>
+            <param name="onStart">录音开始回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OnStop(System.Action{TTSDK.OnStopCallbackResult})">
+            <summary>
+            监听录音结束事件。
+            </summary>
+            <param name="onStop">录音结束回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OffStop(System.Action{TTSDK.OnStopCallbackResult})">
+            <summary>
+            取消监听录音结束事件。
+            </summary>
+            <param name="onStop">录音结束回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OnError(System.Action{TTSDK.OnErrorCallbackResult})">
+            <summary>
+            监听录音错误事件。
+            </summary>
+            <param name="onError">录音错误回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OffError(System.Action{TTSDK.OnErrorCallbackResult})">
+            <summary>
+            取消监听录音错误事件。
+            </summary>
+            <param name="onError">录音错误回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OnPause(System.Action)">
+            <summary>
+            监听录音暂停事件。
+            </summary>
+            <param name="onPause">录音暂停回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OffPause(System.Action)">
+            <summary>
+            取消监听录音暂停事件。
+            </summary>
+            <param name="onPause">录音暂停回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OnResume(System.Action)">
+            <summary>
+            监听录音恢复事件。
+            </summary>
+            <param name="onResume">录音恢复回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OffResume(System.Action)">
+            <summary>
+            取消监听录音恢复事件。
+            </summary>
+            <param name="onResume">录音恢复回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OnFrameRecorded(System.Action{TTSDK.OnFrameRecordedCallbackResult})">
+            <summary>
+            监听录音帧事件。
+            </summary>
+            <param name="onFrameRecorded">录音帧回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.OffFrameRecorded(System.Action{TTSDK.OnFrameRecordedCallbackResult})">
+            <summary>
+            取消监听录音帧事件。
+            </summary>
+            <param name="onFrameRecorded">录音帧回调</param>
+        </member>
+        <member name="M:TTSDK.TTRecorderManager.ClearCallbacks">
+            <summary>
+            清除所有回调
+            </summary>
+        </member>
         <member name="T:TTSDK.VideoClipUtils">
             <summary>
             视频裁剪工具类
@@ -9194,6 +9600,12 @@
             获取游戏记录的Mock
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:TTSDK.TTAPIMock.GetTTRecorderManager">
+            <summary>
+            获取录音相关接口的Mock
+            </summary>
+            <returns>TTRecorderManager</returns>
         </member>
         <member name="M:TTSDK.TTAPIMock.GetTTAdManager">
             <summary>
@@ -12679,6 +13091,21 @@
         <member name="T:bytedance.ttrec.ByteAudioRec">
             <summary>
             Unity声音录制
+            </summary>
+        </member>
+        <member name="F:ICallback`3.success">
+            <summary>
+            接口调用成功的回调函数
+            </summary>
+        </member>
+        <member name="F:ICallback`3.fail">
+            <summary>
+            接口调用失败的回调函数
+            </summary>
+        </member>
+        <member name="F:ICallback`3.complete">
+            <summary>
+            接口调用结束的回调函数（调用成功、失败都会执行）
             </summary>
         </member>
         <member name="T:UNBridge">

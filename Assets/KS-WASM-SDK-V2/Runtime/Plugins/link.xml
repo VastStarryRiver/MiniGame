@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="LitJson" preserve="all"/>
+  <assembly fullname="kuaishou.runtime" preserve="all"/>
+  <assembly fullname="kuaishou-plugin.runtime" preserve="all"/>
+</linker>

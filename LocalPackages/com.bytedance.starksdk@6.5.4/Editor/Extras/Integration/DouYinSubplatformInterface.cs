@@ -134,6 +134,7 @@ namespace TTSDK.Tool
             starkSettings.profiling = settings.profiling;
             starkSettings.clearStreamingAssets = settings.clearStreamingAssets;
             starkSettings.orientation = (StarkBuilderSettings.Orientation)settings.orientation;
+            starkSettings.isOldBuildFormat = settings.isOldBuildFormat;
             starkSettings.Save();
         }
 

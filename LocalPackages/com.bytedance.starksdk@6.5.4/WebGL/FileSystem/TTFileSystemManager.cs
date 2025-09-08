@@ -450,8 +450,10 @@ namespace TTSDK
                 {
                     filePath = filePath.Substring(1);
                 }
-
-                filePath = $"{USER_DATA_PATH}/{filePath}";
+                if (!TTSDKType.IsMixEngine())
+                {
+                    filePath = $"{USER_DATA_PATH}/{filePath}";
+                }
             }
 
             return filePath;

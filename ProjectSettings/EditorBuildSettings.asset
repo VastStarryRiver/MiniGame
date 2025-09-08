@@ -15,6 +15,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Settings/Build Profiles/DouYin Profile.asset
     guid: fa0f0503ef2bd65408bab1c77c2130d0
+  - enabled: 0
+    path: Assets/Settings/Build Profiles/KuaiShou Profile.asset
+    guid: ed798d1f90b5cc34fbe6ef13dd71e0b1
   m_configObjects: {}
   m_SlimFeaturesWeixinMiniGame:
     AllocateOverhead: 1

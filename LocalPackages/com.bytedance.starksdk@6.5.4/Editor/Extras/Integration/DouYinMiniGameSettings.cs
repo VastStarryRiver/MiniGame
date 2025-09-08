@@ -19,7 +19,9 @@ namespace TTSDK.Tool
         [SerializeField] public string preloadFiles = "";
         [SerializeField] public string preloadDataListUrl = "";
         [SerializeField] public bool clearStreamingAssets = false;
-        
+
+
+        [SerializeField] public bool isOldBuildFormat = true;
         public DouYinMiniGameSettings(MiniGameSettingsEditor editor) : base(editor)
         {
         }
