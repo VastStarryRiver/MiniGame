@@ -15,24 +15,22 @@ MonoBehaviour:
   m_BuildTarget: 47
   m_Subtarget: 3
   m_ModuleName: WeixinMiniGame
-  m_BuildPath: 
+  m_BuildPath: E:/MyGame/MiniGame/BuildRoot
   m_PlatformSettings:
-    rid: 4144039900510683140
+    rid: 5986443074910027789
   m_MiniGameSettings:
-    rid: 4144039900510683138
+    rid: 5986443074910027787
   m_PlayerSettingsYaml:
     m_Settings: []
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
-    - rid: 4144039900510683138
+    - rid: 5986443074910027787
       type: {class: DouYinMiniGameSettings, ns: TTSDK.Tool, asm: com.bytedance.ttsdk-editor}
       data:
         m_HostName: DouYin
         m_Editor:
-          rid: 4144039900510683139
+          rid: 5986443074910027788
         appId: 
         wasmMemorySize: 128
         urlCacheList: []
@@ -45,15 +43,12 @@ MonoBehaviour:
         preloadFiles: 
         preloadDataListUrl: 
         clearStreamingAssets: 0
-    - rid: 4144039900510683139
+        isOldBuildFormat: 1
+    - rid: 5986443074910027788
       type: {class: DouYinMiniGameSettingsEditor, ns: TTSDK.Tool, asm: com.bytedance.ttsdk-editor}
       data:
-        m_HostName: 
-        _isFoldInfoOptions: 1
-        _isFoldLaunchOptions: 1
-        _isFoldPreloadOptions: 1
-        _isFoldCompileOptions: 1
-    - rid: 4144039900510683140
+        m_HostName: DouYin
+    - rid: 5986443074910027789
       type: {class: MiniGamePlatformSettings, ns: UnityEditor.WeixinMiniGame, asm: UnityEditor.WeixinMiniGame.Extensions}
       data:
         m_Development: 0

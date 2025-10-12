@@ -15,31 +15,31 @@ MonoBehaviour:
   m_BuildTarget: 47
   m_Subtarget: 5
   m_ModuleName: WeixinMiniGame
-  m_BuildPath: 
+  m_BuildPath: E:/MyGame/MiniGame/BuildRoot
   m_PlatformSettings:
-    rid: 441218820273078276
+    rid: 5986443074910027792
   m_MiniGameSettings:
-    rid: 441218820273078274
+    rid: 5986443074910027790
   m_PlayerSettingsYaml:
     m_Settings: []
   references:
     version: 2
     RefIds:
-    - rid: 441218820273078274
+    - rid: 5986443074910027790
       type: {class: MiniHostMiniGameSettings, ns: KSWASM.editor, asm: kuaishou.editor}
       data:
         m_HostName: KuaiShou
         m_Editor:
-          rid: 441218820273078275
+          rid: 5986443074910027791
         ProjectConf:
           Appid: 
           CDN: 
           assetLoadType: 1
-          compressDataPackage: 0
+          compressDataPackage: 1
           compressWasm: 1
           demoPackage: 0
           VideoUrl: 
-          DST: 
+          DST: E:/MyGame/MiniGame/BuildRoot
           StreamCDN: 
           bundleHashLength: 32
           bundlePathIdentifier: StreamingAssets;
@@ -49,8 +49,8 @@ MonoBehaviour:
           HideAfterCallMain: 1
           preloadFiles: 
           Orientation: 0
-          bgImageSrc: Assets/KS-WASM-SDK-V2/Runtime/minigame-default/images/background.jpg
-          isCoverviewCustomized: 0
+          bgImageSrc: Assets/UpdateAssets/Publish/loading.png
+          isCoverviewCustomized: 1
           dataFileSubPrefix: 
           maxStorage: 200
           defaultReleaseSize: 31457280
@@ -106,11 +106,11 @@ MonoBehaviour:
           Geometric_Shapes: 1
           Mathematical_Operators: 1
           CustomUnicode: 
-    - rid: 441218820273078275
+    - rid: 5986443074910027791
       type: {class: MiniHostMiniGameSettingsEditor, ns: KSWASM.editor, asm: kuaishou.editor}
       data:
         m_HostName: KuaiShou
-    - rid: 441218820273078276
+    - rid: 5986443074910027792
       type: {class: MiniGamePlatformSettings, ns: UnityEditor.WeixinMiniGame, asm: UnityEditor.WeixinMiniGame.Extensions}
       data:
         m_Development: 0

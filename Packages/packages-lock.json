@@ -1,26 +1,16 @@
 {
   "dependencies": {
     "cn.tuanjie.minihost": {
-      "version": "1.0.9",
+      "version": "1.0.12",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.2.1"
-      },
-      "url": "https://packages.tuanjie.cn"
-    },
-    "cn.tuanjie.wx-uploader": {
-      "version": "0.1.4",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.nuget.mono-cecil": "1.10.1",
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       },
       "url": "https://packages.tuanjie.cn"
     },
     "com.bytedance.starksdk": {
-      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.5.4",
+      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.5.6",
       "depth": 0,
       "source": "local",
       "dependencies": {}
@@ -40,27 +30,20 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "f9bb0aacb83fe9a3edd89417b56178b066e4a3e8"
+      "hash": "b0bccb13e834f63b578badee05de09dfd1021ca6"
     },
     "com.qq.weixin.minigame": {
-      "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git",
+      "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git#main",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "39e40b33bfd41c989c69b21cef8d44379ca2123b"
+      "hash": "25827f8ab9bb8f01b28466f0865c1c9db56cddd8"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
       "source": "builtin",
       "dependencies": {}
-    },
-    "com.unity.device-simulator.devices": {
-      "version": "1.0.0",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.tuanjie.cn"
     },
     "com.unity.editorcoroutines": {
       "version": "1.0.0",
@@ -110,24 +93,6 @@
     },
     "com.unity.ide.vscode": {
       "version": "1.2.5",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.tuanjie.cn"
-    },
-    "com.unity.instantgame": {
-      "version": "1.0.14",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "2.0.0",
-        "com.unity.modules.autostreaming": "1.0.0",
-        "nuget.mono-cecil": "1.0.0"
-      },
-      "url": "https://packages.tuanjie.cn"
-    },
-    "com.unity.nuget.mono-cecil": {
-      "version": "1.11.4",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -193,14 +158,6 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
-    "nuget.mono-cecil": {
-      "version": "1.0.0",
-      "depth": 1,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.nuget.mono-cecil": "1.10.1"
-      }
-    },
     "com.unity.modules.animation": {
       "version": "1.0.0",
       "depth": 0,
@@ -218,19 +175,6 @@
       "depth": 0,
       "source": "builtin",
       "dependencies": {}
-    },
-    "com.unity.modules.autostreaming": {
-      "version": "1.0.0",
-      "depth": 1,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.modules.animation": "1.0.0",
-        "com.unity.modules.assetbundle": "1.0.0",
-        "com.unity.modules.audio": "1.0.0",
-        "com.unity.modules.jsonserialize": "1.0.0",
-        "com.unity.modules.unitywebrequest": "1.0.0",
-        "com.unity.modules.unitywebrequestassetbundle": "1.0.0"
-      }
     },
     "com.unity.modules.director": {
       "version": "1.0.0",
@@ -265,12 +209,6 @@
       "source": "builtin",
       "dependencies": {}
     },
-    "com.unity.modules.nvidia": {
-      "version": "1.0.0",
-      "depth": 0,
-      "source": "builtin",
-      "dependencies": {}
-    },
     "com.unity.modules.particlesystem": {
       "version": "1.0.0",
       "depth": 0,
@@ -295,14 +233,6 @@
       "source": "builtin",
       "dependencies": {
         "com.unity.modules.imageconversion": "1.0.0"
-      }
-    },
-    "com.unity.modules.texturemanager": {
-      "version": "1.0.0",
-      "depth": 0,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.modules.unitywebrequest": "1.0.0"
       }
     },
     "com.unity.modules.tilemap": {

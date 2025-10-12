@@ -13,17 +13,17 @@ MonoBehaviour:
   m_Name: MiniGameConfig
   m_EditorClassIdentifier: 
   ProjectConf:
-    projectName: 
+    projectName: MiniGame
     Appid: 
     CDN: 
-    assetLoadType: 0
+    assetLoadType: 1
     compressDataPackage: 1
     VideoUrl: 
-    relativeDST: 
-    DST: E:\MyProjects\MiniGame\
+    relativeDST: E:/MyGame/MiniGame/BuildRoot
+    DST: E:/MyGame/MiniGame/BuildRoot
     StreamCDN: 
     bundleHashLength: 32
-    bundlePathIdentifier: StreamingAssets;AS;CUS/CustomAB;
+    bundlePathIdentifier: StreamingAssets;
     bundleExcludeExtensions: json;
     AssetsUrl: 
     MemorySize: 256
@@ -31,7 +31,7 @@ MonoBehaviour:
     preloadFiles: 
     Orientation: 0
     bgImageSrc: Assets/UpdateAssets/Publish/loading.png
-    dataFileSubPrefix: CUS
+    dataFileSubPrefix: 
     maxStorage: 200
     defaultReleaseSize: 31457280
     texturesHashLength: 8
@@ -45,7 +45,7 @@ MonoBehaviour:
     UseFriendRelation: 0
     UseCompressedTexture: 0
     UseMiniGameChat: 0
-    PreloadWXFont: 1
+    PreloadWXFont: 0
     disableMultiTouch: 0
   CompileOptions:
     DevelopBuild: 0
@@ -53,13 +53,13 @@ MonoBehaviour:
     ScriptOnly: 0
     Il2CppOptimizeSize: 1
     profilingFuncs: 1
-    Webgl2: 1
+    Webgl2: 0
     fbslim: 0
     DeleteStreamingAssets: 1
     ProfilingMemory: 0
     CleanBuild: 0
     CustomNodePath: 
-    autoAdaptScreen: 1
+    autoAdaptScreen: 0
     showMonitorSuggestModal: 1
     enableProfileStats: 0
     enableRenderAnalysis: 0
@@ -67,6 +67,7 @@ MonoBehaviour:
     iOSAutoGCInterval: 10000
     enableIOSPerformancePlus: 0
     enableiOSMetal: 0
+    enableEmscriptenGLX: 0
     brotliMT: 1
     enableWasm2023: 0
   CompressTexture:

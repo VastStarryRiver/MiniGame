@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 26
-  productGUID: c80d5a399bb8dba4d87fe885dddd96f1
+  productGUID: 85582fcdd9a4e044d9533a241bebed75
   AndroidProfiler: 0
   hmiUseInternalProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
@@ -103,7 +103,7 @@ PlayerSettings:
   cacheASTextureAB: 0
   maxCacheSize: 0
   maxConcurrentLoad: 0
-  autoStreamingId: /v1/buckets//release_by_badge//content
+  autoStreamingId: 
   instantGameAppId: 
   dedicatedServerOptimizations: 0
   bakeCollisionMeshes: 0
@@ -170,9 +170,9 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 1.0.0
+  bundleVersion: 0.1.1
   preloadedAssets:
-  - {fileID: 11400000, guid: 57c344b7be0c47d48b5a1e9c3ab2b502, type: 2}
+  - {fileID: 11400000, guid: 1ff1c466697612044b0ddebd19cec243, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -192,8 +192,7 @@ PlayerSettings:
   resetResolutionOnWindowResize: 0
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
-  applicationIdentifier:
-    Standalone: com.DefaultCompany.EliminateFruit
+  applicationIdentifier: {}
   buildNumber:
     Standalone: 0
     VisionOS: 0
@@ -957,14 +956,14 @@ PlayerSettings:
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: EliminateFruit
+  metroPackageName: MiniGame
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: EliminateFruit
+  metroApplicationDescription: MiniGame
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -1057,7 +1056,7 @@ PlayerSettings:
   OpenHarmonyUseCustomModuleJsonFive: 0
   OpenHarmonyUseCustomTuanjiePlayerAbility: 0
   apiCompatibilityLevel: 6
-  weixinMiniGameMemorySize: 128
+  weixinMiniGameMemorySize: 32
   weixinMiniGameExceptionSupport: 1
   weixinMiniGameExceptionOnlyEnableForUserCodes: 0
   weixinMiniGameNameFilesAsHashes: 0
@@ -1068,7 +1067,7 @@ PlayerSettings:
     -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s TOTAL_MEMORY=256MB -s EXPORTED_RUNTIME_METHODS=''["ccall","cwrap","stackTrace","addRunDependency","removeRunDependency","FS_createPath","FS_createDataFile","stackTrace","writeStackCookie","checkStackCookie","lengthBytesUTF8","stringToUTF8"]''
     --profiling-funcs '
   weixinMiniGameModulesDirectory: 
-  weixinMiniGameTemplate: APPLICATION:Default
+  weixinMiniGameTemplate: PATH:E:\MyGame\MiniGame\Library\PackageCache\com.qq.weixin.minigame@25827f8ab9\WebGLTemplates\WXTemplate2022TJ
   weixinMiniGameAnalyzeBuildSize: 0
   weixinMiniGameUseEmbeddedResources: 0
   weixinMiniGameCompressionFormat: 2
@@ -1090,6 +1089,7 @@ PlayerSettings:
   weixinMiniGameEnableDotNetWasmExceptionHandling: 1
   weixinMiniGamePreserveEventDelegate: 0
   activeSubplatform: 1
+  serializedFileTypeTreeMemoryOptimization: 0
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
   cloudProjectId: 

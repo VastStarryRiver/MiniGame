@@ -1983,6 +1983,18 @@
             <param name="eventName"> 事件名 </param>
             <param name="param"> 上报的数据，默认为null key	: 配置中的字段名.  value(number|string|boolean) : 上报的数据</param>
         </member>
+        <member name="M:TTSDK.ITTAPI.SetPreloadList(System.Collections.Generic.List{System.String})">
+            <summary>
+            修改预加载列表
+            </summary>
+            <param name="preloadList">预加载列表</param>
+        </member>
+        <member name="M:TTSDK.ITTAPI.PreloadConcurrent(System.Int32)">
+            <summary>
+            设置预加载并发数
+            </summary>
+            <param name="concurrent"> 预加载并发数 </param>
+        </member>
         <member name="M:TTSDK.ITTAPI.Save``1(``0,System.String)">
             <summary>
             保存游戏数据接口，所有游戏数据保存上限50M
@@ -4980,6 +4992,18 @@
              https://microapp.bytedance.com/docs/zh-CN/mini-app/develop/api/device/system-information/tt-get-system-info-sync/
             </summary>
             <returns>SystemInfo 当前系统相关信息</returns>
+        </member>
+        <member name="M:TTSDK.TT.SetPreloadList(System.Collections.Generic.List{System.String})">
+            <summary>
+            修改预加载列表
+            </summary>
+            <param name="preloadList">预加载列表</param>
+        </member>
+        <member name="M:TTSDK.TT.PreloadConcurrent(System.Int32)">
+            <summary>
+            设置预加载并发数
+            </summary>
+            <param name="concurrent"> 预加载并发数 </param>
         </member>
         <member name="M:TTSDK.TT.ReportAnalytics``1(System.String,System.Collections.Generic.Dictionary{System.String,``0})">
             <summary>
