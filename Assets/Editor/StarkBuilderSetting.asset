@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1677285531, guid: 90e14225d45355b4cab3f9dda60e790d, type: 3}
+  m_Script: {fileID: 1677285531, guid: 0f50279e8b95df540bd78b04fd5777be, type: 3}
   m_Name: StarkBuilderSetting
   m_EditorClassIdentifier: 
   tag: 0
   wasmResourceUrl: 
-  OutputDir: E:\MyProjects\MiniGame\tt-minigame
+  OutputDir: E:\MyProjects\MiniGame\BuildRoot
   useByteAudioAPI: 0
   wasmMemorySize: 128
   isWebGL2: 0

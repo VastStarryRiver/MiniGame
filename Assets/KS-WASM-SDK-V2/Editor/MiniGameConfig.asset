@@ -9,17 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1795359250, guid: 1cf430f187a0b40eda7f668318d8be23, type: 3}
+  m_Script: {fileID: 784949769, guid: 1e7eee0879777b44b9b6f1e8161b9a3a, type: 3}
   m_Name: MiniGameConfig
   m_EditorClassIdentifier: 
   ProjectConf:
-    projectName: MiniGame
     Appid: 
     CDN: 
     assetLoadType: 1
     compressDataPackage: 1
+    compressWasm: 1
+    demoPackage: 0
     VideoUrl: 
-    relativeDST: E:/MyProjects/MiniGame/BuildRoot
     DST: E:/MyProjects/MiniGame/BuildRoot
     StreamCDN: 
     bundleHashLength: 32
@@ -31,6 +31,7 @@ MonoBehaviour:
     preloadFiles: 
     Orientation: 0
     bgImageSrc: Assets/UpdateAssets/Publish/loading.png
+    isCoverviewCustomized: 1
     dataFileSubPrefix: 
     maxStorage: 200
     defaultReleaseSize: 31457280
@@ -41,14 +42,13 @@ MonoBehaviour:
     needCheckUpdate: 0
     disableHighPerformanceFallback: 0
     IOSDevicePixelRatio: 0
+    buildVersion: 
+    buildDescription: 
   SDKOptions:
-    UseFriendRelation: 0
-    UseCompressedTexture: 0
-    UseMiniGameChat: 0
-    PreloadWXFont: 0
-    disableMultiTouch: 0
+    PreloadKSFont: 0
   CompileOptions:
     DevelopBuild: 0
+    ScriptDebugging: 0
     AutoProfile: 0
     ScriptOnly: 0
     Il2CppOptimizeSize: 1
@@ -59,26 +59,13 @@ MonoBehaviour:
     ProfilingMemory: 0
     CleanBuild: 0
     CustomNodePath: 
-    autoAdaptScreen: 0
+    autoAdaptScreen: 1
     showMonitorSuggestModal: 1
     enableProfileStats: 0
     enableRenderAnalysis: 0
-    enablePerfAnalysis: 0
     iOSAutoGCInterval: 10000
     enableIOSPerformancePlus: 0
-    enableiOSMetal: 0
-    enableEmscriptenGLX: 0
     brotliMT: 1
-    enableWasm2023: 0
-  CompressTexture:
-    halfSize: 0
-    useDXT5: 0
-    bundleSuffix: bundle
-    parallelWithBundle: 0
-    bundleDir: 
-    dstMinDir: 
-    debugMode: 0
-    force: 0
   PlayerPrefsKeys: []
   FontOptions:
     CJK_Unified_Ideographs: 1
@@ -100,3 +87,5 @@ MonoBehaviour:
     Geometric_Shapes: 1
     Mathematical_Operators: 1
     CustomUnicode: 
+  buildOptions: 0
+  AutoUploadOnBuild: 0

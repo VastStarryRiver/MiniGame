@@ -15,7 +15,7 @@ MonoBehaviour:
   m_BuildTarget: 47
   m_Subtarget: 3
   m_ModuleName: WeixinMiniGame
-  m_BuildPath: E:/MyGame/MiniGame/BuildRoot
+  m_BuildPath: E:/MyProjects/MiniGame/BuildRoot
   m_PlatformSettings:
     rid: 5986443074910027789
   m_MiniGameSettings:
