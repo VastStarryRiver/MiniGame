@@ -2,15 +2,15 @@
 using UnityEngine.UI;
 using System;
 
+
+
 public class LoopScrollList : ScrollRect
 {
-    public RectTransform m_itemPrefab;
     private int m_type = 0;
     private int m_totalCount = 0;
-    private Action<int,RectTransform> m_updateFunc;
+    private Action<int, RectTransform> m_updateFunc;
     private Action<Vector2> m_onValueChangedFunc;
-    private int m_index1 = -1;
-    private int m_index2 = -1;
+    private float m_lastOffset;
 
 
 
@@ -60,12 +60,13 @@ public class LoopScrollList : ScrollRect
     /// <summary>
     /// 初始化循环列表
     /// </summary>
+    /// <param name="tsCell">单元格元素</param>
     /// <param name="type">1横向 2纵向</param>
     /// <param name="showCount">需要比可见区域的元素多两个</param>
     /// <param name="totalCount">总元素个数</param>
     /// <param name="updateFunc">刷新函数</param>
     /// <param name="callBack">回调函数</param>
-    public void Init(int type, int showCount, int totalCount, Action<int, RectTransform> updateFunc, Action callBack = null)
+    public void Init(RectTransform tsCell, int type, int showCount, int totalCount, Action<int, RectTransform> updateFunc, Action callBack = null)
     {
         m_type = type;
         m_updateFunc = updateFunc;
@@ -75,156 +76,136 @@ public class LoopScrollList : ScrollRect
 
         for (int i = 0; i < showCount; i++)
         {
-            Transform item = content.GetChild(i);
+            RectTransform tsItem = null;
 
-            if(item == null)
+            if(i > content.childCount - 1)
             {
-                item = Instantiate(m_itemPrefab.gameObject, content).transform;
+                tsItem = Instantiate(tsCell.gameObject, content).transform as RectTransform;
+            }
+            else
+            {
+                tsItem = content.GetChild(i) as RectTransform;
             }
 
-            item.name = "Ts_Item" + i;
+            tsItem.name = "Ts_Item" + i;
 
-            m_updateFunc.Invoke(i, (RectTransform)item);
+            if (m_type == 1)
+            {
+                tsItem.anchoredPosition = new Vector2(i * tsItem.sizeDelta.x, 0);
+            }
+            else if (m_type == 2)
+            {
+                tsItem.anchoredPosition = new Vector2(0, i * -tsItem.sizeDelta.y);
+            }
 
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)item);
+            tsItem.gameObject.SetActive(true);
+
+            m_updateFunc.Invoke(i, tsItem);
         }
 
         if(m_type == 1)
         {
-            HorizontalLayoutGroup horizontalLayoutGroup = content.GetComponent<HorizontalLayoutGroup>();
-            horizontalLayoutGroup.spacing = 0;
-            content.sizeDelta = new Vector2(m_itemPrefab.sizeDelta.x * m_totalCount, content.sizeDelta.y);
+            content.sizeDelta = new Vector2(tsCell.sizeDelta.x * m_totalCount, content.sizeDelta.y);
         }
         else if (m_type == 2)
         {
-            VerticalLayoutGroup verticalLayoutGroup = content.GetComponent<VerticalLayoutGroup>();
-            verticalLayoutGroup.spacing = 0;
-            content.sizeDelta = new Vector2(content.sizeDelta.x, m_itemPrefab.sizeDelta.y * m_totalCount);
+            content.sizeDelta = new Vector2(content.sizeDelta.x, tsCell.sizeDelta.y * m_totalCount);
         }
 
         content.anchoredPosition = Vector2.zero;
-
-        LayoutRebuilder.ForceRebuildLayoutImmediate(content);
-
-        m_index1 = -1;
-        m_index2 = -1;
 
         callBack?.Invoke();
     }
 
     private void UpdateHorizonalItem(Vector2 pos)
     {
-        float offset = viewport.sizeDelta.x - content.sizeDelta.x;
-        float min = offset * pos.x;
-        float max = min + viewport.sizeDelta.x;
+        RectTransform tsCell = null;
+        RectTransform tsCell1 = content.GetChild(0) as RectTransform;
+        RectTransform tsCell2 = content.GetChild(content.childCount - 1) as RectTransform;
 
-        for (int i = 1; i < m_totalCount - 1; i++)
+        int id = -1;
+
+        if (pos.x - m_lastOffset > 0)
         {
-            RectTransform item1 = content.GetChild(i) as RectTransform;
-            float min2 = item1.sizeDelta.x * i;
-            float max2 = min2 + item1.sizeDelta.x;
-
-            if (min2 >= min && min2 <= min + 0.1f)
+            if (content.anchoredPosition.x + tsCell1.anchoredPosition.x + tsCell1.sizeDelta.x + 0.1f <= 0)
             {
-                if (m_index1 != i)
+                id = int.Parse(tsCell2.name.Replace("Ts_Item", "")) + 1;
+
+                if (id >= 0 && id < m_totalCount)
                 {
-                    m_index1 = i;
-
-                    Transform item2 = content.GetChild(content.childCount - 1);
-
-                    item2.SetSiblingIndex(0);
-
-                    item2.name = "Ts_Item" + i;
-
-                    m_updateFunc.Invoke(i, (RectTransform)item2);
-
-                    LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)item2);
+                    tsCell1.anchoredPosition = new Vector2(tsCell2.anchoredPosition.x + tsCell1.sizeDelta.x, 0);
+                    tsCell1.SetAsLastSibling();
+                    tsCell = tsCell1;
                 }
-            }
-            else if (max2 <= max && max2 >= max - 0.1f)
-            {
-                if (m_index2 != i)
-                {
-                    m_index2 = i;
-
-                    Transform item2 = content.GetChild(0);
-
-                    item2.SetSiblingIndex(content.childCount - 1);
-
-                    item2.name = "Ts_Item" + i;
-
-                    m_updateFunc.Invoke(i, (RectTransform)item2);
-
-                    LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)item2);
-                }
-
-                break;
             }
         }
+        else
+        {
+            if (tsCell2.anchoredPosition.x - 0.1f >= -content.anchoredPosition.x + viewport.rect.width)
+            {
+                id = int.Parse(tsCell1.name.Replace("Ts_Item", "")) - 1;
+
+                if (id >= 0 && id < m_totalCount)
+                {
+                    tsCell2.anchoredPosition = new Vector2(tsCell1.anchoredPosition.x - tsCell2.sizeDelta.x, 0);
+                    tsCell2.SetAsFirstSibling();
+                    tsCell = tsCell2;
+                }
+            }
+        }
+
+        if (tsCell != null)
+        {
+            tsCell.name = "Ts_Item" + id;
+            m_updateFunc.Invoke(id, tsCell);
+        }
+
+        m_lastOffset = pos.x;
     }
 
     private void UpdateVerticalItem(Vector2 pos)
     {
-        float offset = viewport.sizeDelta.y - content.sizeDelta.y;
-        float min = offset * pos.y;
-        float max = min + viewport.sizeDelta.y;
+        RectTransform tsCell = null;
+        RectTransform tsCell1 = content.GetChild(0) as RectTransform;
+        RectTransform tsCell2 = content.GetChild(content.childCount - 1) as RectTransform;
 
-        for (int i = 1; i < m_totalCount - 1; i++)
+        int id = -1;
+
+        if (pos.y - m_lastOffset < 0)
         {
-            RectTransform item1 = content.GetChild(i) as RectTransform;
-            float min2 = item1.sizeDelta.y * i;
-            float max2 = min2 + item1.sizeDelta.y;
-
-            if (min2 >= min && min2 <= min + 0.1f)
+            if (-tsCell1.anchoredPosition.y + tsCell1.sizeDelta.y + 0.1f <= content.anchoredPosition.y)
             {
-                if (m_index1 != i)
+                id = int.Parse(tsCell2.name.Replace("Ts_Item", "")) + 1;
+
+                if (id >= 0 && id < m_totalCount)
                 {
-                    m_index1 = i;
-
-                    Transform item2 = content.GetChild(content.childCount - 1);
-
-                    item2.SetSiblingIndex(0);
-
-                    item2.name = "Ts_Item" + i;
-
-                    m_updateFunc.Invoke(i, (RectTransform)item2);
-
-                    LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)item2);
+                    tsCell1.anchoredPosition = new Vector2(0, tsCell2.anchoredPosition.y - tsCell1.sizeDelta.y);
+                    tsCell1.SetAsLastSibling();
+                    tsCell = tsCell1;
                 }
             }
-            else if (max2 <= max && max2 >= max - 0.1f)
+        }
+        else
+        {
+            if (-tsCell2.anchoredPosition.y - 0.1f >= viewport.rect.height + content.anchoredPosition.y)
             {
-                if (m_index2 != i)
+                id = int.Parse(tsCell1.name.Replace("Ts_Item", "")) - 1;
+
+                if (id >= 0 && id < m_totalCount)
                 {
-                    m_index2 = i;
-
-                    Transform item2 = content.GetChild(0);
-
-                    item2.SetSiblingIndex(content.childCount - 1);
-
-                    item2.name = "Ts_Item" + i;
-
-                    m_updateFunc.Invoke(i, (RectTransform)item2);
-
-                    LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)item2);
+                    tsCell2.anchoredPosition = new Vector2(0, tsCell1.anchoredPosition.y + tsCell2.sizeDelta.y);
+                    tsCell2.SetAsFirstSibling();
+                    tsCell = tsCell2;
                 }
-
-                break;
             }
         }
-    }
 
-    public void UpdateAllItem()
-    {
-        for (int i = 0; i < content.childCount; i++)
+        if (tsCell != null)
         {
-            Transform item = content.GetChild(i);
-
-            int index = int.Parse(item.name.Replace("Ts_Item", ""));
-
-            m_updateFunc.Invoke(index, (RectTransform)item);
-
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)item);
+            tsCell.name = "Ts_Item" + id;
+            m_updateFunc.Invoke(id, tsCell);
         }
+
+        m_lastOffset = pos.y;
     }
 }
