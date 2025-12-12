@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+
+
 [RequireComponent(typeof(PolygonCollider2D))]
 public class PolygonImage : Image
 {

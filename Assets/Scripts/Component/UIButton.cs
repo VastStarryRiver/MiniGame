@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 
+
+
 public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private int m_clickTimes = 0;
@@ -20,19 +22,10 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
     private Action m_downFunc = null;
     private Action m_upFunc = null;
     private Action m_longPressFun = null;
-    private Action<int, Vector2> m_dragFun = null;
 
     private PointerEventData m_eventData = null;
 
     private ScrollRect m_scroll = null;
-
-    private RectTransform m_parent = null;
-
-    protected override void Awake()
-    {
-        base.Awake();
-        m_parent = transform.parent.GetComponent<RectTransform>();
-    }
 
     private void Update()
     {
@@ -95,13 +88,10 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if(m_scroll != null)
+        if (m_scroll != null)
         {
             m_scroll.OnBeginDrag(eventData);
         }
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(m_parent, eventData.position, ConvenientUtility.MainUICamera, out Vector2 pos);
-        m_dragFun?.Invoke(1, pos);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -112,9 +102,6 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
         {
             m_scroll.OnDrag(eventData);
         }
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(m_parent, eventData.position, ConvenientUtility.MainUICamera, out Vector2 pos);
-        m_dragFun?.Invoke(2, pos);
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -123,14 +110,11 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
         {
             m_scroll.OnEndDrag(eventData);
         }
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(m_parent, eventData.position, ConvenientUtility.MainUICamera, out Vector2 pos);
-        m_dragFun?.Invoke(3, pos);
     }
 
-    public void AddClickListener(Action callBack)
+    public void AddClickListener(Action Action)
     {
-        m_clickFunc = callBack;
+        m_clickFunc = Action;
     }
 
     public void ReleaseClickListener()
@@ -138,9 +122,9 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
         m_clickFunc = null;
     }
 
-    public void AddDoubleClickListener(Action callBack)
+    public void AddDoubleClickListener(Action Action)
     {
-        m_doubleClickFunc = callBack;
+        m_doubleClickFunc = Action;
     }
 
     public void ReleaseDoubleClickListener()
@@ -148,9 +132,9 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
         m_doubleClickFunc = null;
     }
 
-    public void AddDownListener(Action callBack)
+    public void AddDownListener(Action Action)
     {
-        m_downFunc = callBack;
+        m_downFunc = Action;
     }
 
     public void ReleaseDownListener()
@@ -158,9 +142,9 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
         m_downFunc = null;
     }
 
-    public void AddUpListener(Action callBack)
+    public void AddUpListener(Action Action)
     {
-        m_upFunc = callBack;
+        m_upFunc = Action;
     }
 
     public void ReleaseUpListener()
@@ -168,35 +152,15 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
         m_upFunc = null;
     }
 
-    public void AddLongPressListener(Action callBack)
+    public void AddLongPressListener(Action Action)
     {
-        m_longPressFun = callBack;
+        m_longPressFun = Action;
     }
 
     public void ReleaseLongPressListener()
     {
         m_longPressFun = null;
     }
-
-    public void AddDragListener(Action<int, Vector2> callBack)
-    {
-        m_dragFun = callBack;
-    }
-
-    public void ReleaseDragListener()
-    {
-        m_dragFun = null;
-    }
-
-    public void ReleaseListener()
-    {
-        m_clickFunc = null;
-        m_doubleClickFunc = null;
-        m_downFunc = null;
-        m_upFunc = null;
-        m_longPressFun = null;
-        m_dragFun = null;
-}
 
     public void AddDragScroll(ScrollRect scr)
     {
@@ -210,9 +174,9 @@ public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
 
     private void CallDoubleClickListener()
     {
-        if(m_eventData != null)
+        if (m_eventData != null)
         {
-            if(m_startClickTime == 0)
+            if (m_startClickTime == 0)
             {
                 m_startClickTime = Time.time;
             }

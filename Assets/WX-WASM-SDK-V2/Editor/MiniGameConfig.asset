@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ProjectConf:
     projectName: MiniGame
-    Appid: 
-    CDN: 
-    assetLoadType: 1
+    Appid: wx96a8cdfda6f1113f
+    CDN: https://a.unity.cn/client_api/v1/buckets/b24fd050-49f0-4fa8-9c6a-6d4cf4fc99c6/release_by_badge/latest/content
+    assetLoadType: 0
     compressDataPackage: 1
     VideoUrl: 
-    relativeDST: E:/MyProjects/MiniGame/BuildRoot
-    DST: E:/MyProjects/MiniGame/BuildRoot
+    relativeDST: E:/MyProjects/MiniGame/Build
+    DST: E:/MyProjects/MiniGame/Build
     StreamCDN: 
     bundleHashLength: 32
     bundlePathIdentifier: StreamingAssets;
@@ -30,7 +30,7 @@ MonoBehaviour:
     HideAfterCallMain: 1
     preloadFiles: 
     Orientation: 0
-    bgImageSrc: Assets/UpdateAssets/Publish/loading.png
+    bgImageSrc: Assets/WX-WASM-SDK-V2/Runtime/wechat-default/images/background.jpg
     dataFileSubPrefix: 
     maxStorage: 200
     defaultReleaseSize: 31457280
@@ -53,7 +53,7 @@ MonoBehaviour:
     ScriptOnly: 0
     Il2CppOptimizeSize: 1
     profilingFuncs: 1
-    Webgl2: 0
+    Webgl2: 1
     fbslim: 0
     DeleteStreamingAssets: 1
     ProfilingMemory: 0

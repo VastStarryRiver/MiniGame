@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5f1c0254cc6f415396fab55e2b1a880, type: 3}
+  m_Name: UOSEnvironments
+  m_EditorClassIdentifier: 
+  environments:
+  - environmentName: VastStarryRiver
+    appID: 0f725a8f-91d6-4437-9f57-961dae3c645e
+    appSecret: fa8ab915cf7e483483b43067f1a6df59
+    appServiceSecret: 0d4502124e0f4d0b82d6ae47a4e388f3
+    roomProfileUUID: 
+    matchmakingConfigID: 
+    configPairs: []
+  selectedAppID: 0f725a8f-91d6-4437-9f57-961dae3c645e

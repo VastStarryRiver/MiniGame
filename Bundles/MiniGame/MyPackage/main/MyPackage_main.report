@@ -1,0 +1,2515 @@
+{
+    "Summary": {
+        "YooVersion": "2.3.18",
+        "UnityVersion": "2022.3.61t9",
+        "BuildDate": "2025/12/12 17:55:19",
+        "BuildSeconds": 2,
+        "BuildTarget": 47,
+        "BuildPipeline": "ScriptableBuildPipeline",
+        "BuildBundleType": 2,
+        "BuildPackageName": "MyPackage",
+        "BuildPackageVersion": "main",
+        "BuildPackageNote": "2025/12/12 17:55:16",
+        "UniqueBundleName": false,
+        "EnableAddressable": true,
+        "SupportExtensionless": true,
+        "LocationToLower": false,
+        "IncludeAssetGUID": true,
+        "AutoCollectShaders": true,
+        "IgnoreRuleName": "YooAsset.Editor.NormalIgnoreRule",
+        "ClearBuildCacheFiles": true,
+        "UseAssetDependencyDB": true,
+        "EnableSharePackRule": true,
+        "SingleReferencedPackAlone": true,
+        "EncryptionServicesClassName": "YooAsset.Editor.EncryptionNone",
+        "ManifestProcessServicesClassName": "YooAsset.Editor.ManifestProcessNone",
+        "ManifestRestoreServicesClassName": "YooAsset.Editor.ManifestRestoreNone",
+        "FileNameStyle": 0,
+        "CompressOption": 2,
+        "DisableWriteTypeTree": false,
+        "IgnoreTypeTreeChanges": true,
+        "ReplaceAssetPathWithAddress": false,
+        "WriteLinkXML": true,
+        "CacheServerHost": "",
+        "CacheServerPort": 0,
+        "BuiltinShadersBundleName": "unityshaders.bundle",
+        "MonoScriptsBundleName": "",
+        "AssetFileTotalCount": 128,
+        "MainAssetTotalCount": 125,
+        "AllBundleTotalCount": 13,
+        "AllBundleTotalSize": 13303403,
+        "EncryptedBundleTotalCount": 0,
+        "EncryptedBundleTotalSize": 0
+    },
+    "AssetInfos": [
+        {
+            "Address": "Animtion_Play",
+            "AssetPath": "Assets/GameAssets/Animtion/Play.anim",
+            "AssetGUID": "1ebb333b3d785a14383c526117daa81c",
+            "AssetTags": [],
+            "MainBundleName": "animtion.bundle",
+            "MainBundleSize": 6448,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_Atlas00",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Atlas00.spriteatlasv2",
+            "AssetGUID": "e3827f9664944de4cb8d957cef04fc83",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas00.bundle",
+            "MainBundleSize": 132248,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_alpha.png",
+                    "AssetGUID": "0f7cacd58e0c2b046b3f2f26169c7b43"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_icon.png",
+                    "AssetGUID": "8a41d9d2283b63f4c98809068a886549"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_login.png",
+                    "AssetGUID": "112613f154a7d7e4fbfbfeb038a1be65"
+                }
+            ],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_00_alpha",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_alpha.png",
+            "AssetGUID": "0f7cacd58e0c2b046b3f2f26169c7b43",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas00.bundle",
+            "MainBundleSize": 132248,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_00_icon",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_icon.png",
+            "AssetGUID": "8a41d9d2283b63f4c98809068a886549",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas00.bundle",
+            "MainBundleSize": 132248,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_00_login",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_login.png",
+            "AssetGUID": "112613f154a7d7e4fbfbfeb038a1be65",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas00.bundle",
+            "MainBundleSize": 132248,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_Atlas01",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Atlas01.spriteatlasv2",
+            "AssetGUID": "9ec1e690f2e58dc41acc580d4c730baf",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_alpha.png",
+                    "AssetGUID": "29d70c5c3e1847a48856735529a026b4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_AnXing.png",
+                    "AssetGUID": "b58d242f19046a4498926ccaf68e995b"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Arrowright.png",
+                    "AssetGUID": "5ad34c9294600104699f0088fe10a4b4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BeiBao002.png",
+                    "AssetGUID": "ff5262664f62c4b4f98f4b85e8222bad"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiDian.png",
+                    "AssetGUID": "fb54d217bd638774f8f35b2851df9eda"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiFenGeXian.png",
+                    "AssetGUID": "856e5632bee15d24ba0396464fcbd7cf"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiZS030.png",
+                    "AssetGUID": "7e479679d15a1d843a9ab1ddc5dcc2ff"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_CeBianFenGeXian.png",
+                    "AssetGUID": "4381479f80e8aba49a9cc40bda5c9b39"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng1.png",
+                    "AssetGUID": "d1a5403ef9412c64e8906b7825f28766"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng2.png",
+                    "AssetGUID": "76d28fc35af47fe468d4938ae95e324d"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng3.png",
+                    "AssetGUID": "83d950ec581afea4b9a921b517944b93"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_ChengYuan.png",
+                    "AssetGUID": "7693347c44d54964790105b64ada6daf"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_dian.png",
+                    "AssetGUID": "c2c98ba53b85cdb46a845f5133f1a179"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_dian2.png",
+                    "AssetGUID": "37bed17ae1bd4f44f8a46493e13e8268"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_FenYeFenGeXian.png",
+                    "AssetGUID": "1d23035978c9d9b409b569dca4d80a57"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_HuoBiJia.png",
+                    "AssetGUID": "3c70b72b8f7880647a986deb349c1d0e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JianTou2.png",
+                    "AssetGUID": "bfadd3a7aca30df41bad38c6376607e5"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao01.png",
+                    "AssetGUID": "e5e87b7c8e059ca4d9ecc6ec20b80b22"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao02.png",
+                    "AssetGUID": "0aa79457303cc084d942451d070a5600"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao03.png",
+                    "AssetGUID": "a22f9fd0c606fd54cb99f067869afab6"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan1.png",
+                    "AssetGUID": "097820472072d1247a1239366c95fe98"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan2.png",
+                    "AssetGUID": "62c8901bc38c9bf43b9aca0c5e537a1f"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan3.png",
+                    "AssetGUID": "6c4a406b6733cb449af3d8b2616e59a2"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_QiPao2.png",
+                    "AssetGUID": "cb6e2433ffa9edb4d81454e9c2333bde"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_SaoDangZhuangTai1.png",
+                    "AssetGUID": "e76dbed67908e1c40a2336eb6ae88ada"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_SaoDangZhuangTai2.png",
+                    "AssetGUID": "c486b66717274fc4dab188b7bd687db3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanChuangFenGeXian.png",
+                    "AssetGUID": "f41f3f73028c328439b93245deaea269"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanChuangJianTou.png",
+                    "AssetGUID": "47d6c5b42ac11b242acd78a0d85f72e2"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanHao.png",
+                    "AssetGUID": "edf7f85c4ab6cc647ad52aa22a9c9593"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_tuodong.png",
+                    "AssetGUID": "5f6abe08573113f4bad5c333f59bb33a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_WenHao.png",
+                    "AssetGUID": "2606fa1ff80944743aec08670b814005"
+                }
+            ],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_alpha",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_alpha.png",
+            "AssetGUID": "29d70c5c3e1847a48856735529a026b4",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_AnXing",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_AnXing.png",
+            "AssetGUID": "b58d242f19046a4498926ccaf68e995b",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_Arrowright",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Arrowright.png",
+            "AssetGUID": "5ad34c9294600104699f0088fe10a4b4",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_BeiBao002",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BeiBao002.png",
+            "AssetGUID": "ff5262664f62c4b4f98f4b85e8222bad",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_BiaoTiDian",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiDian.png",
+            "AssetGUID": "fb54d217bd638774f8f35b2851df9eda",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_BiaoTiFenGeXian",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiFenGeXian.png",
+            "AssetGUID": "856e5632bee15d24ba0396464fcbd7cf",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_BiaoTiZS030",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiZS030.png",
+            "AssetGUID": "7e479679d15a1d843a9ab1ddc5dcc2ff",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_CeBianFenGeXian",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_CeBianFenGeXian.png",
+            "AssetGUID": "4381479f80e8aba49a9cc40bda5c9b39",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_Cheng1",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng1.png",
+            "AssetGUID": "d1a5403ef9412c64e8906b7825f28766",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_Cheng2",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng2.png",
+            "AssetGUID": "76d28fc35af47fe468d4938ae95e324d",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_Cheng3",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng3.png",
+            "AssetGUID": "83d950ec581afea4b9a921b517944b93",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_ChengYuan",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_ChengYuan.png",
+            "AssetGUID": "7693347c44d54964790105b64ada6daf",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_dian",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_dian.png",
+            "AssetGUID": "c2c98ba53b85cdb46a845f5133f1a179",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_dian2",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_dian2.png",
+            "AssetGUID": "37bed17ae1bd4f44f8a46493e13e8268",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_FenYeFenGeXian",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_FenYeFenGeXian.png",
+            "AssetGUID": "1d23035978c9d9b409b569dca4d80a57",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_HuoBiJia",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_HuoBiJia.png",
+            "AssetGUID": "3c70b72b8f7880647a986deb349c1d0e",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_JianTou2",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JianTou2.png",
+            "AssetGUID": "bfadd3a7aca30df41bad38c6376607e5",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_JinDuTiao01",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao01.png",
+            "AssetGUID": "e5e87b7c8e059ca4d9ecc6ec20b80b22",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_JinDuTiao02",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao02.png",
+            "AssetGUID": "0aa79457303cc084d942451d070a5600",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_JinDuTiao03",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao03.png",
+            "AssetGUID": "a22f9fd0c606fd54cb99f067869afab6",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_Lan1",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan1.png",
+            "AssetGUID": "097820472072d1247a1239366c95fe98",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_Lan2",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan2.png",
+            "AssetGUID": "62c8901bc38c9bf43b9aca0c5e537a1f",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_Lan3",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan3.png",
+            "AssetGUID": "6c4a406b6733cb449af3d8b2616e59a2",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_QiPao2",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_QiPao2.png",
+            "AssetGUID": "cb6e2433ffa9edb4d81454e9c2333bde",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_SaoDangZhuangTai1",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_SaoDangZhuangTai1.png",
+            "AssetGUID": "e76dbed67908e1c40a2336eb6ae88ada",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_SaoDangZhuangTai2",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_SaoDangZhuangTai2.png",
+            "AssetGUID": "c486b66717274fc4dab188b7bd687db3",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_TanChuangFenGeXian",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanChuangFenGeXian.png",
+            "AssetGUID": "f41f3f73028c328439b93245deaea269",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_TanChuangJianTou",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanChuangJianTou.png",
+            "AssetGUID": "47d6c5b42ac11b242acd78a0d85f72e2",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_TanHao",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanHao.png",
+            "AssetGUID": "edf7f85c4ab6cc647ad52aa22a9c9593",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_tuodong",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_tuodong.png",
+            "AssetGUID": "5f6abe08573113f4bad5c333f59bb33a",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_01_WenHao",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_WenHao.png",
+            "AssetGUID": "2606fa1ff80944743aec08670b814005",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "MainBundleSize": 30396,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_Atlas02",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Atlas02.spriteatlasv2",
+            "AssetGUID": "33c43e04ef7af8e4dbaf8401365e2882",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_alpha.png",
+                    "AssetGUID": "8ee2d9bcf0039024596976529f455723"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen10.png",
+                    "AssetGUID": "24a06e7db65a1c34fbb74eaa723b2783"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen11.png",
+                    "AssetGUID": "9b44f0aa8ba14ca4d8febadcfb792dbb"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen12.png",
+                    "AssetGUID": "519a236c7fac6724eae7a19279b20c42"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen13.png",
+                    "AssetGUID": "c7889570a5fd59844919c66c81dab5f3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx1.png",
+                    "AssetGUID": "c7fcf6c917154e64bac617874f0301cb"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx2.png",
+                    "AssetGUID": "9ae386a401052d44fa9bd1df0deb5bca"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx3.png",
+                    "AssetGUID": "3c0e0bd15b8e542439c201d650d2c80c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx4.png",
+                    "AssetGUID": "3ff63cee40310764cad38d29f80dc503"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx5.png",
+                    "AssetGUID": "f566a14c9a1a2b546851f66399395635"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx6.png",
+                    "AssetGUID": "c9df1ec885bf5d64e96a60c37a28cc1b"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx7.png",
+                    "AssetGUID": "a8ff7256f0e7e9d4e8a48279a4b81a5f"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx8.png",
+                    "AssetGUID": "09e4799c8324620469ea31e2ba84c64d"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx9.png",
+                    "AssetGUID": "d695f8d5609f5af4186dbdff58bfbf60"
+                }
+            ],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_alpha",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_alpha.png",
+            "AssetGUID": "8ee2d9bcf0039024596976529f455723",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_FunOpen10",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen10.png",
+            "AssetGUID": "24a06e7db65a1c34fbb74eaa723b2783",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_FunOpen11",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen11.png",
+            "AssetGUID": "9b44f0aa8ba14ca4d8febadcfb792dbb",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_FunOpen12",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen12.png",
+            "AssetGUID": "519a236c7fac6724eae7a19279b20c42",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_FunOpen13",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen13.png",
+            "AssetGUID": "c7889570a5fd59844919c66c81dab5f3",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx1",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx1.png",
+            "AssetGUID": "c7fcf6c917154e64bac617874f0301cb",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx2",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx2.png",
+            "AssetGUID": "9ae386a401052d44fa9bd1df0deb5bca",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx3",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx3.png",
+            "AssetGUID": "3c0e0bd15b8e542439c201d650d2c80c",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx4",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx4.png",
+            "AssetGUID": "3ff63cee40310764cad38d29f80dc503",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx5",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx5.png",
+            "AssetGUID": "f566a14c9a1a2b546851f66399395635",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx6",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx6.png",
+            "AssetGUID": "c9df1ec885bf5d64e96a60c37a28cc1b",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx7",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx7.png",
+            "AssetGUID": "a8ff7256f0e7e9d4e8a48279a4b81a5f",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx8",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx8.png",
+            "AssetGUID": "09e4799c8324620469ea31e2ba84c64d",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_02_rwtx9",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx9.png",
+            "AssetGUID": "d695f8d5609f5af4186dbdff58bfbf60",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "MainBundleSize": 85356,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_Atlas03",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Atlas03.spriteatlasv2",
+            "AssetGUID": "755fa8a0d76590b4bbf84ec21bfc15bb",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_1.png",
+                    "AssetGUID": "377660d6cb92b6d42b9014859461b08c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_10.png",
+                    "AssetGUID": "ca9056fe46d897d44aa84bb4a8f44cda"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_11.png",
+                    "AssetGUID": "2845a919db67dca43b83ad9264131463"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_12.png",
+                    "AssetGUID": "dfa1c1ca7de0df740b8aff62c2d8a1c3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_13.png",
+                    "AssetGUID": "b5f680f2fb878d4489e991f748bda845"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_14.png",
+                    "AssetGUID": "53c2a3b8303d24643be89830fbf73f33"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_15.png",
+                    "AssetGUID": "14b26821155954842b3f19a8b221488c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_16.png",
+                    "AssetGUID": "9f593c449b219f2478bd79648c217af4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_17.png",
+                    "AssetGUID": "7709729e272c54d48adeb2abf01dcc43"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_18.png",
+                    "AssetGUID": "b6f5f767a93984a499d155328b848934"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_19.png",
+                    "AssetGUID": "137e745680b44d64798e2074df66a1c4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_2.png",
+                    "AssetGUID": "811b994ba74ecb04abe4edd7209fca57"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_20.png",
+                    "AssetGUID": "2236730c14f872a42a1b15eb33006652"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_21.png",
+                    "AssetGUID": "a2d4fd893c8e6914980ea33215a2c235"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_22.png",
+                    "AssetGUID": "1b5fc1ae7ec44ba4c983021139455d5f"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_23.png",
+                    "AssetGUID": "3038b8c31ca55344b9a74001984471bc"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_24.png",
+                    "AssetGUID": "92fb311490f75d547bb936a5a0436dd3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_25.png",
+                    "AssetGUID": "2218befc0cea48c499a78222a9063985"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_26.png",
+                    "AssetGUID": "5a75140551b056f46bb85f3d9130473c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_27.png",
+                    "AssetGUID": "90f920f8ae9a8214fb4837fe4ab28847"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_28.png",
+                    "AssetGUID": "5223457ea67299945879b230df8c3f42"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_29.png",
+                    "AssetGUID": "e4e9e6d731158c545ae2544c7a2f56aa"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_3.png",
+                    "AssetGUID": "43b3b293ed9f61c488cd676875b2033e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_30.png",
+                    "AssetGUID": "2fa0671782a60db4c83011f9ff281f0d"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_31.png",
+                    "AssetGUID": "0128c20fee55b914a829ed2f3591e469"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_32.png",
+                    "AssetGUID": "67b8ca1439b26c248814c4bbc87dde90"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_33.png",
+                    "AssetGUID": "2fa90d7c76586114fbdfe920061aedd3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_34.png",
+                    "AssetGUID": "a11be569245b25544a72f654ea3eeb32"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_35.png",
+                    "AssetGUID": "5b75cb7348814564aa53961cb7a90715"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_36.png",
+                    "AssetGUID": "654542e25b045c74fa6110f5f33bfbef"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_37.png",
+                    "AssetGUID": "4487c14054847b0488a7ac092ce880de"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_38.png",
+                    "AssetGUID": "a1b37fe38f06b6a43a717767d5bcb9a1"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_39.png",
+                    "AssetGUID": "f69353ba4cdfe414d8727584f683a5df"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_4.png",
+                    "AssetGUID": "dbffec88733d4d840b4cfb44e257082e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_40.png",
+                    "AssetGUID": "166b8dcf84a97854aa56abf5ae6c9efd"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_41.png",
+                    "AssetGUID": "6ee1aeff0fcca564dafccaf2167fc781"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_42.png",
+                    "AssetGUID": "00545f752a1fa7841a4284c955dddde1"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_43.png",
+                    "AssetGUID": "4df87d9feacdf284796224098e4e9d46"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_44.png",
+                    "AssetGUID": "e532b0d7f39a23c4495786670f77c66a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_45.png",
+                    "AssetGUID": "31013f7c435e91a49924822d473262fa"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_46.png",
+                    "AssetGUID": "e56bc725a54f13d43bbaadd35fce6996"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_47.png",
+                    "AssetGUID": "dcf170843b7dfe145849f4cdf8dc0abc"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_48.png",
+                    "AssetGUID": "233ecf9c73d5da043a2fd359f5e11f17"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_49.png",
+                    "AssetGUID": "7b3577384c6672349a691d480287ce6e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_5.png",
+                    "AssetGUID": "1fdcb548a5651b5499cac97001186409"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_50.png",
+                    "AssetGUID": "3e5dbdd9b1237cc45985ac6260884cd5"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_51.png",
+                    "AssetGUID": "19737357ab960c44b901ca04fc8540de"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_52.png",
+                    "AssetGUID": "7468eecf77d4f604ebc4aefca313cbe7"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_53.png",
+                    "AssetGUID": "1b3cc8e1fc68c2645b319633760ccbc4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_54.png",
+                    "AssetGUID": "8f0d9806c8e64024991af0b82cfd6d0e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_55.png",
+                    "AssetGUID": "f4c038c97b364a14f935b7758dc9fa77"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_56.png",
+                    "AssetGUID": "7e81029c383b6444cb4e0c1725169f9a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_57.png",
+                    "AssetGUID": "fa63fe0e1fb33574ba985dfa7c2b3358"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_58.png",
+                    "AssetGUID": "ff45d29c8cdbf5d4f9ecbb44fc6b2ed3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_59.png",
+                    "AssetGUID": "98610b0788cd87141ae7139de165961a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_6.png",
+                    "AssetGUID": "af0375a08febf9543b725e26a56a54b3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_60.png",
+                    "AssetGUID": "2f9ec60180a34a040b92eb6d67339642"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_7.png",
+                    "AssetGUID": "096bfd291069c5649b44758bd066bac6"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_8.png",
+                    "AssetGUID": "0cc22ae7c9b71c04ea44725360a7ad39"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_9.png",
+                    "AssetGUID": "95eb5b5672e735942b346ce577e08528"
+                }
+            ],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_1",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_1.png",
+            "AssetGUID": "377660d6cb92b6d42b9014859461b08c",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_10",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_10.png",
+            "AssetGUID": "ca9056fe46d897d44aa84bb4a8f44cda",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_11",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_11.png",
+            "AssetGUID": "2845a919db67dca43b83ad9264131463",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_12",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_12.png",
+            "AssetGUID": "dfa1c1ca7de0df740b8aff62c2d8a1c3",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_13",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_13.png",
+            "AssetGUID": "b5f680f2fb878d4489e991f748bda845",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_14",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_14.png",
+            "AssetGUID": "53c2a3b8303d24643be89830fbf73f33",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_15",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_15.png",
+            "AssetGUID": "14b26821155954842b3f19a8b221488c",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_16",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_16.png",
+            "AssetGUID": "9f593c449b219f2478bd79648c217af4",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_17",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_17.png",
+            "AssetGUID": "7709729e272c54d48adeb2abf01dcc43",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_18",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_18.png",
+            "AssetGUID": "b6f5f767a93984a499d155328b848934",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_19",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_19.png",
+            "AssetGUID": "137e745680b44d64798e2074df66a1c4",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_2",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_2.png",
+            "AssetGUID": "811b994ba74ecb04abe4edd7209fca57",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_20",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_20.png",
+            "AssetGUID": "2236730c14f872a42a1b15eb33006652",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_21",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_21.png",
+            "AssetGUID": "a2d4fd893c8e6914980ea33215a2c235",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_22",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_22.png",
+            "AssetGUID": "1b5fc1ae7ec44ba4c983021139455d5f",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_23",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_23.png",
+            "AssetGUID": "3038b8c31ca55344b9a74001984471bc",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_24",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_24.png",
+            "AssetGUID": "92fb311490f75d547bb936a5a0436dd3",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_25",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_25.png",
+            "AssetGUID": "2218befc0cea48c499a78222a9063985",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_26",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_26.png",
+            "AssetGUID": "5a75140551b056f46bb85f3d9130473c",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_27",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_27.png",
+            "AssetGUID": "90f920f8ae9a8214fb4837fe4ab28847",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_28",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_28.png",
+            "AssetGUID": "5223457ea67299945879b230df8c3f42",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_29",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_29.png",
+            "AssetGUID": "e4e9e6d731158c545ae2544c7a2f56aa",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_3",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_3.png",
+            "AssetGUID": "43b3b293ed9f61c488cd676875b2033e",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_30",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_30.png",
+            "AssetGUID": "2fa0671782a60db4c83011f9ff281f0d",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_31",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_31.png",
+            "AssetGUID": "0128c20fee55b914a829ed2f3591e469",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_32",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_32.png",
+            "AssetGUID": "67b8ca1439b26c248814c4bbc87dde90",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_33",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_33.png",
+            "AssetGUID": "2fa90d7c76586114fbdfe920061aedd3",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_34",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_34.png",
+            "AssetGUID": "a11be569245b25544a72f654ea3eeb32",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_35",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_35.png",
+            "AssetGUID": "5b75cb7348814564aa53961cb7a90715",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_36",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_36.png",
+            "AssetGUID": "654542e25b045c74fa6110f5f33bfbef",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_37",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_37.png",
+            "AssetGUID": "4487c14054847b0488a7ac092ce880de",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_38",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_38.png",
+            "AssetGUID": "a1b37fe38f06b6a43a717767d5bcb9a1",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_39",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_39.png",
+            "AssetGUID": "f69353ba4cdfe414d8727584f683a5df",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_4",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_4.png",
+            "AssetGUID": "dbffec88733d4d840b4cfb44e257082e",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_40",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_40.png",
+            "AssetGUID": "166b8dcf84a97854aa56abf5ae6c9efd",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_41",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_41.png",
+            "AssetGUID": "6ee1aeff0fcca564dafccaf2167fc781",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_42",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_42.png",
+            "AssetGUID": "00545f752a1fa7841a4284c955dddde1",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_43",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_43.png",
+            "AssetGUID": "4df87d9feacdf284796224098e4e9d46",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_44",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_44.png",
+            "AssetGUID": "e532b0d7f39a23c4495786670f77c66a",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_45",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_45.png",
+            "AssetGUID": "31013f7c435e91a49924822d473262fa",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_46",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_46.png",
+            "AssetGUID": "e56bc725a54f13d43bbaadd35fce6996",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_47",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_47.png",
+            "AssetGUID": "dcf170843b7dfe145849f4cdf8dc0abc",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_48",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_48.png",
+            "AssetGUID": "233ecf9c73d5da043a2fd359f5e11f17",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_49",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_49.png",
+            "AssetGUID": "7b3577384c6672349a691d480287ce6e",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_5",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_5.png",
+            "AssetGUID": "1fdcb548a5651b5499cac97001186409",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_50",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_50.png",
+            "AssetGUID": "3e5dbdd9b1237cc45985ac6260884cd5",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_51",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_51.png",
+            "AssetGUID": "19737357ab960c44b901ca04fc8540de",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_52",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_52.png",
+            "AssetGUID": "7468eecf77d4f604ebc4aefca313cbe7",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_53",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_53.png",
+            "AssetGUID": "1b3cc8e1fc68c2645b319633760ccbc4",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_54",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_54.png",
+            "AssetGUID": "8f0d9806c8e64024991af0b82cfd6d0e",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_55",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_55.png",
+            "AssetGUID": "f4c038c97b364a14f935b7758dc9fa77",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_56",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_56.png",
+            "AssetGUID": "7e81029c383b6444cb4e0c1725169f9a",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_57",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_57.png",
+            "AssetGUID": "fa63fe0e1fb33574ba985dfa7c2b3358",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_58",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_58.png",
+            "AssetGUID": "ff45d29c8cdbf5d4f9ecbb44fc6b2ed3",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_59",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_59.png",
+            "AssetGUID": "98610b0788cd87141ae7139de165961a",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_6",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_6.png",
+            "AssetGUID": "af0375a08febf9543b725e26a56a54b3",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_60",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_60.png",
+            "AssetGUID": "2f9ec60180a34a040b92eb6d67339642",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_7",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_7.png",
+            "AssetGUID": "096bfd291069c5649b44758bd066bac6",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_8",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_8.png",
+            "AssetGUID": "0cc22ae7c9b71c04ea44725360a7ad39",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Atlas_emoji_9",
+            "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_9.png",
+            "AssetGUID": "95eb5b5672e735942b346ce577e08528",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "MainBundleSize": 509593,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Audios_music",
+            "AssetPath": "Assets/GameAssets/Audios/music.mp3",
+            "AssetGUID": "c28eba3e8c5571d4db0950591a0eab14",
+            "AssetTags": [],
+            "MainBundleName": "audios.bundle",
+            "MainBundleSize": 1492360,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Config_Player",
+            "AssetPath": "Assets/GameAssets/Config/Player.bin",
+            "AssetGUID": "495f0f185cc9c0942999b231de424ea7",
+            "AssetTags": [],
+            "MainBundleName": "config.bundle",
+            "MainBundleSize": 29744,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Config_RoleRune",
+            "AssetPath": "Assets/GameAssets/Config/RoleRune.bin",
+            "AssetGUID": "77526f992e3a3e147bb37f6f68f4a571",
+            "AssetTags": [],
+            "MainBundleName": "config.bundle",
+            "MainBundleSize": 29744,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Materials_GrayscaleMaterial",
+            "AssetPath": "Assets/GameAssets/Materials/Grayscale/GrayscaleMaterial.mat",
+            "AssetGUID": "ae3b2b184851e0e4c81b00afa25f44d4",
+            "AssetTags": [],
+            "MainBundleName": "materials.bundle",
+            "MainBundleSize": 2773,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/GameAssets/Materials/Grayscale/GrayscaleShader.shader",
+                    "AssetGUID": "8c0e10fab654cdc4a969a630165c0239"
+                }
+            ],
+            "DependBundles": [
+                "unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "Materials_GrayscaleShader",
+            "AssetPath": "Assets/GameAssets/Materials/Grayscale/GrayscaleShader.shader",
+            "AssetGUID": "8c0e10fab654cdc4a969a630165c0239",
+            "AssetTags": [],
+            "MainBundleName": "unityshaders.bundle",
+            "MainBundleSize": 42837,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Materials_UIMaskGrayscaleMaterial",
+            "AssetPath": "Assets/GameAssets/Materials/UIMaskGrayscale/UIMaskGrayscaleMaterial.mat",
+            "AssetGUID": "1ca157b2b5c3f264ebe2c48b9e3f76e0",
+            "AssetTags": [],
+            "MainBundleName": "materials.bundle",
+            "MainBundleSize": 2773,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/GameAssets/Materials/UIMaskGrayscale/UIMaskGrayscaleShader.shader",
+                    "AssetGUID": "475530265e1f64848b29cfe8d8aa0e0b"
+                }
+            ],
+            "DependBundles": [
+                "unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "Materials_UIMaskGrayscaleShader",
+            "AssetPath": "Assets/GameAssets/Materials/UIMaskGrayscale/UIMaskGrayscaleShader.shader",
+            "AssetGUID": "475530265e1f64848b29cfe8d8aa0e0b",
+            "AssetTags": [],
+            "MainBundleName": "unityshaders.bundle",
+            "MainBundleSize": 42837,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Png_bg_hghg_wdtx1",
+            "AssetPath": "Assets/GameAssets/Png/bg_hghg_wdtx1.png",
+            "AssetGUID": "e08b250c1000bf94f8e7c8e9016cae6a",
+            "AssetTags": [],
+            "MainBundleName": "png.bundle",
+            "MainBundleSize": 2781121,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Png_bg_hghg_wdtx2",
+            "AssetPath": "Assets/GameAssets/Png/bg_hghg_wdtx2.png",
+            "AssetGUID": "b7156e3479d877b469babdfd11e3e57b",
+            "AssetTags": [],
+            "MainBundleName": "png.bundle",
+            "MainBundleSize": 2781121,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Png_bg_hghg_wdtx3",
+            "AssetPath": "Assets/GameAssets/Png/bg_hghg_wdtx3.png",
+            "AssetGUID": "03b3917902d82db44b98b7a241c0f31e",
+            "AssetTags": [],
+            "MainBundleName": "png.bundle",
+            "MainBundleSize": 2781121,
+            "DependAssets": [],
+            "DependBundles": []
+        },
+        {
+            "Address": "Prefabs_GameLoadingPanel",
+            "AssetPath": "Assets/GameAssets/Prefabs/UI/CommonPanel/GameLoadingPanel.prefab",
+            "AssetGUID": "97c6de806b9d43847a56fa3904ac48e4",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_prefabs_ui.bundle",
+            "MainBundleSize": 14713,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/GameAssets/Png/bg_hghg_wdtx1.png",
+                    "AssetGUID": "e08b250c1000bf94f8e7c8e9016cae6a"
+                },
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Fonts/NotoSansSC.otf",
+                    "AssetGUID": "1a63f5a611ee31a499ea18bcbd2f7a57"
+                },
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Resources/Fonts & Materials/NotoSansSC.asset",
+                    "AssetGUID": "858c308463e95744387b55937bccd745"
+                },
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Shaders/TMP_SDF.shader",
+                    "AssetGUID": "68e6db2ebdc24f95958faec2be5558d6"
+                }
+            ],
+            "DependBundles": [
+                "png.bundle",
+                "share_assets_toolpackage_textmesh_pro_fonts.bundle",
+                "share_assets_toolpackage_textmesh_pro_resources_fonts_&_materials.bundle",
+                "unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "Prefabs_LoginPanel",
+            "AssetPath": "Assets/GameAssets/Prefabs/UI/Workflow/LoginPanel.prefab",
+            "AssetGUID": "903462c68fb3f3842b526e35565ce7b8",
+            "AssetTags": [],
+            "MainBundleName": "assets_gameassets_prefabs_ui.bundle",
+            "MainBundleSize": 14713,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/GameAssets/Animtion/Play.anim",
+                    "AssetGUID": "1ebb333b3d785a14383c526117daa81c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen10.png",
+                    "AssetGUID": "24a06e7db65a1c34fbb74eaa723b2783"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen11.png",
+                    "AssetGUID": "9b44f0aa8ba14ca4d8febadcfb792dbb"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Png/bg_hghg_wdtx2.png",
+                    "AssetGUID": "b7156e3479d877b469babdfd11e3e57b"
+                },
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Fonts/NotoSansSC.otf",
+                    "AssetGUID": "1a63f5a611ee31a499ea18bcbd2f7a57"
+                },
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Resources/Fonts & Materials/NotoSansSC.asset",
+                    "AssetGUID": "858c308463e95744387b55937bccd745"
+                },
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Shaders/TMP_SDF.shader",
+                    "AssetGUID": "68e6db2ebdc24f95958faec2be5558d6"
+                }
+            ],
+            "DependBundles": [
+                "animtion.bundle",
+                "assets_gameassets_atlas_atlas02.bundle",
+                "png.bundle",
+                "share_assets_toolpackage_textmesh_pro_fonts.bundle",
+                "share_assets_toolpackage_textmesh_pro_resources_fonts_&_materials.bundle",
+                "unityshaders.bundle"
+            ]
+        }
+    ],
+    "BundleInfos": [
+        {
+            "BundleName": "animtion.bundle",
+            "FileName": "5d6d00df1dd069b66ee59d83fe3f09d9.bundle",
+            "FileHash": "5d6d00df1dd069b66ee59d83fe3f09d9",
+            "FileCRC": 120454220,
+            "FileSize": 6448,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "assets_gameassets_prefabs_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Animtion/Play.anim",
+                    "AssetGUID": "1ebb333b3d785a14383c526117daa81c"
+                }
+            ]
+        },
+        {
+            "BundleName": "assets_gameassets_atlas_atlas00.bundle",
+            "FileName": "0c5f5f7deba3524eaf1131080e3e068d.bundle",
+            "FileHash": "0c5f5f7deba3524eaf1131080e3e068d",
+            "FileCRC": 2780263324,
+            "FileSize": 132248,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Atlas00.spriteatlasv2",
+                    "AssetGUID": "e3827f9664944de4cb8d957cef04fc83"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_alpha.png",
+                    "AssetGUID": "0f7cacd58e0c2b046b3f2f26169c7b43"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_icon.png",
+                    "AssetGUID": "8a41d9d2283b63f4c98809068a886549"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas00/Texture/00_login.png",
+                    "AssetGUID": "112613f154a7d7e4fbfbfeb038a1be65"
+                }
+            ]
+        },
+        {
+            "BundleName": "assets_gameassets_atlas_atlas01.bundle",
+            "FileName": "b9cb13a3a89d053b8948663c2d58920a.bundle",
+            "FileHash": "b9cb13a3a89d053b8948663c2d58920a",
+            "FileCRC": 1851205600,
+            "FileSize": 30396,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Atlas01.spriteatlasv2",
+                    "AssetGUID": "9ec1e690f2e58dc41acc580d4c730baf"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_alpha.png",
+                    "AssetGUID": "29d70c5c3e1847a48856735529a026b4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_AnXing.png",
+                    "AssetGUID": "b58d242f19046a4498926ccaf68e995b"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Arrowright.png",
+                    "AssetGUID": "5ad34c9294600104699f0088fe10a4b4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BeiBao002.png",
+                    "AssetGUID": "ff5262664f62c4b4f98f4b85e8222bad"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiDian.png",
+                    "AssetGUID": "fb54d217bd638774f8f35b2851df9eda"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiFenGeXian.png",
+                    "AssetGUID": "856e5632bee15d24ba0396464fcbd7cf"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_BiaoTiZS030.png",
+                    "AssetGUID": "7e479679d15a1d843a9ab1ddc5dcc2ff"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_CeBianFenGeXian.png",
+                    "AssetGUID": "4381479f80e8aba49a9cc40bda5c9b39"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng1.png",
+                    "AssetGUID": "d1a5403ef9412c64e8906b7825f28766"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng2.png",
+                    "AssetGUID": "76d28fc35af47fe468d4938ae95e324d"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Cheng3.png",
+                    "AssetGUID": "83d950ec581afea4b9a921b517944b93"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_ChengYuan.png",
+                    "AssetGUID": "7693347c44d54964790105b64ada6daf"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_dian.png",
+                    "AssetGUID": "c2c98ba53b85cdb46a845f5133f1a179"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_dian2.png",
+                    "AssetGUID": "37bed17ae1bd4f44f8a46493e13e8268"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_FenYeFenGeXian.png",
+                    "AssetGUID": "1d23035978c9d9b409b569dca4d80a57"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_HuoBiJia.png",
+                    "AssetGUID": "3c70b72b8f7880647a986deb349c1d0e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JianTou2.png",
+                    "AssetGUID": "bfadd3a7aca30df41bad38c6376607e5"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao01.png",
+                    "AssetGUID": "e5e87b7c8e059ca4d9ecc6ec20b80b22"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao02.png",
+                    "AssetGUID": "0aa79457303cc084d942451d070a5600"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_JinDuTiao03.png",
+                    "AssetGUID": "a22f9fd0c606fd54cb99f067869afab6"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan1.png",
+                    "AssetGUID": "097820472072d1247a1239366c95fe98"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan2.png",
+                    "AssetGUID": "62c8901bc38c9bf43b9aca0c5e537a1f"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_Lan3.png",
+                    "AssetGUID": "6c4a406b6733cb449af3d8b2616e59a2"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_QiPao2.png",
+                    "AssetGUID": "cb6e2433ffa9edb4d81454e9c2333bde"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_SaoDangZhuangTai1.png",
+                    "AssetGUID": "e76dbed67908e1c40a2336eb6ae88ada"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_SaoDangZhuangTai2.png",
+                    "AssetGUID": "c486b66717274fc4dab188b7bd687db3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanChuangFenGeXian.png",
+                    "AssetGUID": "f41f3f73028c328439b93245deaea269"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanChuangJianTou.png",
+                    "AssetGUID": "47d6c5b42ac11b242acd78a0d85f72e2"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_TanHao.png",
+                    "AssetGUID": "edf7f85c4ab6cc647ad52aa22a9c9593"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_tuodong.png",
+                    "AssetGUID": "5f6abe08573113f4bad5c333f59bb33a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas01/Texture/01_WenHao.png",
+                    "AssetGUID": "2606fa1ff80944743aec08670b814005"
+                }
+            ]
+        },
+        {
+            "BundleName": "assets_gameassets_atlas_atlas02.bundle",
+            "FileName": "2953b4731f27d583959ad06ec21f6e0b.bundle",
+            "FileHash": "2953b4731f27d583959ad06ec21f6e0b",
+            "FileCRC": 3029999865,
+            "FileSize": 85356,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "assets_gameassets_prefabs_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Atlas02.spriteatlasv2",
+                    "AssetGUID": "33c43e04ef7af8e4dbaf8401365e2882"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_alpha.png",
+                    "AssetGUID": "8ee2d9bcf0039024596976529f455723"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen10.png",
+                    "AssetGUID": "24a06e7db65a1c34fbb74eaa723b2783"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen11.png",
+                    "AssetGUID": "9b44f0aa8ba14ca4d8febadcfb792dbb"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen12.png",
+                    "AssetGUID": "519a236c7fac6724eae7a19279b20c42"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_FunOpen13.png",
+                    "AssetGUID": "c7889570a5fd59844919c66c81dab5f3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx1.png",
+                    "AssetGUID": "c7fcf6c917154e64bac617874f0301cb"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx2.png",
+                    "AssetGUID": "9ae386a401052d44fa9bd1df0deb5bca"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx3.png",
+                    "AssetGUID": "3c0e0bd15b8e542439c201d650d2c80c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx4.png",
+                    "AssetGUID": "3ff63cee40310764cad38d29f80dc503"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx5.png",
+                    "AssetGUID": "f566a14c9a1a2b546851f66399395635"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx6.png",
+                    "AssetGUID": "c9df1ec885bf5d64e96a60c37a28cc1b"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx7.png",
+                    "AssetGUID": "a8ff7256f0e7e9d4e8a48279a4b81a5f"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx8.png",
+                    "AssetGUID": "09e4799c8324620469ea31e2ba84c64d"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas02/Texture/02_rwtx9.png",
+                    "AssetGUID": "d695f8d5609f5af4186dbdff58bfbf60"
+                }
+            ]
+        },
+        {
+            "BundleName": "assets_gameassets_atlas_atlas03.bundle",
+            "FileName": "b27ff2209760834ec8c7e6cf233eba43.bundle",
+            "FileHash": "b27ff2209760834ec8c7e6cf233eba43",
+            "FileCRC": 2774069364,
+            "FileSize": 509593,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Atlas03.spriteatlasv2",
+                    "AssetGUID": "755fa8a0d76590b4bbf84ec21bfc15bb"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_1.png",
+                    "AssetGUID": "377660d6cb92b6d42b9014859461b08c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_10.png",
+                    "AssetGUID": "ca9056fe46d897d44aa84bb4a8f44cda"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_11.png",
+                    "AssetGUID": "2845a919db67dca43b83ad9264131463"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_12.png",
+                    "AssetGUID": "dfa1c1ca7de0df740b8aff62c2d8a1c3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_13.png",
+                    "AssetGUID": "b5f680f2fb878d4489e991f748bda845"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_14.png",
+                    "AssetGUID": "53c2a3b8303d24643be89830fbf73f33"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_15.png",
+                    "AssetGUID": "14b26821155954842b3f19a8b221488c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_16.png",
+                    "AssetGUID": "9f593c449b219f2478bd79648c217af4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_17.png",
+                    "AssetGUID": "7709729e272c54d48adeb2abf01dcc43"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_18.png",
+                    "AssetGUID": "b6f5f767a93984a499d155328b848934"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_19.png",
+                    "AssetGUID": "137e745680b44d64798e2074df66a1c4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_2.png",
+                    "AssetGUID": "811b994ba74ecb04abe4edd7209fca57"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_20.png",
+                    "AssetGUID": "2236730c14f872a42a1b15eb33006652"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_21.png",
+                    "AssetGUID": "a2d4fd893c8e6914980ea33215a2c235"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_22.png",
+                    "AssetGUID": "1b5fc1ae7ec44ba4c983021139455d5f"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_23.png",
+                    "AssetGUID": "3038b8c31ca55344b9a74001984471bc"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_24.png",
+                    "AssetGUID": "92fb311490f75d547bb936a5a0436dd3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_25.png",
+                    "AssetGUID": "2218befc0cea48c499a78222a9063985"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_26.png",
+                    "AssetGUID": "5a75140551b056f46bb85f3d9130473c"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_27.png",
+                    "AssetGUID": "90f920f8ae9a8214fb4837fe4ab28847"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_28.png",
+                    "AssetGUID": "5223457ea67299945879b230df8c3f42"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_29.png",
+                    "AssetGUID": "e4e9e6d731158c545ae2544c7a2f56aa"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_3.png",
+                    "AssetGUID": "43b3b293ed9f61c488cd676875b2033e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_30.png",
+                    "AssetGUID": "2fa0671782a60db4c83011f9ff281f0d"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_31.png",
+                    "AssetGUID": "0128c20fee55b914a829ed2f3591e469"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_32.png",
+                    "AssetGUID": "67b8ca1439b26c248814c4bbc87dde90"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_33.png",
+                    "AssetGUID": "2fa90d7c76586114fbdfe920061aedd3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_34.png",
+                    "AssetGUID": "a11be569245b25544a72f654ea3eeb32"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_35.png",
+                    "AssetGUID": "5b75cb7348814564aa53961cb7a90715"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_36.png",
+                    "AssetGUID": "654542e25b045c74fa6110f5f33bfbef"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_37.png",
+                    "AssetGUID": "4487c14054847b0488a7ac092ce880de"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_38.png",
+                    "AssetGUID": "a1b37fe38f06b6a43a717767d5bcb9a1"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_39.png",
+                    "AssetGUID": "f69353ba4cdfe414d8727584f683a5df"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_4.png",
+                    "AssetGUID": "dbffec88733d4d840b4cfb44e257082e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_40.png",
+                    "AssetGUID": "166b8dcf84a97854aa56abf5ae6c9efd"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_41.png",
+                    "AssetGUID": "6ee1aeff0fcca564dafccaf2167fc781"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_42.png",
+                    "AssetGUID": "00545f752a1fa7841a4284c955dddde1"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_43.png",
+                    "AssetGUID": "4df87d9feacdf284796224098e4e9d46"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_44.png",
+                    "AssetGUID": "e532b0d7f39a23c4495786670f77c66a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_45.png",
+                    "AssetGUID": "31013f7c435e91a49924822d473262fa"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_46.png",
+                    "AssetGUID": "e56bc725a54f13d43bbaadd35fce6996"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_47.png",
+                    "AssetGUID": "dcf170843b7dfe145849f4cdf8dc0abc"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_48.png",
+                    "AssetGUID": "233ecf9c73d5da043a2fd359f5e11f17"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_49.png",
+                    "AssetGUID": "7b3577384c6672349a691d480287ce6e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_5.png",
+                    "AssetGUID": "1fdcb548a5651b5499cac97001186409"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_50.png",
+                    "AssetGUID": "3e5dbdd9b1237cc45985ac6260884cd5"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_51.png",
+                    "AssetGUID": "19737357ab960c44b901ca04fc8540de"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_52.png",
+                    "AssetGUID": "7468eecf77d4f604ebc4aefca313cbe7"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_53.png",
+                    "AssetGUID": "1b3cc8e1fc68c2645b319633760ccbc4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_54.png",
+                    "AssetGUID": "8f0d9806c8e64024991af0b82cfd6d0e"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_55.png",
+                    "AssetGUID": "f4c038c97b364a14f935b7758dc9fa77"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_56.png",
+                    "AssetGUID": "7e81029c383b6444cb4e0c1725169f9a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_57.png",
+                    "AssetGUID": "fa63fe0e1fb33574ba985dfa7c2b3358"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_58.png",
+                    "AssetGUID": "ff45d29c8cdbf5d4f9ecbb44fc6b2ed3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_59.png",
+                    "AssetGUID": "98610b0788cd87141ae7139de165961a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_6.png",
+                    "AssetGUID": "af0375a08febf9543b725e26a56a54b3"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_60.png",
+                    "AssetGUID": "2f9ec60180a34a040b92eb6d67339642"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_7.png",
+                    "AssetGUID": "096bfd291069c5649b44758bd066bac6"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_8.png",
+                    "AssetGUID": "0cc22ae7c9b71c04ea44725360a7ad39"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Atlas/Atlas03/Texture/emoji_9.png",
+                    "AssetGUID": "95eb5b5672e735942b346ce577e08528"
+                }
+            ]
+        },
+        {
+            "BundleName": "assets_gameassets_prefabs_ui.bundle",
+            "FileName": "a3eb1747db947c372d145118cb2f0576.bundle",
+            "FileHash": "a3eb1747db947c372d145118cb2f0576",
+            "FileCRC": 813976953,
+            "FileSize": 14713,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "animtion.bundle",
+                "assets_gameassets_atlas_atlas02.bundle",
+                "png.bundle",
+                "share_assets_toolpackage_textmesh_pro_fonts.bundle",
+                "share_assets_toolpackage_textmesh_pro_resources_fonts_&_materials.bundle",
+                "unityshaders.bundle"
+            ],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Prefabs/UI/CommonPanel/GameLoadingPanel.prefab",
+                    "AssetGUID": "97c6de806b9d43847a56fa3904ac48e4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Prefabs/UI/Workflow/LoginPanel.prefab",
+                    "AssetGUID": "903462c68fb3f3842b526e35565ce7b8"
+                }
+            ]
+        },
+        {
+            "BundleName": "audios.bundle",
+            "FileName": "d670bb1f238a12136a92e8ee9284b0ed.bundle",
+            "FileHash": "d670bb1f238a12136a92e8ee9284b0ed",
+            "FileCRC": 2824686809,
+            "FileSize": 1492360,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Audios/music.mp3",
+                    "AssetGUID": "c28eba3e8c5571d4db0950591a0eab14"
+                }
+            ]
+        },
+        {
+            "BundleName": "config.bundle",
+            "FileName": "c46738061769848c556059e214cc8696.bundle",
+            "FileHash": "c46738061769848c556059e214cc8696",
+            "FileCRC": 3828439551,
+            "FileSize": 29744,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Config/Player.bin",
+                    "AssetGUID": "495f0f185cc9c0942999b231de424ea7"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Config/RoleRune.bin",
+                    "AssetGUID": "77526f992e3a3e147bb37f6f68f4a571"
+                }
+            ]
+        },
+        {
+            "BundleName": "materials.bundle",
+            "FileName": "ed07c7416ef4458115f2ef3872be4758.bundle",
+            "FileHash": "ed07c7416ef4458115f2ef3872be4758",
+            "FileCRC": 2967868990,
+            "FileSize": 2773,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "unityshaders.bundle"
+            ],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Materials/Grayscale/GrayscaleMaterial.mat",
+                    "AssetGUID": "ae3b2b184851e0e4c81b00afa25f44d4"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Materials/UIMaskGrayscale/UIMaskGrayscaleMaterial.mat",
+                    "AssetGUID": "1ca157b2b5c3f264ebe2c48b9e3f76e0"
+                }
+            ]
+        },
+        {
+            "BundleName": "png.bundle",
+            "FileName": "c7d0d2252507be7c729c798ea9113b86.bundle",
+            "FileHash": "c7d0d2252507be7c729c798ea9113b86",
+            "FileCRC": 2987442879,
+            "FileSize": 2781121,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "assets_gameassets_prefabs_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Png/bg_hghg_wdtx1.png",
+                    "AssetGUID": "e08b250c1000bf94f8e7c8e9016cae6a"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Png/bg_hghg_wdtx2.png",
+                    "AssetGUID": "b7156e3479d877b469babdfd11e3e57b"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Png/bg_hghg_wdtx3.png",
+                    "AssetGUID": "03b3917902d82db44b98b7a241c0f31e"
+                }
+            ]
+        },
+        {
+            "BundleName": "share_assets_toolpackage_textmesh_pro_fonts.bundle",
+            "FileName": "b2a98183287e7de273203925e145a18b.bundle",
+            "FileHash": "b2a98183287e7de273203925e145a18b",
+            "FileCRC": 380490604,
+            "FileSize": 7928127,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "assets_gameassets_prefabs_ui.bundle",
+                "share_assets_toolpackage_textmesh_pro_resources_fonts_&_materials.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Fonts/NotoSansSC.otf",
+                    "AssetGUID": "1a63f5a611ee31a499ea18bcbd2f7a57"
+                }
+            ]
+        },
+        {
+            "BundleName": "share_assets_toolpackage_textmesh_pro_resources_fonts_&_materials.bundle",
+            "FileName": "251bc70c12c270023836eb60ccee9c09.bundle",
+            "FileHash": "251bc70c12c270023836eb60ccee9c09",
+            "FileCRC": 3005083951,
+            "FileSize": 247687,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "share_assets_toolpackage_textmesh_pro_fonts.bundle",
+                "unityshaders.bundle"
+            ],
+            "ReferenceBundles": [
+                "assets_gameassets_prefabs_ui.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Resources/Fonts & Materials/NotoSansSC.asset",
+                    "AssetGUID": "858c308463e95744387b55937bccd745"
+                }
+            ]
+        },
+        {
+            "BundleName": "unityshaders.bundle",
+            "FileName": "471aa9cf1c729929ad002b2602a768b1.bundle",
+            "FileHash": "471aa9cf1c729929ad002b2602a768b1",
+            "FileCRC": 830613862,
+            "FileSize": 42837,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "assets_gameassets_prefabs_ui.bundle",
+                "materials.bundle",
+                "share_assets_toolpackage_textmesh_pro_resources_fonts_&_materials.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/GameAssets/Materials/Grayscale/GrayscaleShader.shader",
+                    "AssetGUID": "8c0e10fab654cdc4a969a630165c0239"
+                },
+                {
+                    "AssetPath": "Assets/GameAssets/Materials/UIMaskGrayscale/UIMaskGrayscaleShader.shader",
+                    "AssetGUID": "475530265e1f64848b29cfe8d8aa0e0b"
+                },
+                {
+                    "AssetPath": "Assets/ToolPackage/TextMesh Pro/Shaders/TMP_SDF.shader",
+                    "AssetGUID": "68e6db2ebdc24f95958faec2be5558d6"
+                }
+            ]
+        }
+    ],
+    "IndependAssets": []
+}

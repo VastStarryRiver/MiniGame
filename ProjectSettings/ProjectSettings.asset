@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 26
-  productGUID: 85582fcdd9a4e044d9533a241bebed75
+  productGUID: c8330a963a23cd74f9d581ed702b5178
   AndroidProfiler: 0
   hmiUseInternalProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: DefaultCompany
+  companyName: VastStarryRiver
   productName: MiniGame
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
@@ -42,7 +42,7 @@ PlayerSettings:
     height: 1
   m_SplashScreenLogos: []
   m_VirtualRealitySplashScreen: {fileID: 0}
-  expectedBundleIdentifier: com.DefaultCompany.MiniGame
+  expectedBundleIdentifier: com.VastStarryRiver.MiniGame
   integrityHash: 
   m_HolographicTrackingLossScreen: {fileID: 0}
   defaultScreenWidth: 1920
@@ -170,9 +170,9 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.1.1
+  bundleVersion: 0.1
   preloadedAssets:
-  - {fileID: 11400000, guid: 1ff1c466697612044b0ddebd19cec243, type: 2}
+  - {fileID: 11400000, guid: ff94601b2e558aa44ad6d359be9952e8, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -204,7 +204,7 @@ PlayerSettings:
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1
   aotOptions: 
-  stripEngineCode: 1
+  stripEngineCode: 0
   iPhoneStrippingLevel: 0
   iPhoneScriptCallOptimization: 0
   ForceInternetPermission: 0
@@ -325,7 +325,7 @@ PlayerSettings:
   - m_BuildTarget: 
     m_Icons:
     - serializedVersion: 2
-      m_Icon: {fileID: 2800000, guid: b7481a4c424715542a70ac1efc7468db, type: 3}
+      m_Icon: {fileID: 2800000, guid: 8a41d9d2283b63f4c98809068a886549, type: 3}
       m_Width: 128
       m_Height: 128
       m_Kind: 0
@@ -583,7 +583,7 @@ PlayerSettings:
     m_Automatic: 1
   - m_BuildTarget: WebGLSupport
     m_APIs: 0b000000
-    m_Automatic: 1
+    m_Automatic: 0
   - m_BuildTarget: HMIAndroidPlayer
     m_APIs: 0b00000015000000
     m_Automatic: 1
@@ -878,7 +878,9 @@ PlayerSettings:
   webGLShowDiagnostics: 0
   webGLDataCaching: 1
   webGLDebugSymbols: 0
-  webGLEmscriptenArgs: 
+  webGLEmscriptenArgs: ' -s EXPORTED_FUNCTIONS=_sbrk,_emscripten_stack_get_base,_emscripten_stack_get_end
+    -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s TOTAL_MEMORY=256MB -s EXPORTED_RUNTIME_METHODS=''["ccall","cwrap","stackTrace","addRunDependency","removeRunDependency","FS_createPath","FS_createDataFile","stackTrace","writeStackCookie","checkStackCookie","lengthBytesUTF8","stringToUTF8"]''
+    --profiling-funcs  -s ALLOW_TABLE_GROWTH=1'
   webGLModulesDirectory: 
   webGLTemplate: APPLICATION:Default
   webGLAnalyzeBuildSize: 0
@@ -896,33 +898,35 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Android: DOTWEEN
+    Android: DOTWEEN;UNITY_UOS_SECURITY
     ArmLinux: DOTWEEN
     ArmLinuxServer: DOTWEEN
     EmbeddedLinux: DOTWEEN
     GameCoreScarlett: DOTWEEN
     GameCoreXboxOne: DOTWEEN
-    HMIAndroid: DOTWEEN
+    HMIAndroid: DOTWEEN;UNITY_UOS_SECURITY
     LinuxHeadlessSimulation: DOTWEEN
     Nintendo Switch: DOTWEEN
-    OpenHarmony: DOTWEEN
+    OpenHarmony: DOTWEEN;UNITY_UOS_SECURITY
     PS4: DOTWEEN
     PS5: DOTWEEN
     QNX: DOTWEEN
+    Server: UNITY_UOS_SECURITY
     Stadia: DOTWEEN
-    Standalone: DOTWEEN
+    Standalone: DOTWEEN;UNITY_UOS_SECURITY
     VisionOS: DOTWEEN
-    WebGL: DOTWEEN
-    WeixinMiniGame: DOTWEEN
+    WebGL: DOTWEEN;UNITY_UOS_SECURITY
+    WeixinMiniGame: DOTWEEN;UNITY_UOS_SECURITY
     Windows Store Apps: DOTWEEN
     XboxOne: DOTWEEN
-    iPhone: DOTWEEN
+    iPhone: DOTWEEN;UNITY_UOS_SECURITY
     tvOS: DOTWEEN
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}
   il2cppCodeGeneration:
+    WebGL: 1
     WeixinMiniGame: 1
   managedStrippingLevel:
     ArmLinux: 1
@@ -945,7 +949,7 @@ PlayerSettings:
     tvOS: 1
   incrementalIl2cppBuild: {}
   suppressCommonWarnings: 1
-  allowUnsafeCode: 0
+  allowUnsafeCode: 1
   useDeterministicCompilation: 1
   additionalIl2CppArgs: 
   scriptingRuntimeVersion: 1
@@ -1055,7 +1059,7 @@ PlayerSettings:
   OpenHarmonyUseCustomKeystore: 0
   OpenHarmonyUseCustomModuleJsonFive: 0
   OpenHarmonyUseCustomTuanjiePlayerAbility: 0
-  apiCompatibilityLevel: 6
+  apiCompatibilityLevel: 3
   weixinMiniGameMemorySize: 32
   weixinMiniGameExceptionSupport: 1
   weixinMiniGameExceptionOnlyEnableForUserCodes: 0
@@ -1067,7 +1071,7 @@ PlayerSettings:
     -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s TOTAL_MEMORY=256MB -s EXPORTED_RUNTIME_METHODS=''["ccall","cwrap","stackTrace","addRunDependency","removeRunDependency","FS_createPath","FS_createDataFile","stackTrace","writeStackCookie","checkStackCookie","lengthBytesUTF8","stringToUTF8"]''
     --profiling-funcs '
   weixinMiniGameModulesDirectory: 
-  weixinMiniGameTemplate: APPLICATION:Default
+  weixinMiniGameTemplate: PATH:E:\MyProjects\MiniGame\Library\PackageCache\com.qq.weixin.minigame@98c94c1219\WebGLTemplates\WXTemplate2022TJ
   weixinMiniGameAnalyzeBuildSize: 0
   weixinMiniGameUseEmbeddedResources: 0
   weixinMiniGameCompressionFormat: 2

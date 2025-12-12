@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: DngdvCOvUijPQzyWHytUtDHV2x5vwWPdL7WFNvHgElOxCzxtXngGcDM=
+guid: 5efa24441879ba64cbdbca2fa72885a5
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -22,9 +22,6 @@ TextureImporter:
     normalMapFilter: 0
     flipGreenChannel: 0
   isReadable: 0
-  webStreaming: 0
-  priorityLevel: 0
-  uploadedMode: 2
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
@@ -73,7 +70,6 @@ TextureImporter:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
-    maxPlaceholderSize: 2
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -87,7 +83,6 @@ TextureImporter:
   - serializedVersion: 3
     buildTarget: Standalone
     maxTextureSize: 2048
-    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -101,7 +96,6 @@ TextureImporter:
   - serializedVersion: 3
     buildTarget: iPhone
     maxTextureSize: 2048
-    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -115,77 +109,6 @@ TextureImporter:
   - serializedVersion: 3
     buildTarget: Android
     maxTextureSize: 2048
-    maxPlaceholderSize: 32
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: HMIAndroid
-    maxTextureSize: 2048
-    maxPlaceholderSize: 32
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: OpenHarmony
-    maxTextureSize: 2048
-    maxPlaceholderSize: 32
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: Server
-    maxTextureSize: 2048
-    maxPlaceholderSize: 32
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    maxPlaceholderSize: 32
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: WeixinMiniGame
-    maxTextureSize: 2048
-    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -246,7 +169,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 295
+        y: 292
         width: 144
         height: 144
       alignment: 6
@@ -267,7 +190,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 438
+        y: 440
         width: 144
         height: 144
       alignment: 6
@@ -288,7 +211,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 587
+        y: 584
         width: 144
         height: 144
       alignment: 6
@@ -351,7 +274,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 146
-        y: 2
+        y: 0
         width: 144
         height: 144
       alignment: 6
@@ -393,7 +316,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 146
-        y: 292
+        y: 294
         width: 144
         height: 144
       alignment: 6
@@ -456,7 +379,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 146
-        y: 730
+        y: 732
         width: 144
         height: 144
       alignment: 6
@@ -539,7 +462,7 @@ TextureImporter:
       name: emoji_17
       rect:
         serializedVersion: 2
-        x: 292
+        x: 290
         y: 292
         width: 144
         height: 144
@@ -876,7 +799,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 584
-        y: 586
+        y: 584
         width: 144
         height: 144
       alignment: 6
@@ -897,7 +820,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 584
-        y: 732
+        y: 730
         width: 144
         height: 144
       alignment: 6
@@ -1022,7 +945,7 @@ TextureImporter:
       name: emoji_40
       rect:
         serializedVersion: 2
-        x: 730
+        x: 728
         y: 584
         width: 144
         height: 144
@@ -1065,7 +988,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 730
-        y: 878
+        y: 876
         width: 144
         height: 144
       alignment: 6
@@ -1106,7 +1029,7 @@ TextureImporter:
       name: emoji_44
       rect:
         serializedVersion: 2
-        x: 876
+        x: 874
         y: 146
         width: 144
         height: 144
@@ -1128,7 +1051,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 876
-        y: 292
+        y: 296
         width: 144
         height: 144
       alignment: 6
@@ -1149,7 +1072,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 876
-        y: 440
+        y: 438
         width: 144
         height: 144
       alignment: 6
@@ -1212,7 +1135,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 876
-        y: 878
+        y: 876
         width: 144
         height: 144
       alignment: 6
@@ -1359,7 +1282,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1022
-        y: 880
+        y: 876
         width: 144
         height: 144
       alignment: 6
@@ -1401,7 +1324,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1314
-        y: 2
+        y: 0
         width: 144
         height: 144
       alignment: 6
@@ -1422,7 +1345,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1460
-        y: 2
+        y: 0
         width: 144
         height: 144
       alignment: 6
@@ -1443,7 +1366,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1606
-        y: 2
+        y: 0
         width: 144
         height: 144
       alignment: 6
@@ -1462,7 +1385,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: de6f52d4c12ca0a40a1cbf8182c32325
+    spriteID: bb5a38d2d033e384e9ed11ba37a46e03
     internalID: 0
     vertices: []
     indices: 
@@ -1533,5 +1456,5 @@ TextureImporter:
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
-  assetBundleName: 
-  assetBundleVariant: 
+  assetBundleName: atlas/atlas03
+  assetBundleVariant: atlas_ab

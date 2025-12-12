@@ -11,13 +11,7 @@ EditorBuildSettings:
   m_BuildProfiles:
   - enabled: 1
     path: Assets/Settings/Build Profiles/WeChat Profile.asset
-    guid: 45bf7e7ccf4b34943b827ffd96dc7509
-  - enabled: 0
-    path: Assets/Settings/Build Profiles/DouYin Profile.asset
-    guid: dccb07acc8123fe40aca9bb288b7ac3d
-  - enabled: 0
-    path: Assets/Settings/Build Profiles/KuaiShou Profile.asset
-    guid: cf5a0fc70675cd241864b1a4e853e0d2
+    guid: 1c019138b824e034082d37a2ea3e2569
   m_configObjects: {}
   m_SlimFeaturesWeixinMiniGame:
     AllocateOverhead: 1

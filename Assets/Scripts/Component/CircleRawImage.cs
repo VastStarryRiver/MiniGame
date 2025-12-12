@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+
+
 public class CircleRawImage : RawImage
 {
     [Range(3, 100)]

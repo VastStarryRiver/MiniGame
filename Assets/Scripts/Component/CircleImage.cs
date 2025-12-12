@@ -2,6 +2,8 @@
 using UnityEngine.UI;
 using UnityEngine.Sprites;
 
+
+
 public class CircleImage : Image
 {
     [Range(3, 100)]

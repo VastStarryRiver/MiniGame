@@ -52,15 +52,14 @@ public class LoopScrollList : ScrollRect
 
 
 
-    public void AddOnValueChangedListener(Action<Vector2> callBack)
+    public void AddOnValueChangedListener(Action<Vector2> Action)
     {
-        m_onValueChangedFunc = callBack;
+        m_onValueChangedFunc = Action;
     }
 
     /// <summary>
     /// 初始化循环列表
     /// </summary>
-    /// <param name="tsCell">单元格元素</param>
     /// <param name="type">1横向 2纵向</param>
     /// <param name="showCount">需要比可见区域的元素多两个</param>
     /// <param name="totalCount">总元素个数</param>
@@ -72,13 +71,13 @@ public class LoopScrollList : ScrollRect
         m_updateFunc = updateFunc;
         m_totalCount = totalCount;
 
-        ConvenientUtility.HideAllChildren(content);
+        Utils.HideAllChildren(content);
 
         for (int i = 0; i < showCount; i++)
         {
             RectTransform tsItem = null;
 
-            if(i > content.childCount - 1)
+            if (i > content.childCount - 1)
             {
                 tsItem = Instantiate(tsCell.gameObject, content).transform as RectTransform;
             }
@@ -103,7 +102,7 @@ public class LoopScrollList : ScrollRect
             m_updateFunc.Invoke(i, tsItem);
         }
 
-        if(m_type == 1)
+        if (m_type == 1)
         {
             content.sizeDelta = new Vector2(tsCell.sizeDelta.x * m_totalCount, content.sizeDelta.y);
         }

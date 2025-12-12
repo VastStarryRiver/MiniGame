@@ -1,48 +1,111 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
+using System.Collections.Generic;
+using YooAsset;
 
 
 
 public class Launcher : MonoBehaviour
 {
-    private Slider m_sliProgress;
-    private float m_progress;
+    private EPlayMode m_playMode;
+    private GameLoadingPanel m_hotUpdatePanel;
 
 
 
     private void Awake()
     {
-        DontDestroyOnLoad(GameObject.Find("UI_Root"));
+#if UNITY_EDITOR
+        m_playMode = EPlayMode.EditorSimulateMode;
+#else
+        m_playMode = EPlayMode.WebPlayMode;
+#endif
 
-        m_sliProgress = GameObject.Find("UI_Root/Canvas_3/Ts_Panel/LoadingPanel/Sli_Progress").GetComponent<Slider>();
+        DebugLogTool.InitDebugErrorLog();
 
-        UIManager.Instance.Play();
+        GameObject gameManager = GameObject.Find("GameManager");
+
+        if (gameManager == null)
+        {
+            gameManager = new GameObject("GameManager");
+            gameManager.AddComponent<GameManager>();
+            DontDestroyOnLoad(gameManager);
+        }
+    }
+
+    private void OnEnable()
+    {
+        GameManager.Instance.AddEventListener("Launcher_ShowTips", ShowTips);
+        GameManager.Instance.AddEventListener("Launcher_ShowProgress", ShowProgress);
+        GameManager.Instance.AddEventListener("Launcher_StartGame", StartGame);
     }
 
     private void Start()
     {
-        SdkManager.Instance.InitSDK(Play);
+        StateMachine stateMachine = new StateMachine(this);
+
+        stateMachine.AddNode<InitializeYooAsset>();
+        stateMachine.AddNode<CheckCatalogUpdate>();
+        stateMachine.AddNode<CheckResourceUpdates>();
+        stateMachine.AddNode<HotUpdateOver>();
+
+        stateMachine.SetBlackboardValue("EPlayMode", m_playMode);
+
+        CreateStartGameObject("UI_Root");
+        CreateStartGameObject("SceneGameObject");
+
+        GameObject go = GameObject.Find("UI_Root/Canvas_0/Ts_Panel/HotUpdatePanel");
+
+        if (go == null)
+        {
+            Transform parent = GameObject.Find("UI_Root/Canvas_0/Ts_Panel").transform;
+            GameObject asset = Resources.Load<GameObject>("LocalAssets/HotUpdatePanel");
+            go = GameObject.Instantiate<GameObject>(asset, Vector3.zero, Quaternion.identity, parent);
+            go.name = name;
+        }
+
+        m_hotUpdatePanel = go.GetComponent<GameLoadingPanel>();
+
+        stateMachine.Play<InitializeYooAsset>();
     }
 
-    private void Update()
+    private void OnDisable()
     {
-        if (m_sliProgress != null && m_progress < 6)
-        {
-            m_progress += Time.deltaTime;
-            m_sliProgress.value = m_progress / 6;
+        GameManager.Instance.RemoveEventListener("Launcher_ShowTips", ShowTips);
+        GameManager.Instance.RemoveEventListener("Launcher_ShowProgress", ShowProgress);
+        GameManager.Instance.RemoveEventListener("Launcher_StartGame", StartGame);
+    }
 
-            if (m_progress >= 6)
-            {
-                m_sliProgress = null;
-                GameObject.Destroy(GameObject.Find("UI_Root/Canvas_3/Ts_Panel/LoadingPanel"));
-            }
+
+
+    private void CreateStartGameObject(string name)
+    {
+        GameObject go = GameObject.Find(name);
+
+        if (go == null)
+        {
+            GameObject asset = Resources.Load<GameObject>($"LocalAssets/{name}");
+
+            go = GameObject.Instantiate<GameObject>(asset, Vector3.zero, Quaternion.identity);
+            DontDestroyOnLoad(go);
+
+            go.name = name;
         }
     }
 
-
-
-    private void Play()
+    private void ShowTips(object arg)
     {
+        string tips = arg as string;
+        m_hotUpdatePanel.SetDes(tips);
+    }
 
+    private void ShowProgress(object arg)
+    {
+        List<long> progress = arg as List<long>;
+        m_hotUpdatePanel.SetProgress(progress[0], progress[1], $"{Utils.FormatFileByteSize(progress[0])}/{Utils.FormatFileByteSize(progress[1])}");
+    }
+
+    private void StartGame(object arg)
+    {
+        GameObject.Destroy(m_hotUpdatePanel.gameObject);
+        GameObject.Destroy(gameObject);
     }
 }

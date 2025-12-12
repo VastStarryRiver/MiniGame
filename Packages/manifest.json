@@ -1,10 +1,12 @@
 {
   "dependencies": {
-    "cn.tuanjie.minihost": "1.0.12",
-    "com.bytedance.starksdk": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.5.6",
+    "cn.unity.uos.cdn": "https://cnb.cool/unity/uos/UosCdnSDK.git",
+    "cn.unity.uos.launcher": "https://cnb.cool/unity/uos/UOSLauncher.git",
     "com.coffee.ui-particle": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
-    "com.kuaishou.minigame": "https://github.com/ksminigame/minigame-tuanjie-transform-sdk.git",
+    "com.esotericsoftware.spine.spine-csharp": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-csharp/src#4.2",
+    "com.esotericsoftware.spine.spine-unity": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-unity/Assets/Spine#4.2",
     "com.qq.weixin.minigame": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git#main",
+    "com.tuyoogame.yooasset": "2.3.18",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.feature.development": "1.0.1",
     "com.unity.textmeshpro": "3.0.9",
@@ -28,5 +30,14 @@
     "com.unity.modules.unitywebrequestaudio": "1.0.0",
     "com.unity.modules.unitywebrequesttexture": "1.0.0",
     "com.unity.modules.video": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.tuyoogame.yooasset"
+      ]
+    }
+  ]
 }

@@ -1,19 +1,20 @@
 {
   "dependencies": {
-    "cn.tuanjie.minihost": {
-      "version": "1.0.12",
+    "cn.unity.uos.cdn": {
+      "version": "https://cnb.cool/unity/uos/UosCdnSDK.git",
       "depth": 0,
-      "source": "registry",
+      "source": "git",
+      "dependencies": {},
+      "hash": "bb6d3a7b152662c98a7d1b2833fc4c862c4e9e1f"
+    },
+    "cn.unity.uos.launcher": {
+      "version": "https://cnb.cool/unity/uos/UOSLauncher.git",
+      "depth": 0,
+      "source": "git",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       },
-      "url": "https://packages.tuanjie.cn"
-    },
-    "com.bytedance.starksdk": {
-      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.5.6",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {}
+      "hash": "e1540186f8eaae4a4e0ca840d769bf9f09b5f8ec"
     },
     "com.coffee.ui-particle": {
       "version": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
@@ -23,21 +24,46 @@
         "com.unity.ugui": "1.0.0",
         "com.unity.modules.particlesystem": "1.0.0"
       },
-      "hash": "4b98abd7469b10d55c9c623830cb6e1518f72731"
+      "hash": "c54f63cb18a22382215b142b63e232f0f86fff58"
     },
-    "com.kuaishou.minigame": {
-      "version": "https://github.com/ksminigame/minigame-tuanjie-transform-sdk.git",
+    "com.esotericsoftware.spine.spine-csharp": {
+      "version": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-csharp/src#4.2",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "b0bccb13e834f63b578badee05de09dfd1021ca6"
+      "hash": "a554d4f1b0cb80f481682c05cb575b0255bc8e1c"
+    },
+    "com.esotericsoftware.spine.spine-unity": {
+      "version": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-unity/Assets/Spine#4.2",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.physics": "1.0.0",
+        "com.unity.modules.physics2d": "1.0.0",
+        "com.esotericsoftware.spine.spine-csharp": "4.2.0"
+      },
+      "hash": "a554d4f1b0cb80f481682c05cb575b0255bc8e1c"
     },
     "com.qq.weixin.minigame": {
       "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git#main",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "25827f8ab9bb8f01b28466f0865c1c9db56cddd8"
+      "hash": "98c94c1219b8ddf48d2836e946c5d5d16bfd2cca"
+    },
+    "com.tuyoogame.yooasset": {
+      "version": "2.3.18",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.scriptablebuildpipeline": "1.21.25",
+        "com.unity.modules.assetbundle": "1.0.0",
+        "com.unity.modules.unitywebrequest": "1.0.0",
+        "com.unity.modules.unitywebrequestassetbundle": "1.0.0"
+      },
+      "url": "https://package.openupm.com"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
@@ -107,6 +133,13 @@
     },
     "com.unity.performance.profile-analyzer": {
       "version": "1.2.3",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.tuanjie.cn"
+    },
+    "com.unity.scriptablebuildpipeline": {
+      "version": "1.21.25",
       "depth": 1,
       "source": "registry",
       "dependencies": {},

@@ -1,0 +1,35 @@
+﻿2025-12-12 17:55:16.744 [INFO] Begin to build package : MyPackage by ScriptableBuildPipeline
+2025-12-12 17:55:16.744 [INFO] --------------------------------------------->TaskPrepare<--------------------------------------------
+2025-12-12 17:55:16.830 [INFO] Delete package root directory: E:/MyProjects/MiniGame/Bundles/MiniGame/MyPackage
+2025-12-12 17:55:16.831 [INFO] Create pipeline output directory: E:/MyProjects/MiniGame/Bundles/MiniGame/MyPackage/OutputCache
+2025-12-12 17:55:16.831 [INFO] TaskPrepare It takes 0 seconds in total
+2025-12-12 17:55:16.831 [INFO] --------------------------------------------->TaskGetBuildMap<--------------------------------------------
+2025-12-12 17:55:16.893 [INFO] TaskGetBuildMap It takes 0 seconds in total
+2025-12-12 17:55:16.894 [INFO] --------------------------------------------->TaskBuilding<--------------------------------------------
+2025-12-12 17:55:19.683 [INFO] UnityEngine build success!
+2025-12-12 17:55:19.683 [INFO] TaskBuilding It takes 2 seconds in total
+2025-12-12 17:55:19.684 [INFO] --------------------------------------------->TaskVerifyBuildResult<--------------------------------------------
+2025-12-12 17:55:19.684 [INFO] Build results verify success!
+2025-12-12 17:55:19.684 [INFO] TaskVerifyBuildResult It takes 0 seconds in total
+2025-12-12 17:55:19.684 [INFO] --------------------------------------------->TaskEncryption<--------------------------------------------
+2025-12-12 17:55:19.684 [INFO] TaskEncryption It takes 0 seconds in total
+2025-12-12 17:55:19.684 [INFO] --------------------------------------------->TaskUpdateBundleInfo<--------------------------------------------
+2025-12-12 17:55:19.772 [INFO] TaskUpdateBundleInfo It takes 0 seconds in total
+2025-12-12 17:55:19.773 [INFO] --------------------------------------------->TaskCreateManifest<--------------------------------------------
+2025-12-12 17:55:19.775 [INFO] Create package manifest file: E:/MyProjects/MiniGame/Bundles/MiniGame/MyPackage/main/MyPackage_main.json
+2025-12-12 17:55:19.789 [INFO] Create package manifest file: E:/MyProjects/MiniGame/Bundles/MiniGame/MyPackage/main/MyPackage_main.bytes
+2025-12-12 17:55:19.790 [INFO] Create package manifest hash file: E:/MyProjects/MiniGame/Bundles/MiniGame/MyPackage/main/MyPackage_main.hash
+2025-12-12 17:55:19.791 [INFO] Create package manifest version file: E:/MyProjects/MiniGame/Bundles/MiniGame/MyPackage/main/MyPackage.version
+2025-12-12 17:55:19.795 [INFO] TaskCreateManifest It takes 0 seconds in total
+2025-12-12 17:55:19.795 [INFO] --------------------------------------------->TaskCreateReport<--------------------------------------------
+2025-12-12 17:55:19.804 [INFO] Create build report file: E:/MyProjects/MiniGame/Bundles/MiniGame/MyPackage/main/MyPackage_main.report
+2025-12-12 17:55:19.805 [INFO] TaskCreateReport It takes 0 seconds in total
+2025-12-12 17:55:19.805 [INFO] --------------------------------------------->TaskCreatePackage<--------------------------------------------
+2025-12-12 17:55:19.805 [INFO] Start making patch package: E:/MyProjects/MiniGame/Bundles/MiniGame/MyPackage/main
+2025-12-12 17:55:19.818 [INFO] TaskCreatePackage It takes 0 seconds in total
+2025-12-12 17:55:19.818 [INFO] --------------------------------------------->TaskCopyBuildinFiles<--------------------------------------------
+2025-12-12 17:55:19.818 [INFO] TaskCopyBuildinFiles It takes 0 seconds in total
+2025-12-12 17:55:19.819 [INFO] --------------------------------------------->TaskCreateCatalog<--------------------------------------------
+2025-12-12 17:55:19.819 [INFO] TaskCreateCatalog It takes 0 seconds in total
+2025-12-12 17:55:19.819 [INFO] Total build process time: 2 seconds
+2025-12-12 17:55:19.819 [INFO] Resource pipeline build success
