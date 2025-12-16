@@ -150,11 +150,10 @@ public class Utils
 
     public static void RestartGame()
     {
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && !UNITY_WEBGL
         Application.logMessageReceived -= DebugLogTool.ShowDebugErrorLog;
 #endif
         UIManager.Instance.CloseAllUIPanel();
-
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
@@ -506,16 +505,9 @@ public class Utils
         if (wrapMode == WrapMode.Once)
         {
             yield return new WaitWhile(() => animation.isPlaying);
-
-            if (callBack != null)
-            {
-                callBack.Invoke();
-            }
+            callBack?.Invoke();
         }
     }
-
-
-
 
     public static void OpenUIPrefabPanel(string prefabPath, int layer)
     {
@@ -605,5 +597,29 @@ public class Utils
         }
 
         return null;
+    }
+
+    public static void CreateManagerInstance(string managerName, string[] components = null)
+    {
+        GameObject obj = GameObject.Find(managerName);
+
+        if (obj != null)
+        {
+            return;
+        }
+
+        obj = new GameObject(managerName);
+
+        if (components != null && components.Length > 0)
+        {
+            for (int i = 0; i < components.Length; i++)
+            {
+                AddComponent(obj, "", components[i]);
+            }
+        }
+
+        AddComponent(obj, "", managerName);
+
+        UnityEngine.Object.DontDestroyOnLoad(obj);
     }
 }

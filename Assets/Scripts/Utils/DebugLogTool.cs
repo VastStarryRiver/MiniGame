@@ -32,7 +32,7 @@ public class DebugLogTool
 
     public static void ShowDebugErrorLog(string logString, string stackTrace, LogType type)
     {
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && !UNITY_WEBGL
             if (type == LogType.Error || type == LogType.Exception)
             {
                 string text = logString + "\n" + stackTrace;
@@ -63,7 +63,7 @@ public class DebugLogTool
 
     public static void InitDebugErrorLog()
     {
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && !UNITY_WEBGL
         ConfigUtils.InitDirectory(ConfigUtils.m_localRootPath);
 
         using (FileStream fileStream = new FileStream(ConfigUtils.m_localRootPath + "Error.txt", FileMode.Create))

@@ -21,14 +21,8 @@ public class Launcher : MonoBehaviour
 
         DebugLogTool.InitDebugErrorLog();
 
-        GameObject gameManager = GameObject.Find("GameManager");
-
-        if (gameManager == null)
-        {
-            gameManager = new GameObject("GameManager");
-            gameManager.AddComponent<GameManager>();
-            DontDestroyOnLoad(gameManager);
-        }
+        Utils.CreateManagerInstance("GameManager");
+        Utils.CreateManagerInstance("AudioManager", new string[] { "AudioListener" });
     }
 
     private void OnEnable()

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 
@@ -44,7 +45,9 @@ public static class FindTypeTool
             { "HorizontalLayoutGroup", typeof(HorizontalLayoutGroup).AssemblyQualifiedName },
             { "VerticalLayoutGroup", typeof(VerticalLayoutGroup).AssemblyQualifiedName },
             { "Mask", typeof(Mask).AssemblyQualifiedName },
-            { "RectMask2D", typeof(RectMask2D).AssemblyQualifiedName }
+            { "RectMask2D", typeof(RectMask2D).AssemblyQualifiedName },
+            { "AudioSource", typeof(AudioSource).AssemblyQualifiedName },
+            { "AudioListener", typeof(AudioListener).AssemblyQualifiedName }
         };
     }
 }

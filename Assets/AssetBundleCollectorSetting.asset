@@ -43,14 +43,6 @@ MonoBehaviour:
       AssetTags: 
       ActiveRuleName: EnableGroup
       Collectors:
-      - CollectPath: Assets/GameAssets/Atlas/Atlas00
-        CollectorGUID: a244d7f52f6e0a543b95a427bc938210
-        CollectorType: 0
-        AddressRuleName: AddressByGroupAndFileName
-        PackRuleName: PackCollector
-        FilterRuleName: CollectAll
-        AssetTags: 
-        UserData: 
       - CollectPath: Assets/GameAssets/Atlas/Atlas01
         CollectorGUID: 66db0c4bca50209449b33d21400cbe02
         CollectorType: 0
