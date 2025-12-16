@@ -25,13 +25,13 @@ MonoBehaviour:
     AutoCollectShaders: 1
     IgnoreRuleName: NormalIgnoreRule
     Groups:
-    - GroupName: Animtion
+    - GroupName: Animation
       GroupDesc: 
       AssetTags: 
       ActiveRuleName: EnableGroup
       Collectors:
-      - CollectPath: Assets/GameAssets/Animtion
-        CollectorGUID: c185c912ad3c6a9419a209cbc952298a
+      - CollectPath: Assets/GameAssets/Animation
+        CollectorGUID: 53e62f334391c2c45834f2c9fbf2f951
         CollectorType: 0
         AddressRuleName: AddressByGroupAndFileName
         PackRuleName: PackGroup
