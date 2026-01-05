@@ -1,4 +1,4 @@
-﻿#if UNITY_WEBGL && WEIXINMINIGAME
+﻿#if UNITY_WEBGL && MINIGAME_SUBPLATFORM_WEIXIN
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;

@@ -56,13 +56,6 @@ public class AssetBundleTool
         buildParameters.ManifestRestoreServices = CreateManifestRestoreServicesInstance();
         buildParameters.BuiltinShadersBundleName = GetBuiltinShaderBundleName();
 
-        string path = GetOutPath();
-
-        if (Directory.Exists(path))
-        {
-            Directory.Delete(path, true);
-        }
-
         ScriptableBuildPipeline pipeline = new ScriptableBuildPipeline();
         BuildResult buildResult = pipeline.Run(buildParameters, true);
 
@@ -134,20 +127,47 @@ public class AssetBundleTool
     /// </summary>
     private static string GetDefaultPackageVersion()
     {
-        //int totalMinutes = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
-        //return DateTime.Now.ToString("yyyy-MM-dd") + "-" + totalMinutes;
-        return "main";
+        return $"{DateTime.Now.Year}{DateTime.Now.ToString("MMddHHmmss")}";
     }
 
     /// <summary>
-    /// 获取资源输出路径
+    /// 获取最新资源输出路径
     /// </summary>
     /// <returns></returns>
     public static string GetOutPath()
     {
         string buildOutputRoot = AssetBundleBuilderHelper.GetDefaultBuildOutputRoot();
-        string packageVersion = GetDefaultPackageVersion();
-        string path = Path.Combine(buildOutputRoot, buildTarget.ToString(), packageName, packageVersion);
+        string bundleParent = Path.Combine(buildOutputRoot, buildTarget.ToString(), packageName);
+        long packageVersion = 0;
+
+        DirectoryInfo directoryInfo = new DirectoryInfo(bundleParent);
+        DirectoryInfo[] directoryInfos = directoryInfo.GetDirectories();
+
+        foreach (var item in directoryInfos)
+        {
+            try
+            {
+                long version = long.Parse(item.Name);
+
+                if (packageVersion > 0)
+                {
+                    if (version > packageVersion)
+                    {
+                        packageVersion = version;
+                    }
+                }
+                else
+                {
+                    packageVersion = version;
+                }
+            }
+            catch (Exception _)
+            {
+                continue;
+            }
+        }
+
+        string path = Path.Combine(bundleParent, packageVersion.ToString());
         return path;
     }
 }

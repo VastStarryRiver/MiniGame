@@ -16,6 +16,12 @@
       },
       "hash": "e1540186f8eaae4a4e0ca840d769bf9f09b5f8ec"
     },
+    "com.bytedance.starksdk": {
+      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.6.5",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.coffee.ui-particle": {
       "version": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
       "depth": 0,

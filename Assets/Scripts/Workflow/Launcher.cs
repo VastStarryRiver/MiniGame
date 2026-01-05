@@ -19,8 +19,6 @@ public class Launcher : MonoBehaviour
         m_playMode = EPlayMode.WebPlayMode;
 #endif
 
-        DebugLogTool.InitDebugErrorLog();
-
         Utils.CreateManagerInstance("GameManager");
         Utils.CreateManagerInstance("AudioManager", new string[] { "AudioListener" });
     }
@@ -43,8 +41,8 @@ public class Launcher : MonoBehaviour
 
         stateMachine.SetBlackboardValue("EPlayMode", m_playMode);
 
-        CreateStartGameObject("UI_Root");
-        CreateStartGameObject("SceneGameObject");
+        InitStartGameObject("SceneGameObject");
+        InitStartGameObject("UI_Root");
 
         GameObject go = GameObject.Find("UI_Root/Canvas_0/Ts_Panel/HotUpdatePanel");
 
@@ -70,18 +68,13 @@ public class Launcher : MonoBehaviour
 
 
 
-    private void CreateStartGameObject(string name)
+    private void InitStartGameObject(string name)
     {
         GameObject go = GameObject.Find(name);
 
-        if (go == null)
+        if (go != null)
         {
-            GameObject asset = Resources.Load<GameObject>($"LocalAssets/{name}");
-
-            go = GameObject.Instantiate<GameObject>(asset, Vector3.zero, Quaternion.identity);
             DontDestroyOnLoad(go);
-
-            go.name = name;
         }
     }
 
@@ -100,6 +93,6 @@ public class Launcher : MonoBehaviour
     private void StartGame(object arg)
     {
         GameObject.Destroy(m_hotUpdatePanel.gameObject);
-        GameObject.Destroy(gameObject);
+        GameObject.Destroy(this);
     }
 }

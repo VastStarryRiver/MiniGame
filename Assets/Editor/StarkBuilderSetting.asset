@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1677285531, guid: c7b050cf8ef3c3648b0c635cd35350cc, type: 3}
+  m_Name: StarkBuilderSetting
+  m_EditorClassIdentifier: 
+  tag: 0
+  wasmResourceUrl: http://
+  OutputDir: E:/MyProjects/MiniGame/Build
+  useByteAudioAPI: 0
+  wasmMemorySize: 128
+  isWebGL2: 1
+  needCompress: 1
+  symbolMode: 1
+  profiling: 0
+  clearStreamingAssets: 0
+  buildOptions: 0
+  wasmSubFramework: 1
+  hideAfterCallmain: 1
+  disableLoadingPage: 0
+  useDataCDNAsStreamingAssetsUrl: 0
+  optimizeWebGLMemoryInBackground: 1
+  assetBundleFSEnabled: 1
+  assetBundleBufferCapacity: 128
+  assetBundleBufferTTL: 5
+  preloadFiles: 
+  CDN: https://a.unity.cn/client_api/v1/buckets/b24fd050-49f0-4fa8-9c6a-6d4cf4fc99c6/release_by_badge/latest/content
+  preloadDataListUrl: 
+  iOSDevicePixelRatio: 0
+  urlCacheList:
+  - https://a.unity.cn
+  dontCacheFileNames:
+  - json
+  - version
+  isDevBuild: 0
+  stripEngineCode: 0
+  appHost: 2
+  compressMethod: 1
+  runtimeEnv: 0
+  framework: 1
+  architecture: 2
+  miniApkVersion: 0
+  scriptingBackend: 0
+  NativeWhiteListRegex:
+  - com.bytedance.starksdk
+  - _Backup~
+  _appId: tta5acd3113aa3d89107
+  version: 
+  autoVersion: 0
+  _webglPackagePath: E:\MyProjects\MiniGame\Build\tt-minigame
+  _orientation: 0
+  _iOSPerformancePlus: 0
+  _menuButtonStyle: 0
+  _publishType: 0
+  publishDesc: 
+  idePath: "E:/DYwebTool/@bytedminiprogram-ide/\u6296\u97F3\u5F00\u53D1\u8005\u5DE5\u5177.exe"
+  isConvert: 0
+  isOldBuildFormat: 0

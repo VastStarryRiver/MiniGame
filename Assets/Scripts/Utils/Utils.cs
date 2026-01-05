@@ -148,15 +148,6 @@ public class Utils
         return $"{size:0.##} {units[unitIndex]}";
     }
 
-    public static void RestartGame()
-    {
-#if !UNITY_EDITOR && !UNITY_WEBGL
-        Application.logMessageReceived -= DebugLogTool.ShowDebugErrorLog;
-#endif
-        UIManager.Instance.CloseAllUIPanel();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
     public static void CloseUIPrefabPanel(string prefabName)
     {
         UIManager.Instance.CloseUIPanel(prefabName);

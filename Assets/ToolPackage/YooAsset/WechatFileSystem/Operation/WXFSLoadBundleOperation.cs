@@ -1,4 +1,4 @@
-﻿#if UNITY_WEBGL && WEIXINMINIGAME
+﻿#if UNITY_WEBGL && MINIGAME_SUBPLATFORM_WEIXIN
 using YooAsset;
 
 internal class WXFSLoadBundleOperation : FSLoadBundleOperation

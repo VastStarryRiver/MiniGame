@@ -33,7 +33,7 @@ public class HotUpdateOver : IStateNode
     private void InitializeOperationSystem()
     {
         GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化运行系统");
-        SdkManager.Instance.InitMiniGameSDK(StartGame);
+        SdkManager.Instance.InitSDK(StartGame);
     }
 
     /// <summary>

@@ -1,8 +1,15 @@
 using System;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build.Profile;
 using UnityEngine;
+
+#if MINIGAME_SUBPLATFORM_WEIXIN
 using WeChatWASM;
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+using TTSDK.Tool;
+#endif
 
 
 
@@ -18,20 +25,32 @@ public class CustomBuildScript
 
         ConfigUtils.InitDirectory(ConfigUtils.m_miniBuildPath);
 
+#if MINIGAME_SUBPLATFORM_WEIXIN
         if (WXConvertCore.DoExport() == WXConvertCore.WXExportError.SUCCEED)
         {
             if (WXConvertCore.IsInstantGameAutoStreaming())
             {
                 if (!string.IsNullOrEmpty(WXConvertCore.FirstBundlePath) && File.Exists(WXConvertCore.FirstBundlePath))
                 {
-                    Debug.Log("转换成功");
+                    Debug.Log("微信小游戏构建完成！");
                 }
                 else
                 {
-                    Debug.LogError("转换失败");
+                    Debug.LogError("微信小游戏构建失败");
                 }
             }
         }
+#endif
+    }
+
+    [MenuItem("VastStarryRiver/打包/打包微信小游戏", true, 30)]
+    public static bool PackageProject_WeiXin_Enable()
+    {
+#if MINIGAME_SUBPLATFORM_WEIXIN
+        return true;
+#else
+        return false;
+#endif
     }
 
     [MenuItem("VastStarryRiver/打包/复制文件到CDN目录", false, 31)]
@@ -42,10 +61,40 @@ public class CustomBuildScript
             Directory.Delete(ConfigUtils.m_cdnPath, true);
         }
 
-        ConfigUtils.InitDirectory(ConfigUtils.m_cdnPath);
+        ConfigUtils.InitDirectory(ConfigUtils.m_cdnPath + "/yoo");
 
         MoveBundleToCND();
+
+#if MINIGAME_SUBPLATFORM_WEIXIN
         MoveMiniGameToCND();
+#endif
+    }
+
+    [MenuItem("VastStarryRiver/打包/打包抖音小游戏", false, 32)]
+    public static void PackageProject_DouYin()
+    {
+        if (Directory.Exists(ConfigUtils.m_miniBuildPath))
+        {
+            Directory.Delete(ConfigUtils.m_miniBuildPath, true);
+        }
+
+        ConfigUtils.InitDirectory(ConfigUtils.m_miniBuildPath);
+
+#if MINIGAME_SUBPLATFORM_DOUYIN
+        BuildProfile buildProfile = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/DouYin Profile.asset");
+        DouYinSubplatformInterface douYinSubplatformInterface = new DouYinSubplatformInterface();
+        douYinSubplatformInterface.Build(buildProfile, BuildOptions.None);
+#endif
+    }
+
+    [MenuItem("VastStarryRiver/打包/打包抖音小游戏", true, 32)]
+    public static bool PackageProject_DouYin_Enable()
+    {
+#if MINIGAME_SUBPLATFORM_DOUYIN
+        return true;
+#else
+        return false;
+#endif
     }
 
 
@@ -66,7 +115,7 @@ public class CustomBuildScript
         foreach (var item in fileInfos)
         {
             string sourceFilePath = item.FullName.Replace("\\", "/");
-            string targetFilePath = ConfigUtils.m_cdnPath + "/" + Path.GetFileName(sourceFilePath);
+            string targetFilePath = ConfigUtils.m_cdnPath + "/yoo/" + Path.GetFileName(sourceFilePath);
             File.Copy(sourceFilePath, targetFilePath);
         }
     }
@@ -86,7 +135,7 @@ public class CustomBuildScript
 
         foreach (var item in fileInfos)
         {
-            if (!item.FullName.Contains(".webgl.data.unityweb.bin.br"))
+            if (!item.FullName.Contains(".webgl.data.unityweb.bin.br") && !item.FullName.Contains(".webgl.data.unityweb.bin.txt"))
             {
                 continue;
             }
