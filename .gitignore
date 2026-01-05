@@ -33,3 +33,5 @@ WebData.txt
 Assets/Settings.meta
 /ProjectSettings
 /UserSettings
+game.json
+project.config.json
