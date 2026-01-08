@@ -9,6 +9,7 @@ using WeChatWASM;
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
 using TTSDK;
 using static TTSDK.TTKeyboard;
+using TTSDK.UNBridgeLib.LitJson;
 #endif
 
 
@@ -29,49 +30,17 @@ public class SdkManager : Singleton<SdkManager>
 #elif MINIGAME_SUBPLATFORM_WEIXIN
         WX.InitSDK((code) =>
         {
-            WXUpdateManager wXUpdateManager = WX.GetUpdateManager();
-
-            wXUpdateManager.OnUpdateReady((result) =>
-            {
-                callBack?.Invoke();
-            });
-
-            wXUpdateManager.OnCheckForUpdate((result) =>
-            {
-                if (result.hasUpdate)
-                {
-                    wXUpdateManager.ApplyUpdate();
-                }
-                else
-                {
-                    callBack?.Invoke();
-                }
-            });
+            AddOnShowListener();
+            AddGameUpdateListener();
+            callBack?.Invoke();
         });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
         TT.InitSDK((code, env) =>
         {
-            TTUpdateManager tTUpdateManager = TT.GetUpdateManager();
-
-            tTUpdateManager.OnCheckForUpdate((result) =>
-            {
-                if (result.HasUpdate)
-                {
-                    ApplyUpdateParams applyUpdateParams = new ApplyUpdateParams();
-
-                    applyUpdateParams.Complete = () =>
-                    {
-                        callBack?.Invoke();
-                    };
-
-                    tTUpdateManager.ApplyUpdate(applyUpdateParams);
-                }
-                else
-                {
-                    callBack?.Invoke();
-                }
-            });
+            AddOnShowListener();
+            AddGameUpdateListener();
+            callBack?.Invoke();
         });
 #endif
     }
@@ -288,6 +257,68 @@ public class SdkManager : Singleton<SdkManager>
         }
     }
 
+    private void AddOnShowListener()
+    {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+
+
+#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+        TT.GetAppLifeCycle().OnShow += (data) =>
+        {
+            if (!data.ContainsKey("launchFrom") || !data.ContainsKey("location"))
+            {
+                return;
+            }
+
+            string launchFrom = data["launchFrom"].ToString();
+            string location = data["location"].ToString();
+
+            if (launchFrom == "homepage" && location == "sidebar_card")
+            {
+                Debug.Log("侧边栏复访");
+            }
+        };
+#endif
+    }
+
+    private void AddGameUpdateListener()
+    {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+        WXUpdateManager wXUpdateManager = WX.GetUpdateManager();
+
+        wXUpdateManager.OnCheckForUpdate((result) =>
+        {
+            if (result.hasUpdate)
+            {
+                Debug.Log("有新版本发布了！");
+            }
+        });
+
+        wXUpdateManager.OnUpdateReady((result) =>
+        {
+            Debug.Log("重启游戏应用新版本！");
+            wXUpdateManager.ApplyUpdate();
+        });
+
+#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+        TTUpdateManager tTUpdateManager = TT.GetUpdateManager();
+
+        tTUpdateManager.OnCheckForUpdate((result) =>
+        {
+            if (result.HasUpdate)
+            {
+                Debug.Log("有新版本发布了！");
+            }
+        });
+
+        tTUpdateManager.OnUpdateReady(() =>
+        {
+            Debug.Log("重启游戏应用新版本！");
+            tTUpdateManager.ApplyUpdate(new ApplyUpdateParams());
+        });
+#endif
+    }
+
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
     private void KeyboardInput(OnKeyboardInputListenerResult result)
     {
@@ -330,6 +361,25 @@ public class SdkManager : Singleton<SdkManager>
     private void DeviceOrientationChange(OnDeviceOrientationChangeResult result)
     {
         DeviceOrientationChange();
+    }
+
+    public void ShowSidebar()
+    {
+        TT.CheckScene(TTSideBar.SceneEnum.SideBar, (isJump) =>
+        {
+            if (isJump)
+            {
+                var data = new JsonData
+                {
+                    ["scene"] = "sidebar",
+                };
+
+                TT.NavigateToScene(data, () =>
+                {
+
+                }, null, null);
+            }
+        }, null, null);
     }
 #endif
 }
