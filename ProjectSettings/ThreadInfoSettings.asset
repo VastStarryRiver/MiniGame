@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!9625 &1
+ThreadInfoSettings:
+  m_ObjectHideFlags: 0
+  m_TargetPlatform: 0
+  m_HMIAndroidPlatformThreadInfoSettings:
+    m_BasePlatformThreadInfoSettings:
+      m_MainThreadPriority: -2
+      m_JobWorkerThreadPriority: 0
+      m_GFXDeviceWorkerThreadPriority: -2
+      m_MainThreadAffinity: 2
+      m_JobWorkerThreadAffinity: 2
+      m_GFXDeviceWorkerThreadAffinity: 2
+    m_AndroidChoreographerThreadPriority: 0
+    m_AndroidChoreographerThreadAffinity: 0
+  m_EmbeddedLinuxPlatformThreadInfoSettings:
+    m_BasePlatformThreadInfoSettings:
+      m_MainThreadPriority: 0
+      m_JobWorkerThreadPriority: 0
+      m_GFXDeviceWorkerThreadPriority: -2
+      m_MainThreadAffinity: 2
+      m_JobWorkerThreadAffinity: 0
+      m_GFXDeviceWorkerThreadAffinity: 2
+  m_QnxPlatformThreadInfoSettings:
+    m_BasePlatformThreadInfoSettings:
+      m_MainThreadPriority: 10
+      m_JobWorkerThreadPriority: 10
+      m_GFXDeviceWorkerThreadPriority: 50
+      m_MainThreadAffinity: 2
+      m_JobWorkerThreadAffinity: 0
+      m_GFXDeviceWorkerThreadAffinity: 2
