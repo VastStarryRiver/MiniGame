@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 
@@ -8,78 +11,16 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    private struct callBackData
-    {
-        public float currTime;
-        public float needTime;
-        public Action callBack;
-    }
-
     private Dictionary<string, List<Action<object>>> m_event = null;
-    private Dictionary<string, callBackData> m_callBackInvoke = null;
-    private Dictionary<string, callBackData> m_callBackRepeating = null;
-    private List<string> m_callBackKeys = null;
+    private Dictionary<string, CancellationTokenSource> m_cancellationTokenSources = null;
 
 
 
     private void Awake()
     {
         m_event = new Dictionary<string, List<Action<object>>>();
-        m_callBackInvoke = new Dictionary<string, callBackData>();
-        m_callBackRepeating = new Dictionary<string, callBackData>();
-        m_callBackKeys = new List<string>();
+        m_cancellationTokenSources = new Dictionary<string, CancellationTokenSource>();
         Instance = this;
-    }
-
-    private void Update()
-    {
-        for (int i = 0; i < m_callBackKeys.Count; i++)
-        {
-            if (m_callBackInvoke.ContainsKey(m_callBackKeys[i]))
-            {
-                float currTime = m_callBackInvoke[m_callBackKeys[i]].currTime + Time.deltaTime;
-
-                if (currTime >= m_callBackInvoke[m_callBackKeys[i]].needTime)
-                {
-                    m_callBackInvoke[m_callBackKeys[i]].callBack?.Invoke();
-                    m_callBackInvoke.Remove(m_callBackKeys[i]);
-                }
-                else
-                {
-                    m_callBackInvoke[m_callBackKeys[i]] = new callBackData
-                    {
-                        currTime = currTime,
-                        needTime = m_callBackInvoke[m_callBackKeys[i]].needTime,
-                        callBack = m_callBackInvoke[m_callBackKeys[i]].callBack,
-                    };
-                }
-            }
-            else if (m_callBackRepeating.ContainsKey(m_callBackKeys[i]))
-            {
-                float currTime = m_callBackRepeating[m_callBackKeys[i]].currTime + Time.deltaTime;
-
-                if (currTime >= m_callBackRepeating[m_callBackKeys[i]].needTime)
-                {
-                    m_callBackRepeating[m_callBackKeys[i]].callBack?.Invoke();
-
-                    m_callBackRepeating[m_callBackKeys[i]] = new callBackData
-                    {
-                        currTime = 0,
-                        needTime = m_callBackRepeating[m_callBackKeys[i]].needTime,
-                        callBack = m_callBackRepeating[m_callBackKeys[i]].callBack,
-                    };
-                }
-                else
-                {
-                    m_callBackRepeating[m_callBackKeys[i]] = new callBackData
-                    {
-                        currTime = currTime,
-                        needTime = m_callBackRepeating[m_callBackKeys[i]].needTime,
-                        callBack = m_callBackRepeating[m_callBackKeys[i]].callBack,
-                    };
-                }
-            }
-        }
     }
 
 
@@ -99,7 +40,7 @@ public class GameManager : MonoBehaviour
 
     public void RemoveEventListener(string key, Action<object> callBack)
     {
-        if (m_event == null || !m_event.ContainsKey(key) || !m_event[key].Contains(callBack))
+        if (!m_event.ContainsKey(key) || !m_event[key].Contains(callBack))
         {
             return;
         }
@@ -114,7 +55,7 @@ public class GameManager : MonoBehaviour
 
     public void InvokeEventCallBack(string key, object arg = null)
     {
-        if (m_event == null || !m_event.ContainsKey(key) || m_event[key].Count <= 0)
+        if (!m_event.ContainsKey(key) || m_event[key].Count <= 0)
         {
             return;
         }
@@ -127,55 +68,104 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void AddDelayInvoke(string key, Action callBack, float needTime)
+    public async void DelayCallFrames(string key, Action callBack, int frame)
     {
-        if (m_callBackKeys.Contains(key))
+        if (m_cancellationTokenSources.ContainsKey(key))
         {
             return;
         }
 
-        m_callBackKeys.Add(key);
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        m_cancellationTokenSources.Add(key, cancellationTokenSource);
 
-        m_callBackInvoke.Add(key, new callBackData
+        await UniTask.DelayFrame(frame, cancellationToken: m_cancellationTokenSources[key].Token);
+
+        if (cancellationTokenSource.IsCancellationRequested)
         {
-            currTime = 0,
-            needTime = needTime,
-            callBack = callBack,
-        });
+            return;
+        }
+
+        callBack.Invoke();
     }
 
-    public void AddInvokeRepeating(string key, Action callBack, float needTime)
+    public async void DelayCallSeconds(string key, Action callBack, float time)
     {
-        if (m_callBackKeys.Contains(key))
+        if (m_cancellationTokenSources.ContainsKey(key))
         {
             return;
         }
 
-        m_callBackKeys.Add(key);
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        m_cancellationTokenSources.Add(key, cancellationTokenSource);
 
-        m_callBackRepeating.Add(key, new callBackData
+        await UniTask.Delay(TimeSpan.FromSeconds(time), cancellationToken: m_cancellationTokenSources[key].Token);
+
+        if (cancellationTokenSource.IsCancellationRequested)
         {
-            currTime = 0,
-            needTime = needTime,
-            callBack = callBack,
-        });
+            return;
+        }
+
+        callBack.Invoke();
+    }
+
+    public async void RepeatingCallFrames(string key, Action callBack, int frame = 1)
+    {
+        if (m_cancellationTokenSources.ContainsKey(key))
+        {
+            return;
+        }
+
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        m_cancellationTokenSources.Add(key, cancellationTokenSource);
+
+        var list = UniTaskAsyncEnumerable.EveryUpdate().WithCancellation(m_cancellationTokenSources[key].Token);
+        int frames = frame;
+
+        await foreach (AsyncUnit _ in list)
+        {
+            frames++;
+            if (frames >= frame)
+            {
+                frames = 0;
+                callBack.Invoke();
+            }
+        }
+    }
+
+    public async void RepeatingCallSeconds(string key, Action callBack, float time = 1)
+    {
+        if (m_cancellationTokenSources.ContainsKey(key))
+        {
+            return;
+        }
+
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        m_cancellationTokenSources.Add(key, cancellationTokenSource);
+
+        var list = UniTaskAsyncEnumerable.EveryUpdate().WithCancellation(m_cancellationTokenSources[key].Token);
+        float times = time;
+
+        await foreach (AsyncUnit _ in list)
+        {
+            times += Time.deltaTime;
+            if (times >= time)
+            {
+                times = 0;
+                callBack.Invoke();
+            }
+        }
     }
 
     public void CancelInvokeByKey(string key)
     {
-        if (m_callBackKeys.Contains(key))
+        if (!m_cancellationTokenSources.ContainsKey(key))
         {
-            m_callBackKeys.Remove(key);
+            return;
         }
 
-        if (m_callBackInvoke.ContainsKey(key))
-        {
-            m_callBackInvoke.Remove(key);
-        }
-
-        if (m_callBackRepeating.ContainsKey(key))
-        {
-            m_callBackRepeating.Remove(key);
-        }
+        m_cancellationTokenSources[key].Cancel();
+        m_cancellationTokenSources[key].Dispose();
+        m_cancellationTokenSources.Remove(key);
+        Debug.Log(key + "取消调用");
     }
 }
