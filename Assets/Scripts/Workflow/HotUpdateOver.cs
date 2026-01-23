@@ -1,5 +1,5 @@
-using System;
-using System.Reflection;
+using YooAsset;
+using System.Collections;
 
 
 
@@ -14,7 +14,7 @@ public class HotUpdateOver : IStateNode
 
     public void OnEnter()
     {
-        InitializeOperationSystem();
+        GameManager.Instance.StartCoroutine(ClearUnusedFiles());
     }
 
     public void OnExit()
@@ -25,6 +25,22 @@ public class HotUpdateOver : IStateNode
     public void OnUpdate()
     {
 
+    }
+
+    /// <summary>
+    /// 清理旧缓存
+    /// </summary>
+    private IEnumerator ClearUnusedFiles()
+    {
+        GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "清理旧缓存");
+
+        var operation1 = YooAssetManager.Instance.Package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
+        yield return operation1;
+
+        var operation2 = YooAssetManager.Instance.Package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
+        yield return operation2;
+
+        InitializeOperationSystem();
     }
 
     /// <summary>

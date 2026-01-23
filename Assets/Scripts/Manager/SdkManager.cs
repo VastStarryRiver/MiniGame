@@ -82,7 +82,7 @@ public class SdkManager : Singleton<SdkManager>
         return data;
     }
 
-    public void GetSafeAnchor(out Vector2 anchorMin, out Vector2 anchorMax)
+    public void GetSafeAnchor(bool isMoveDown, out Vector2 anchorMin, out Vector2 anchorMax)
     {
         anchorMin = Vector2.zero;
         anchorMax = Vector2.zero;
@@ -106,8 +106,20 @@ public class SdkManager : Singleton<SdkManager>
 
         float left = (float)(safeArea.left * pixelRatio);
         float right = (float)(safeArea.right * pixelRatio);
-        float top = (float)(safeArea.top * pixelRatio);
         float bottom = (float)(safeArea.bottom * pixelRatio);
+        double top2 = safeArea.top;
+
+        if (isMoveDown)
+        {
+            ClientRect clientRect = WX.GetMenuButtonBoundingClientRect();
+
+            if (clientRect.bottom > top2)
+            {
+                top2 = clientRect.bottom;
+            }
+        }
+
+        float top = (float)(top2 * pixelRatio);
 
         height = (int)(windowInfo.screenHeight * pixelRatio);
         width = (int)(windowInfo.screenWidth * pixelRatio);
@@ -122,8 +134,21 @@ public class SdkManager : Singleton<SdkManager>
 
         float left = (float)(safeArea.left * pixelRatio);
         float right = (float)(safeArea.right * pixelRatio);
-        float top = (float)(safeArea.top * pixelRatio);
         float bottom = (float)(safeArea.bottom * pixelRatio);
+        int top2 = safeArea.top;
+
+        if (isMoveDown)
+        {
+            JsonData clientRect = TT.GetMenuButtonLayout();
+            int bottom2 = clientRect.OptGetInt("bottom");
+
+            if (bottom2 > top2)
+            {
+                top2 = bottom2;
+            }
+        }
+
+        float top = (float)(top2 * pixelRatio);
 
         height = (int)(systemInfo.screenHeight * pixelRatio);
         width = (int)(systemInfo.screenWidth * pixelRatio);
@@ -238,10 +263,9 @@ public class SdkManager : Singleton<SdkManager>
 
     private void DeviceOrientationChange(ScreenAdapter screenAdapter = null)
     {
-        GetSafeAnchor(out Vector2 anchorMin, out Vector2 anchorMax);
-
         if (screenAdapter != null)
         {
+            GetSafeAnchor(screenAdapter.m_isMoveDown, out Vector2 anchorMin, out Vector2 anchorMax);
             RectTransform panel = screenAdapter.GetComponent<RectTransform>();
             panel.anchorMin = anchorMin;
             panel.anchorMax = anchorMax;
@@ -250,6 +274,7 @@ public class SdkManager : Singleton<SdkManager>
         {
             for (int i = 0; i < m_screenAdapters.Count; i++)
             {
+                GetSafeAnchor(m_screenAdapters[i].m_isMoveDown, out Vector2 anchorMin, out Vector2 anchorMax);
                 RectTransform panel = m_screenAdapters[i].GetComponent<RectTransform>();
                 panel.anchorMin = anchorMin;
                 panel.anchorMax = anchorMax;
