@@ -1,5 +1,6 @@
 using UnityEngine;
 using Invariable;
+using DG.Tweening;
 
 
 
@@ -7,8 +8,11 @@ namespace HotUpdate
 {
     public class LoginPanel : UIPanel
     {
+        RectTransform trans;
+
         private void Awake()
         {
+            trans = transform.Find("parent/Img_State1").GetComponent<RectTransform>();
             Utils.PlayAnimation(gameObject, null, "Play", WrapMode.Once, () =>
             {
                 Utils.SetImage(gameObject, "parent/Img_State1", "Atlas02/02_rwtx5");
@@ -17,6 +21,8 @@ namespace HotUpdate
                 Utils.SetGray(gameObject, "parent/Img_State2");
 
                 Utils.SetText(gameObject, "parent/Text_Name", "Ãû×Ö£º<color=#1BB25F>789456</color>");
+
+                trans.DOAnchorPos(new Vector2(0, 0), 3);
             });
         }
 
