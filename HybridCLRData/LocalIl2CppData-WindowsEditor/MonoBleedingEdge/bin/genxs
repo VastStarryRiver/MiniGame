@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /Users/bokken/workspace/Build-mono/tmp/bin/mono $MONO_OPTIONS /Users/bokken/workspace/Build-mono/tmp/lib/mono/4.5/genxs.exe "$@"

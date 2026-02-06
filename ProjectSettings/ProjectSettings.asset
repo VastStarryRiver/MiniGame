@@ -1087,7 +1087,7 @@ PlayerSettings:
   weixinMiniGameMemoryGeometricGrowthCap: 96
   weixinMiniGamePowerPreference: 2
   weixinMiniGameSIMDSupport: 0
-  weixinMiniGameUseSlimMetaFileFormat: 1
+  weixinMiniGameUseSlimMetaFileFormat: 0
   weixinMiniGamePhysicsEngine: 0
   weixinMiniGameInjectStrippedMethodLogger: 0
   weixinMiniGameEnableDotNetWasmExceptionHandling: 1

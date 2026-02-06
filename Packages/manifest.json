@@ -2,7 +2,8 @@
   "dependencies": {
     "cn.unity.uos.cdn": "https://cnb.cool/unity/uos/UosCdnSDK.git",
     "cn.unity.uos.launcher": "https://cnb.cool/unity/uos/UOSLauncher.git",
-    "com.bytedance.starksdk": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.6.5",
+    "com.bytedance.starksdk": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.6.8",
+    "com.code-philosophy.hybridclr": "https://gitee.com/focus-creative-games/hybridclr_unity.git",
     "com.coffee.ui-particle": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
     "com.esotericsoftware.spine.spine-csharp": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-csharp/src#4.2",
     "com.esotericsoftware.spine.spine-unity": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-unity/Assets/Spine#4.2",
@@ -10,7 +11,7 @@
     "com.tuyoogame.yooasset": "2.3.18",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.feature.development": "1.0.1",
-    "com.unity.textmeshpro": "3.0.9",
+    "com.unity.textmeshpro": "3.0.10-t1",
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",

@@ -17,10 +17,17 @@
       "hash": "e1540186f8eaae4a4e0ca840d769bf9f09b5f8ec"
     },
     "com.bytedance.starksdk": {
-      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.6.5",
+      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.6.8",
       "depth": 0,
       "source": "local",
       "dependencies": {}
+    },
+    "com.code-philosophy.hybridclr": {
+      "version": "https://gitee.com/focus-creative-games/hybridclr_unity.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "03083ad8f96253f84ed4cf2018c5f32690e29b7b"
     },
     "com.coffee.ui-particle": {
       "version": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
@@ -180,7 +187,7 @@
       "url": "https://packages.tuanjie.cn"
     },
     "com.unity.textmeshpro": {
-      "version": "3.0.9",
+      "version": "3.0.10-t1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
