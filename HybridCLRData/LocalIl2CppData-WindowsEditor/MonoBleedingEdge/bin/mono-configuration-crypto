@@ -1,2 +1,0 @@
-#!/bin/sh
-exec /Users/bokken/workspace/Build-mono/tmp/bin/mono $MONO_OPTIONS /Users/bokken/workspace/Build-mono/tmp/lib/mono/mono-configuration-crypto/4.5/mono-configuration-crypto.exe "$@"
