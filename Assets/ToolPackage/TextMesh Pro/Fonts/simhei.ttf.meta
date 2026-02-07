@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 1a63f5a611ee31a499ea18bcbd2f7a57
+guid: D3Mf5Cn8W361m5ExNQgY9xnmZiZUMdawW8Lf/pMRkQhOlm3ulc07JCE=
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - Noto Sans SC
+  - SimHei
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0
