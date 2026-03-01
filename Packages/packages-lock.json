@@ -1,5 +1,15 @@
 {
   "dependencies": {
+    "cn.tuanjie.wx-uploader": {
+      "version": "0.1.4",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.nuget.mono-cecil": "1.10.1",
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      },
+      "url": "https://packages.tuanjie.cn"
+    },
     "cn.unity.uos.cdn": {
       "version": "https://cnb.cool/unity/uos/UosCdnSDK.git",
       "depth": 0,
@@ -132,6 +142,13 @@
     },
     "com.unity.ide.vscode": {
       "version": "1.2.5",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.tuanjie.cn"
+    },
+    "com.unity.nuget.mono-cecil": {
+      "version": "1.11.4",
       "depth": 1,
       "source": "registry",
       "dependencies": {},

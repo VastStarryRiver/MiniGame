@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "cn.tuanjie.wx-uploader": "0.1.4",
     "cn.unity.uos.cdn": "https://cnb.cool/unity/uos/UosCdnSDK.git",
     "cn.unity.uos.launcher": "https://cnb.cool/unity/uos/UOSLauncher.git",
     "com.bytedance.starksdk": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.6.8",
