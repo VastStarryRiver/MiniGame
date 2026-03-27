@@ -70,11 +70,11 @@
       "hash": "a554d4f1b0cb80f481682c05cb575b0255bc8e1c"
     },
     "com.qq.weixin.minigame": {
-      "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git#main",
+      "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "da392637d3a224636d61af0b3da0eda8427d6bc8"
+      "hash": "f67e7851c345f514e9079819cae16273ff05b33c"
     },
     "com.tuyoogame.yooasset": {
       "version": "2.3.18",

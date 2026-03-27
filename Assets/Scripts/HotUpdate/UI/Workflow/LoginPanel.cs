@@ -20,9 +20,7 @@ namespace HotUpdate
 
                 Utils.SetGray(gameObject, "parent/Img_State2");
 
-                Utils.SetText(gameObject, "parent/Text_Name", "Ãû×Ö£º<color=#1BB25F>789456</color>");
-
-                trans.DOAnchorPos(new Vector2(0, 0), 3);
+                Utils.SetText(gameObject, "parent/Text_Name", "Ãû×Ö£º<color=#1BB25F>???</color>");
             });
         }
 
