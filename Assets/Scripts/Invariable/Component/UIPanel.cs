@@ -8,7 +8,7 @@ namespace Invariable
     {
         public void Close()
         {
-            UIManager.Instance.CloseUIPanel(name);
+            Utils.CloseUIPrefabPanel(gameObject.name);
         }
     }
 }

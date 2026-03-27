@@ -500,7 +500,7 @@ namespace Invariable
             }
         }
 
-        public static void OpenUIPrefabPanel(string prefabPath, int layer)
+        public static void OpenUIPrefabPanel(string prefabPath, int layer, Action<GameObject> callBack = null)
         {
             string prefabName = Path.GetFileName(prefabPath);
 
@@ -519,6 +519,7 @@ namespace Invariable
                 gameObject.name = prefabName;
                 UIPanel uiPanel = (UIPanel)AddComponent(gameObject, "", prefabName);
                 UIManager.Instance.AddUIPanel(prefabName, uiPanel);
+                callBack?.Invoke(gameObject);
             });
         }
 
