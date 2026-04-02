@@ -8,7 +8,16 @@ namespace Invariable
     {
         public void Close()
         {
-            Utils.CloseUIPrefabPanel(gameObject.name);
+            UIPopup uiPopup = gameObject.GetComponent<UIPopup>();
+
+            if (uiPopup == null)
+            {
+                Utils.CloseUIPrefabPanel(gameObject.name);
+            }
+            else
+            {
+                uiPopup.Close();
+            }
         }
     }
 }

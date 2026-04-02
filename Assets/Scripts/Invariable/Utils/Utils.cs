@@ -12,15 +12,24 @@ namespace Invariable
 {
     public class Utils
     {
-        public static Camera MainUICamera
+        private static Camera[] uiCamera;
+        public static Camera[] UICamera
         {
             get
             {
-                return GameObject.Find("UI_Root/Canvas_0/UI_Camera").GetComponent<Camera>();
+                uiCamera ??= new Camera[]
+                {
+                    GameObject.Find("UI_Root/Canvas_0/UI_Camera").GetComponent<Camera>(),
+                    GameObject.Find("UI_Root/Canvas_1/UI_Camera").GetComponent<Camera>(),
+                    GameObject.Find("UI_Root/Canvas_2/UI_Camera").GetComponent<Camera>(),
+                    GameObject.Find("UI_Root/Canvas_3/UI_Camera").GetComponent<Camera>(),
+                };
+
+                return uiCamera;
             }
         }
 
-        public static RectTransform MainUIRoot
+        public static RectTransform UIRoot
         {
             get
             {

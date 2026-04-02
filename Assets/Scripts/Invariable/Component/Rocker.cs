@@ -48,7 +48,7 @@ namespace Invariable
                 point = Input.GetTouch(0).position;
             }
 
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(Utils.MainUIRoot, point, Utils.MainUICamera, out point);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(Utils.UIRoot, point, Utils.UICamera[0], out point);
 
             if (!isSetCurrPos)
             {

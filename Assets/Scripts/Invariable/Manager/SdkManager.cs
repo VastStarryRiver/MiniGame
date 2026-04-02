@@ -84,85 +84,45 @@ namespace Invariable
             return data;
         }
 
-        public void GetSafeAnchor(bool isMoveDown, out Vector2 anchorMin, out Vector2 anchorMax)
+        /// <summary>
+        /// 获取安全区域，固定写死
+        /// </summary>
+        /// <param name="offsetMin">相对于左下角的偏移量</param>
+        /// <param name="offsetMax">相对于右上角的偏移量</param>
+        public void GetSafeAnchor(out Vector2 offsetMin, out Vector2 offsetMax)
         {
-            anchorMin = Vector2.zero;
-            anchorMax = Vector2.zero;
-
-            int height = 0;
-            int width = 0;
+            bool isChange = true;
 
 #if UNITY_EDITOR
-            Rect safeArea = Screen.safeArea; // 原点在左下角
-
-            height = Screen.height;
-            width = Screen.width;
-
-            anchorMin = safeArea.position;
-            anchorMax = safeArea.position + safeArea.size;
+            isChange = false;
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-            var windowInfo = WX.GetWindowInfo();
-            SafeArea safeArea = windowInfo.safeArea; // 原点在左上角
-            double pixelRatio = windowInfo.pixelRatio; // 获取设备像素比
+            var systemInfo = WX.GetDeviceInfo();
 
-            float left = (float)(safeArea.left * pixelRatio);
-            float right = (float)(safeArea.right * pixelRatio);
-            float bottom = (float)(safeArea.bottom * pixelRatio);
-            double top2 = safeArea.top;
-
-            if (isMoveDown)
+            if (systemInfo.platform == "windows" || systemInfo.platform == "mac" || systemInfo.platform == "ohos_pc")
             {
-                ClientRect clientRect = WX.GetMenuButtonBoundingClientRect();
-
-                if (clientRect.bottom > top2)
-                {
-                    top2 = clientRect.bottom;
-                }
+                isChange = false;
             }
-
-            float top = (float)(top2 * pixelRatio);
-
-            height = (int)(windowInfo.screenHeight * pixelRatio);
-            width = (int)(windowInfo.screenWidth * pixelRatio);
-
-            anchorMin = new Vector2(left, height - bottom);
-            anchorMax = new Vector2(right, height - top);
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
             var systemInfo = TT.GetSystemInfo();
-            SafeArea safeArea = systemInfo.safeArea; // 原点在左上角
-            double pixelRatio = systemInfo.pixelRatio; // 获取设备像素比
 
-            float left = (float)(safeArea.left * pixelRatio);
-            float right = (float)(safeArea.right * pixelRatio);
-            float bottom = (float)(safeArea.bottom * pixelRatio);
-            int top2 = safeArea.top;
-
-            if (isMoveDown)
+            if (systemInfo.platform == "windows" || systemInfo.platform == "mac" || systemInfo.platform == "ohos_pc")
             {
-                JsonData clientRect = TT.GetMenuButtonLayout();
-                int bottom2 = clientRect.OptGetInt("bottom");
-
-                if (bottom2 > top2)
-                {
-                    top2 = bottom2;
-                }
+                isChange = false;
             }
-
-            float top = (float)(top2 * pixelRatio);
-
-            height = (int)(systemInfo.screenHeight * pixelRatio);
-            width = (int)(systemInfo.screenWidth * pixelRatio);
-
-            anchorMin = new Vector2(left, height - bottom);
-            anchorMax = new Vector2(right, height - top);
 #endif
 
-            anchorMin.x /= width;
-            anchorMin.y /= height;
-            anchorMax.x /= width;
-            anchorMax.y /= height;
+            if (isChange)
+            {
+                offsetMin = new Vector2(30, 130); // Left = 30, Bottom = 130
+                offsetMax = new Vector2(-30, -90); // Right = 30, Top = 90
+            }
+            else
+            {
+                offsetMin = Vector2.zero;
+                offsetMax = Vector2.zero;
+            }
         }
 
         public void ShowKeyboard(TMP_InputField InputField)
@@ -263,23 +223,23 @@ namespace Invariable
             }
         }
 
-        private void DeviceOrientationChange(ScreenAdapter screenAdapter = null)
+        public void DeviceOrientationChange(ScreenAdapter screenAdapter = null)
         {
             if (screenAdapter != null)
             {
-                GetSafeAnchor(screenAdapter.m_isMoveDown, out Vector2 anchorMin, out Vector2 anchorMax);
+                GetSafeAnchor(out Vector2 offsetMin, out Vector2 offsetMax);
                 RectTransform panel = screenAdapter.GetComponent<RectTransform>();
-                panel.anchorMin = anchorMin;
-                panel.anchorMax = anchorMax;
+                panel.offsetMin = offsetMin;
+                panel.offsetMax = offsetMax;
             }
             else
             {
                 for (int i = 0; i < m_screenAdapters.Count; i++)
                 {
-                    GetSafeAnchor(m_screenAdapters[i].m_isMoveDown, out Vector2 anchorMin, out Vector2 anchorMax);
+                    GetSafeAnchor(out Vector2 offsetMin, out Vector2 offsetMax);
                     RectTransform panel = m_screenAdapters[i].GetComponent<RectTransform>();
-                    panel.anchorMin = anchorMin;
-                    panel.anchorMax = anchorMax;
+                    panel.offsetMin = offsetMin;
+                    panel.offsetMax = offsetMax;
                 }
             }
         }

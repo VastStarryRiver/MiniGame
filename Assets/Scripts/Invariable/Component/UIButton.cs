@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 
@@ -7,8 +6,10 @@ using System;
 
 namespace Invariable
 {
-    public class UIButton : Button, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class UIButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
     {
+        public bool m_isNotChangeScale = false;
+
         private int m_clickTimes = 0;
 
         private bool isCancelClick = false;
@@ -27,47 +28,24 @@ namespace Invariable
 
         private PointerEventData m_eventData = null;
 
-        private ScrollRect m_scroll = null;
+        private RectTransform m_trans = null;
+
+
+
+        private void Awake()
+        {
+            m_trans = gameObject.GetComponent<RectTransform>();
+        }
 
         private void Update()
         {
             CallLongPressListener();
-
             CallDoubleClickListener();
         }
 
-        public override void OnPointerDown(PointerEventData eventData)
-        {
-            base.OnPointerDown(eventData);
 
-            if (m_longPressFun != null)
-            {
-                m_startPressTime = Time.time;
-            }
 
-            if (m_downFunc != null)
-            {
-                m_downFunc.Invoke();
-            }
-        }
-
-        public override void OnPointerUp(PointerEventData eventData)
-        {
-            base.OnPointerUp(eventData);
-
-            if (m_longPressFun != null)
-            {
-                m_startPressTime = 0;
-                m_endPressTime = 0;
-            }
-
-            if (m_upFunc != null)
-            {
-                m_upFunc.Invoke();
-            }
-        }
-
-        public override void OnPointerClick(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData)
         {
             if (isCancelClick)
             {
@@ -88,30 +66,35 @@ namespace Invariable
             }
         }
 
-        public void OnBeginDrag(PointerEventData eventData)
+        public void OnPointerDown(PointerEventData eventData)
         {
-            if (m_scroll != null)
+            if (!m_isNotChangeScale)
             {
-                m_scroll.OnBeginDrag(eventData);
+                m_trans.localScale = new Vector3(1.1f, 1.1f, 1.1f);
             }
+
+            if (m_longPressFun != null)
+            {
+                m_startPressTime = Time.time;
+            }
+
+            m_downFunc?.Invoke();
         }
 
-        public void OnDrag(PointerEventData eventData)
+        public void OnPointerUp(PointerEventData eventData)
         {
-            isCancelClick = true;
-
-            if (m_scroll != null)
+            if (!m_isNotChangeScale)
             {
-                m_scroll.OnDrag(eventData);
+                m_trans.localScale = new Vector3(1, 1, 1);
             }
-        }
 
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            if (m_scroll != null)
+            if (m_longPressFun != null)
             {
-                m_scroll.OnEndDrag(eventData);
+                m_startPressTime = 0;
+                m_endPressTime = 0;
             }
+
+            m_upFunc?.Invoke();
         }
 
         public void AddClickListener(Action Action)
@@ -164,16 +147,6 @@ namespace Invariable
             m_longPressFun = null;
         }
 
-        public void AddDragScroll(ScrollRect scr)
-        {
-            m_scroll = scr;
-        }
-
-        public void ReleaseDragScroll()
-        {
-            m_scroll = null;
-        }
-
         private void CallDoubleClickListener()
         {
             if (m_eventData != null)
@@ -190,17 +163,12 @@ namespace Invariable
                     if (m_clickTimes == 1)
                     {
                         m_clickTimes = 0;
-
-                        if (m_clickFunc != null)
-                        {
-                            m_clickFunc.Invoke();
-                        }
+                        m_clickFunc?.Invoke();
                     }
                     else if (m_clickTimes >= 2)
                     {
                         m_clickTimes = 0;
-
-                        m_doubleClickFunc.Invoke();
+                        m_doubleClickFunc?.Invoke();
                     }
 
                     m_eventData = null;
@@ -232,7 +200,7 @@ namespace Invariable
 
                         isCancelClick = true;
 
-                        m_longPressFun.Invoke();
+                        m_longPressFun?.Invoke();
                     }
                 }
             }
