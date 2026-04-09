@@ -19,7 +19,7 @@ namespace Invariable
 
         public void Close()
         {
-            m_trans.DOScale(new Vector3(0, 0, 0), 0.3f).SetEase(Ease.InSine).OnComplete(() =>
+            m_trans.DOScale(new Vector3(0, 0, 0), 0.2f).SetEase(Ease.InSine).OnComplete(() =>
             {
                 Utils.CloseUIPrefabPanel(gameObject.name);
             });
