@@ -140,6 +140,22 @@ namespace Invariable
             });
         }
 
+        public static void GetConfigData(string configName, Action<Dictionary<string, Dictionary<string, string>>> callBack = null)
+        {
+            string key = "Config_" + configName;
+
+            if (key.Contains(".bin"))
+            {
+                key = key.Replace(".bin", "");
+            }
+
+            YooAssetManager.Instance.AsyncLoadAsset<BinAsset>(key, (data) =>
+            {
+                var config = ReadSafeFile<Dictionary<string, Dictionary<string, string>>>(data.bytes);
+                callBack?.Invoke(config);
+            });
+        }
+
         public static byte[] ReadFileByteData(string path)
         {
             byte[] byteData = null;
