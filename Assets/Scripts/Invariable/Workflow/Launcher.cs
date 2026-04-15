@@ -53,7 +53,7 @@ namespace Invariable
                 Transform parent = GameObject.Find("UI_Root/Canvas_0/Ts_Panel").transform;
                 GameObject asset = Resources.Load<GameObject>("LocalAssets/HotUpdatePanel");
                 go = GameObject.Instantiate<GameObject>(asset, Vector3.zero, Quaternion.identity, parent);
-                go.name = name;
+                go.name = "HotUpdatePanel";
             }
 
             m_hotUpdatePanel = go.GetComponent<GameLoadingPanel>();

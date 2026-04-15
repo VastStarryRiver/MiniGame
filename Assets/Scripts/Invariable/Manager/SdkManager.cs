@@ -23,6 +23,7 @@ namespace Invariable
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
         private Dictionary<string, WXCustomAd> m_bannerAd = null;
         private Dictionary<string, WXRewardedVideoAd> m_rewardedVideoAd = null;
+        private WXGameClubButton wXGameClubButton = null;
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
         private Dictionary<string, TTBannerAd> m_bannerAd = null;
@@ -124,30 +125,6 @@ namespace Invariable
             });
 #endif
         }
-
-#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
-
-
-#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
-        public void ShowSidebar()
-        {
-            TT.CheckScene(TTSideBar.SceneEnum.SideBar, (isJump) =>
-            {
-                if (isJump)
-                {
-                    var data = new JsonData
-                    {
-                        ["scene"] = "sidebar",
-                    };
-
-                    TT.NavigateToScene(data, () =>
-                    {
-
-                    }, null, null);
-                }
-            }, null, null);
-        }
-#endif
         #endregion
 
         #region 数据存储
@@ -372,20 +349,23 @@ namespace Invariable
         #endregion
 
         #region 广告
-        public void ShowBannerAd(int left, int top, int width)
+        public void ShowBannerAd(int left, int top, int width, string adUnitId = "")
         {
             ConfigUtils.GetConfigData("BannerAd", (config) =>
             {
-                int index = 1;
-
-                if (config.Count >= 2)
+                if (string.IsNullOrEmpty(adUnitId))
                 {
-                    index = UnityEngine.Random.Range(1, config.Count + 1);
+                    int index = 1;
+
+                    if (config.Count >= 2)
+                    {
+                        index = UnityEngine.Random.Range(1, config.Count + 1);
+                    }
+
+                    adUnitId = config[index.ToString()]["AdUnitId"];
                 }
 
-                string adUnitId = config[index.ToString()]["AdUnitId"];
-
-                if (adUnitId == "0")
+                if (string.IsNullOrEmpty(adUnitId) || adUnitId == "0")
                 {
                     return;
                 }
@@ -393,6 +373,9 @@ namespace Invariable
 #if UNITY_EDITOR
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
+                var info = WX.GetWindowInfo();
+                double pixelRatio = info.pixelRatio;
+
                 if (!m_bannerAd.ContainsKey(adUnitId))
                 {
                     WXCustomAd bannerAd = WX.CreateCustomAd(new WXCreateCustomAdParam()
@@ -401,9 +384,9 @@ namespace Invariable
 
                         style = new CustomStyle
                         {
-                            left = left, // 左边距（像素）
-                            top = top,  // 上边距（像素），0表示顶部，如果是底部，可以设置为 Screen.height - 广告高度
-                            width = width, // 广告宽度，单位像素，广告会自动等比缩放
+                            left = (int)(left / pixelRatio),
+                            top = (int)(top / pixelRatio),
+                            width = (int)(width / pixelRatio),
                         }
                     });
 
@@ -428,6 +411,9 @@ namespace Invariable
                 }
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
+                var systemInfo = TT.GetSystemInfo();
+                double pixelRatio = systemInfo.pixelRatio;
+
                 if (!m_bannerAd.ContainsKey(adUnitId))
                 {
                     TTBannerAd bannerAd = TT.CreateBannerAd(new CreateBannerAdParam()
@@ -436,9 +422,9 @@ namespace Invariable
 
                         Style = new TTBannerStyle
                         {
-                            left = left, // 左边距（像素）
-                            top = top,  // 上边距（像素），0表示顶部，如果是底部，可以设置为 Screen.height - 广告高度
-                            width = width, // 广告宽度，单位像素，广告会自动等比缩放
+                            left = (int)(left / pixelRatio),
+                            top = (int)(top / pixelRatio),
+                            width = (int)(width / pixelRatio),
                         }
                     });
 
@@ -484,20 +470,23 @@ namespace Invariable
 #endif
         }
 
-        public void ShowRewardedVideoAd(Action callBack = null)
+        public void ShowRewardedVideoAd(Action callBack = null, string adUnitId = "")
         {
             ConfigUtils.GetConfigData("RewardedVideoAd", (config) =>
             {
-                int index = 1;
-
-                if (config.Count >= 2)
+                if (string.IsNullOrEmpty(adUnitId))
                 {
-                    index = UnityEngine.Random.Range(1, config.Count + 1);
+                    int index = 1;
+
+                    if (config.Count >= 2)
+                    {
+                        index = UnityEngine.Random.Range(1, config.Count + 1);
+                    }
+
+                    adUnitId = config[index.ToString()]["AdUnitId"];
                 }
 
-                string adUnitId = config[index.ToString()]["AdUnitId"];
-
-                if (adUnitId == "0")
+                if (string.IsNullOrEmpty(adUnitId) || adUnitId == "0")
                 {
                     return;
                 }
@@ -575,6 +564,86 @@ namespace Invariable
                 }
 #endif
             });
+        }
+        #endregion
+
+        #region 侧边栏复访
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+        public void ShowSidebar()
+        {
+            TT.CheckScene(TTSideBar.SceneEnum.SideBar, (isJump) =>
+            {
+                if (isJump)
+                {
+                    var data = new JsonData
+                    {
+                        ["scene"] = "sidebar",
+                    };
+
+                    TT.NavigateToScene(data, () =>
+                    {
+                        SetLocalData("IsGetReward", "1");
+                    }, null, null);
+                }
+            }, null, null);
+        }
+#endif
+        #endregion
+
+        #region 游戏圈
+        public void ShowGameClubButton(Rect rect = default, float fontSize = 0)
+        {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+            if (wXGameClubButton == null)
+            {
+                var info = WX.GetWindowInfo();
+                double pixelRatio = info.pixelRatio;
+
+                wXGameClubButton = WX.CreateGameClubButton(new WXCreateGameClubButtonParam()
+                {
+                    type = GameClubButtonType.text,
+                    text = "",
+                    style = new GameClubButtonStyle()
+                    {
+                        //位置和大小
+                        left = (int)(rect.x / pixelRatio),
+                        top = (int)(rect.y / pixelRatio),
+                        width = (int)(rect.width / pixelRatio),
+                        height = (int)(rect.height / pixelRatio),
+
+                        // 背景颜色
+                        backgroundColor = "#FFFFFF00",
+
+                        // 文字样式
+                        color = "#BBDD88",
+                        textAlign = GameClubButtonTextAlign.center,
+                        fontSize = (int)(fontSize / pixelRatio),
+                        lineHeight = (int)((fontSize + 10) / pixelRatio),
+
+                        // 边框样式
+                        borderColor = "#00000000",
+                        borderWidth = 1,
+                        //borderRadius = 30 // 圆角
+                    }
+                });
+            }
+            else
+            {
+                wXGameClubButton.Show();
+            }
+#endif
+        }
+
+        public void HideGameClubButton()
+        {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+            if (wXGameClubButton == null)
+            {
+                return;
+            }
+
+            wXGameClubButton.Hide();
+#endif
         }
         #endregion
     }
