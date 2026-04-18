@@ -16,18 +16,13 @@ namespace Invariable
 
 
 
-        protected override void Awake()
+        protected override void Start()
         {
-            base.Awake();
-
-            content = transform.Find("Viewport/Content") as RectTransform;
-            viewport = transform.Find("Viewport") as RectTransform;
-
             onValueChanged.AddListener((pos) =>
             {
                 if (m_type == 1)
                 {
-                    if (content.sizeDelta.x <= viewport.sizeDelta.x)
+                    if (content.sizeDelta.x <= viewport.rect.width)
                     {
                         return;
                     }
@@ -36,7 +31,7 @@ namespace Invariable
                 }
                 else if (m_type == 2)
                 {
-                    if (content.sizeDelta.y <= viewport.sizeDelta.y)
+                    if (content.sizeDelta.y <= viewport.rect.height)
                     {
                         return;
                     }

@@ -1,13 +1,6 @@
 using YooAsset;
 using System.Collections;
 
-#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
-using WeChatWASM;
-
-#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
-using TTSDK;
-#endif
-
 
 
 namespace Invariable
@@ -88,18 +81,11 @@ namespace Invariable
             {
                 string defaultHostServer = $"{ConfigUtils.CDNPath}/yoo";
                 string fallbackHostServer = defaultHostServer;
-                var remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+                RemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
 
                 WebPlayModeParameters createParameters = new WebPlayModeParameters();
 
-#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
-                string packageRoot = $"{WX.env.USER_DATA_PATH}/__GAME_FILE_CACHE/yoo";
-                createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices);
-
-#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
-                string packageRoot = "yoo";
-                createParameters.WebServerFileSystemParameters = TiktokFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices);
-#endif
+                SdkManager.Instance.InitializeYooAsset(ref createParameters, remoteServices);
 
                 initOperation = package.InitializeAsync(createParameters);
             }

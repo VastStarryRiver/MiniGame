@@ -4,6 +4,7 @@ using TMPro;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Reflection;
+using YooAsset;
 
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
 using WeChatWASM;
@@ -21,18 +22,21 @@ namespace Invariable
     public class SdkManager : Singleton<SdkManager>
     {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
-        private Dictionary<string, WXCustomAd> m_bannerAd = null;
-        private Dictionary<string, WXRewardedVideoAd> m_rewardedVideoAd = null;
+        private WXCustomAd m_bannerAd = null;
+        private WXRewardedVideoAd m_rewardedVideoAd = null;
         private WXGameClubButton wXGameClubButton = null;
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
-        private Dictionary<string, TTBannerAd> m_bannerAd = null;
-        private Dictionary<string, TTRewardedVideoAd> m_rewardedVideoAd = null;
+        private TTBannerAd m_bannerAd = null;
+        private TTRewardedVideoAd m_rewardedVideoAd = null;
 #endif
 
         private TMP_InputField m_inputField = null;
         private bool m_isKeyboardShowing = false;
         private List<ScreenAdapter> m_screenAdapters = null;
+        private bool m_isShowBannerAd = false;
+        private bool m_isShowRewardedVideoAd = false;
+        private Action<bool> m_rewardedVideoAdCallBack = null;
 
 
 
@@ -46,8 +50,6 @@ namespace Invariable
             {
                 AddOnShowListener();
                 AddGameUpdateListener();
-                m_bannerAd ??= new Dictionary<string, WXCustomAd>();
-                m_rewardedVideoAd ??= new Dictionary<string, WXRewardedVideoAd>();
                 callBack?.Invoke();
             });
 
@@ -56,8 +58,6 @@ namespace Invariable
             {
                 AddOnShowListener();
                 AddGameUpdateListener();
-                m_bannerAd ??= new Dictionary<string, TTBannerAd>();
-                m_rewardedVideoAd ??= new Dictionary<string, TTRewardedVideoAd>();
                 callBack?.Invoke();
             });
 #endif
@@ -373,104 +373,83 @@ namespace Invariable
 #if UNITY_EDITOR
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
+                if (m_bannerAd != null)
+                {
+                    Debug.Log("展示Banner广告");
+                    m_bannerAd.Show();
+                    return;
+                }
+
                 var info = WX.GetWindowInfo();
                 double pixelRatio = info.pixelRatio;
 
-                if (!m_bannerAd.ContainsKey(adUnitId))
+                Debug.Log("创建Banner广告");
+                m_bannerAd = WX.CreateCustomAd(new WXCreateCustomAdParam()
                 {
-                    WXCustomAd bannerAd = WX.CreateCustomAd(new WXCreateCustomAdParam()
+                    adUnitId = adUnitId,
+
+                    style = new CustomStyle
                     {
-                        adUnitId = adUnitId,
+                        left = (int)(left / pixelRatio),
+                        top = (int)(top / pixelRatio),
+                        width = (int)(width / pixelRatio),
+                    }
+                });
 
-                        style = new CustomStyle
-                        {
-                            left = (int)(left / pixelRatio),
-                            top = (int)(top / pixelRatio),
-                            width = (int)(width / pixelRatio),
-                        }
-                    });
+                m_isShowBannerAd = true;
+                m_bannerAd.OnLoad((res) => {
+                    Debug.Log("Banner广告加载完成");
+                    if (m_isShowBannerAd)
+                    {
+                        m_isShowBannerAd = false;
+                        Debug.Log("展示Banner广告");
+                        m_bannerAd.Show();
+                    }
+                });
 
-                    bannerAd.OnLoad((res) => {
-                        if (m_bannerAd.ContainsKey(adUnitId))
-                        {
-                            return;
-                        }
-
-                        m_bannerAd.Add(adUnitId, bannerAd);
-
-                        bannerAd.Show();
-                    });
-
-                    bannerAd.OnError((res) => {
-                        Debug.LogError($"Banner广告加载失败: {res.errMsg}");
-                    });
-                }
-                else
-                {
-                    m_bannerAd[adUnitId].Show();
-                }
+                m_bannerAd.OnError((res) => {
+                    Debug.LogError($"Banner广告加载失败: {res.errMsg}");
+                });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
+                if (m_bannerAd != null)
+                {
+                    m_bannerAd.Show();
+                    return;
+                }
+
                 var systemInfo = TT.GetSystemInfo();
                 double pixelRatio = systemInfo.pixelRatio;
 
-                if (!m_bannerAd.ContainsKey(adUnitId))
+                m_bannerAd = TT.CreateBannerAd(new CreateBannerAdParam()
                 {
-                    TTBannerAd bannerAd = TT.CreateBannerAd(new CreateBannerAdParam()
+                    BannerAdId = adUnitId,
+
+                    Style = new TTBannerStyle
                     {
-                        BannerAdId = adUnitId,
+                        left = (int)(left / pixelRatio),
+                        top = (int)(top / pixelRatio),
+                        width = (int)(width / pixelRatio),
+                    }
+                });
 
-                        Style = new TTBannerStyle
-                        {
-                            left = (int)(left / pixelRatio),
-                            top = (int)(top / pixelRatio),
-                            width = (int)(width / pixelRatio),
-                        }
-                    });
+                m_isShowBannerAd = true;
+                m_bannerAd.OnLoad += () => {
+                    if (m_isShowBannerAd)
+                    {
+                        m_isShowBannerAd = false;
+                        m_bannerAd.Show();
+                    }
+                };
 
-                    bannerAd.OnLoad += () => {
-                        if (m_bannerAd.ContainsKey(adUnitId))
-                        {
-                            return;
-                        }
-
-                        m_bannerAd.Add(adUnitId, bannerAd);
-
-                        bannerAd.Show();
-                    };
-
-                    bannerAd.OnError += (code, message) => {
-                        Debug.LogError($"Banner广告加载失败: {message}");
-                    };
-                }
-                else
-                {
-                    m_bannerAd[adUnitId].Show();
-                }
+                m_bannerAd.OnError += (code, message) => {
+                    Debug.LogError($"Banner广告加载失败: {message}");
+                };
 #endif
             });
         }
 
-        public void HideBannerAd(string adUnitId = "")
-        {
-#if UNITY_EDITOR
-
-#else
-            if (string.IsNullOrEmpty(adUnitId))
-            {
-                foreach (var item in m_bannerAd)
-                {
-                    item.Value.Hide();
-                }
-            }
-            else if (m_bannerAd.ContainsKey(adUnitId))
-            {
-                m_bannerAd[adUnitId].Hide();
-            }
-#endif
-        }
-
-        public void ShowRewardedVideoAd(Action callBack = null, string adUnitId = "")
+        public void ShowRewardedVideoAd(Action<bool> callBack = null, string adUnitId = "")
         {
             ConfigUtils.GetConfigData("RewardedVideoAd", (config) =>
             {
@@ -491,86 +470,81 @@ namespace Invariable
                     return;
                 }
 
+                m_rewardedVideoAdCallBack = callBack;
+
 #if UNITY_EDITOR
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-                if (!m_rewardedVideoAd.ContainsKey(adUnitId))
+                if (m_rewardedVideoAd != null)
                 {
-                    WXRewardedVideoAd rewardedVideoAd = WX.CreateRewardedVideoAd(new WXCreateRewardedVideoAdParam
+                    Debug.Log("展示激励视频广告");
+                    m_rewardedVideoAd.Show();
+                    return;
+                }
+
+                Debug.Log("创建激励视频广告");
+                m_rewardedVideoAd = WX.CreateRewardedVideoAd(new WXCreateRewardedVideoAdParam
+                {
+                    adUnitId = adUnitId
+                });
+
+                m_isShowRewardedVideoAd = true;
+                m_rewardedVideoAd.OnLoad((res) => {
+                    Debug.Log("激励视频广告加载完成");
+                    if (m_isShowRewardedVideoAd)
                     {
-                        adUnitId = adUnitId
-                    });
+                        m_isShowRewardedVideoAd = false;
+                        Debug.Log("展示激励视频广告");
+                        m_rewardedVideoAd.Show();
+                    }
+                });
 
-                    rewardedVideoAd.OnLoad((res) => {
-                        if (!m_rewardedVideoAd.ContainsKey(adUnitId))
-                        {
-                            m_rewardedVideoAd.Add(adUnitId, rewardedVideoAd);
-                        }
+                m_rewardedVideoAd.OnError((res) => {
+                    Debug.LogError($"激励视频广告错误: {res.errMsg}");
+                });
 
-                        rewardedVideoAd.Show();
-                    });
-
-                    rewardedVideoAd.OnError((res) => {
-                        Debug.LogError($"激励视频广告错误: {res.errMsg}");
-                    });
-
-                    rewardedVideoAd.OnClose((res) => {
-                        if (res != null && res.isEnded)
-                        {
-                            callBack?.Invoke();
-                        }
-                    });
-
-                    rewardedVideoAd.Load();
-                }
-                else
-                {
-                    m_rewardedVideoAd[adUnitId].Load();
-                }
+                m_rewardedVideoAd.OnClose((res) => {
+                    Debug.Log($"关闭激励视频广告，播放情况：{res != null && res.isEnded}");
+                    m_rewardedVideoAdCallBack?.Invoke(res != null && res.isEnded);
+                });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
-                if (!m_rewardedVideoAd.ContainsKey(adUnitId))
+                if (m_rewardedVideoAd != null)
                 {
-                    TTRewardedVideoAd rewardedVideoAd = TT.CreateRewardedVideoAd(new CreateRewardedVideoAdParam
+                    m_rewardedVideoAd.Show();
+                    return;
+                }
+
+                m_rewardedVideoAd = TT.CreateRewardedVideoAd(new CreateRewardedVideoAdParam
+                {
+                    AdUnitId = adUnitId
+                });
+
+                m_isShowRewardedVideoAd = true;
+                m_rewardedVideoAd.OnLoad += () => {
+                    if (m_isShowRewardedVideoAd)
                     {
-                        AdUnitId = adUnitId
-                    });
+                        m_isShowRewardedVideoAd = false;
+                        m_rewardedVideoAd.Show();
+                    }
+                };
 
-                    rewardedVideoAd.OnLoad += () => {
-                        if (!m_rewardedVideoAd.ContainsKey(adUnitId))
-                        {
-                            m_rewardedVideoAd.Add(adUnitId, rewardedVideoAd);
-                        }
+                m_rewardedVideoAd.OnError += (code, message) => {
+                    Debug.LogError($"激励视频广告错误: {message}");
+                };
 
-                        rewardedVideoAd.Show();
-                    };
-
-                    rewardedVideoAd.OnError += (code, message) => {
-                        Debug.LogError($"激励视频广告错误: {message}");
-                    };
-
-                    rewardedVideoAd.OnClose += (isEnded, count) => {
-                        if (isEnded)
-                        {
-                            callBack?.Invoke();
-                        }
-                    };
-
-                    rewardedVideoAd.Load();
-                }
-                else
-                {
-                    m_rewardedVideoAd[adUnitId].Load();
-                }
+                m_rewardedVideoAd.OnClose += (isEnded, count) => {
+                    m_rewardedVideoAdCallBack?.Invoke(isEnded);
+                };
 #endif
             });
         }
         #endregion
 
         #region 侧边栏复访
-#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
         public void ShowSidebar()
         {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
             TT.CheckScene(TTSideBar.SceneEnum.SideBar, (isJump) =>
             {
                 if (isJump)
@@ -586,8 +560,8 @@ namespace Invariable
                     }, null, null);
                 }
             }, null, null);
-        }
 #endif
+        }
         #endregion
 
         #region 游戏圈
@@ -643,6 +617,40 @@ namespace Invariable
             }
 
             wXGameClubButton.Hide();
+#endif
+        }
+        #endregion
+
+        #region 环境
+        public bool IsWeChat()
+        {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+            return true;
+#else
+            return false;
+#endif
+        }
+
+        public bool IsDouYin()
+        {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+            return true;
+#else
+            return false;
+#endif
+        }
+        #endregion
+
+        #region YooAsset
+        public void InitializeYooAsset(ref WebPlayModeParameters createParameters, RemoteServices remoteServices)
+        {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+            string packageRoot = $"{WX.env.USER_DATA_PATH}/__GAME_FILE_CACHE/yoo";
+            createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices);
+
+#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+            string packageRoot = "yoo";
+            createParameters.WebServerFileSystemParameters = TiktokFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices);
 #endif
         }
         #endregion
