@@ -18,18 +18,25 @@ namespace HotUpdate
                 prefabName = prefabName.Replace(".prefab", "");
             }
 
-            string key = "Prefabs_" + prefabName;
+            if (!UIManager.Instance.AllPanel.ContainsKey(prefabName))
+            {
+                string key = "Prefabs_" + prefabName;
 
-            GameObject gameObject = null;
-            Transform parentTrans = GameObject.Find("UI_Root/Canvas_" + layer + "/Ts_Panel").transform;
+                GameObject gameObject = null;
+                Transform parentTrans = GameObject.Find("UI_Root/Canvas_" + layer + "/Ts_Panel").transform;
 
-            YooAssetManager.Instance.AsyncLoadAsset<GameObject>(key, (asset) => {
-                gameObject = GameObject.Instantiate(asset, parentTrans);
-                gameObject.name = prefabName;
-                UIPanel uiPanel = (UIPanel)AddComponent(gameObject, "", prefabName);
-                UIManager.Instance.AddUIPanel(prefabName, uiPanel);
-                callBack?.Invoke(gameObject);
-            });
+                YooAssetManager.Instance.AsyncLoadAsset<GameObject>(key, (asset) => {
+                    gameObject = GameObject.Instantiate(asset, parentTrans);
+                    gameObject.name = prefabName;
+                    UIPanel uiPanel = (UIPanel)AddComponent(gameObject, "", prefabName);
+                    UIManager.Instance.AddUIPanel(prefabName, uiPanel);
+                    callBack?.Invoke(gameObject);
+                });
+            }
+            else
+            {
+                callBack?.Invoke(UIManager.Instance.AllPanel[prefabName].gameObject);
+            }
         }
 
         public static Component AddComponent(UnityEngine.Object obj, string childPath, string componentName)
@@ -108,6 +115,23 @@ namespace HotUpdate
             }
 
             return null;
+        }
+
+        public static void OpenTipsPanel(string content, string btn1, Action callBack1 = null, string btn2 = "", Action callBack2 = null)
+        {
+            OpenUIPrefabPanel("TipsPanel", 1, (obj) =>
+            {
+                TipsPanel tipsPanel = obj.GetComponent<TipsPanel>();
+                tipsPanel.ShowInfo(content, btn1, btn2, callBack1, callBack2);
+            });
+        }
+
+        public static void ShowFloatText(string text)
+        {
+            OpenUIPrefabPanel("FloatTextPanel", 3, (obj) =>
+            {
+                obj.GetComponent<FloatTextPanel>().ShowInfo(text);
+            });
         }
     }
 }

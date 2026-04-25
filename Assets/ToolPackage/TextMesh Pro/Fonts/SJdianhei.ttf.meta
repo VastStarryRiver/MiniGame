@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: D3Mf5Cn8W361m5ExNQgY9xnmZiZUMdawW8Lf/pMRkQhOlm3ulc07JCE=
+guid: BixN5C2kBi4th75NIZ0Z1480HQZHMVVmekAOjqZeZbgzi047pdH7Dhk=
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - SimHei
+  - SJdianhei-zhong
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0

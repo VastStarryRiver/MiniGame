@@ -204,5 +204,22 @@ namespace Invariable
 
             m_lastOffset = pos.y;
         }
+
+        public void RefreshAllItem()
+        {
+            for (int i = 0; i < content.childCount; i++)
+            {
+                RectTransform tsItem = content.GetChild(i) as RectTransform;
+
+                if (tsItem.name.Length < 7)
+                {
+                    continue;
+                }
+
+                int index = int.Parse(tsItem.name.Replace("Ts_Item", ""));
+
+                m_updateFunc.Invoke(index, tsItem);
+            }
+        }
     }
 }
