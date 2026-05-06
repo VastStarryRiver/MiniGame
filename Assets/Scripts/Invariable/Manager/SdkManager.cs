@@ -349,195 +349,150 @@ namespace Invariable
         #endregion
 
         #region 广告
-        public void ShowBannerAd(int left, int top, int width, string adUnitId = "")
+        public void ShowBannerAd(int left, int top, int width)
         {
-            ConfigUtils.GetConfigData("BannerAd", (config) =>
-            {
-                if (string.IsNullOrEmpty(adUnitId))
-                {
-                    int index = 1;
-
-                    if (config.Count >= 2)
-                    {
-                        index = UnityEngine.Random.Range(1, config.Count + 1);
-                    }
-
-                    adUnitId = config[index.ToString()]["AdUnitId"];
-                }
-
-                if (string.IsNullOrEmpty(adUnitId) || adUnitId == "0")
-                {
-                    return;
-                }
+            string adUnitId = "";
 
 #if UNITY_EDITOR
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-                if (m_bannerAd != null)
+            if (m_bannerAd != null)
+            {
+                m_bannerAd.Show();
+                return;
+            }
+
+            var info = WX.GetWindowInfo();
+            double pixelRatio = info.pixelRatio;
+
+            m_bannerAd = WX.CreateCustomAd(new WXCreateCustomAdParam()
+            {
+                adUnitId = adUnitId,
+
+                style = new CustomStyle
                 {
-                    Debug.Log("展示Banner广告");
-                    m_bannerAd.Show();
-                    return;
+                    left = (int)(left / pixelRatio),
+                    top = (int)(top / pixelRatio),
+                    width = (int)(width / pixelRatio),
                 }
+            });
 
-                var info = WX.GetWindowInfo();
-                double pixelRatio = info.pixelRatio;
-
-                Debug.Log("创建Banner广告");
-                m_bannerAd = WX.CreateCustomAd(new WXCreateCustomAdParam()
+            m_isShowBannerAd = true;
+            m_bannerAd.OnLoad((res) => {
+                if (m_isShowBannerAd)
                 {
-                    adUnitId = adUnitId,
+                    m_isShowBannerAd = false;
+                    m_bannerAd.Show();
+                }
+            });
 
-                    style = new CustomStyle
-                    {
-                        left = (int)(left / pixelRatio),
-                        top = (int)(top / pixelRatio),
-                        width = (int)(width / pixelRatio),
-                    }
-                });
-
-                m_isShowBannerAd = true;
-                m_bannerAd.OnLoad((res) => {
-                    Debug.Log("Banner广告加载完成");
-                    if (m_isShowBannerAd)
-                    {
-                        m_isShowBannerAd = false;
-                        Debug.Log("展示Banner广告");
-                        m_bannerAd.Show();
-                    }
-                });
-
-                m_bannerAd.OnError((res) => {
-                    Debug.LogError($"Banner广告加载失败: {res.errMsg}");
-                });
+            m_bannerAd.OnError((res) => {
+                Debug.LogError($"Banner广告加载失败: {res.errMsg}");
+            });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
-                if (m_bannerAd != null)
+            if (m_bannerAd != null)
+            {
+                m_bannerAd.Show();
+                return;
+            }
+
+            var systemInfo = TT.GetSystemInfo();
+            double pixelRatio = systemInfo.pixelRatio;
+
+            m_bannerAd = TT.CreateBannerAd(new CreateBannerAdParam()
+            {
+                BannerAdId = adUnitId,
+
+                Style = new TTBannerStyle
                 {
-                    m_bannerAd.Show();
-                    return;
+                    left = (int)(left / pixelRatio),
+                    top = (int)(top / pixelRatio),
+                    width = (int)(width / pixelRatio),
                 }
-
-                var systemInfo = TT.GetSystemInfo();
-                double pixelRatio = systemInfo.pixelRatio;
-
-                m_bannerAd = TT.CreateBannerAd(new CreateBannerAdParam()
-                {
-                    BannerAdId = adUnitId,
-
-                    Style = new TTBannerStyle
-                    {
-                        left = (int)(left / pixelRatio),
-                        top = (int)(top / pixelRatio),
-                        width = (int)(width / pixelRatio),
-                    }
-                });
-
-                m_isShowBannerAd = true;
-                m_bannerAd.OnLoad += () => {
-                    if (m_isShowBannerAd)
-                    {
-                        m_isShowBannerAd = false;
-                        m_bannerAd.Show();
-                    }
-                };
-
-                m_bannerAd.OnError += (code, message) => {
-                    Debug.LogError($"Banner广告加载失败: {message}");
-                };
-#endif
             });
+
+            m_isShowBannerAd = true;
+            m_bannerAd.OnLoad += () => {
+                if (m_isShowBannerAd)
+                {
+                    m_isShowBannerAd = false;
+                    m_bannerAd.Show();
+                }
+            };
+
+            m_bannerAd.OnError += (code, message) => {
+                Debug.LogError($"Banner广告加载失败: {message}");
+            };
+#endif
         }
 
-        public void ShowRewardedVideoAd(Action<bool> callBack = null, string adUnitId = "")
+        public void ShowRewardedVideoAd(Action<bool> callBack = null)
         {
-            ConfigUtils.GetConfigData("RewardedVideoAd", (config) =>
-            {
-                if (string.IsNullOrEmpty(adUnitId))
-                {
-                    int index = 1;
+            string adUnitId = "";
 
-                    if (config.Count >= 2)
-                    {
-                        index = UnityEngine.Random.Range(1, config.Count + 1);
-                    }
-
-                    adUnitId = config[index.ToString()]["AdUnitId"];
-                }
-
-                if (string.IsNullOrEmpty(adUnitId) || adUnitId == "0")
-                {
-                    return;
-                }
-
-                m_rewardedVideoAdCallBack = callBack;
+            m_rewardedVideoAdCallBack = callBack;
 
 #if UNITY_EDITOR
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-                if (m_rewardedVideoAd != null)
+            if (m_rewardedVideoAd != null)
+            {
+                m_rewardedVideoAd.Show();
+                return;
+            }
+
+            m_rewardedVideoAd = WX.CreateRewardedVideoAd(new WXCreateRewardedVideoAdParam
+            {
+                adUnitId = adUnitId
+            });
+
+            m_isShowRewardedVideoAd = true;
+            m_rewardedVideoAd.OnLoad((res) => {
+                if (m_isShowRewardedVideoAd)
                 {
-                    Debug.Log("展示激励视频广告");
+                    m_isShowRewardedVideoAd = false;
                     m_rewardedVideoAd.Show();
-                    return;
                 }
+            });
 
-                Debug.Log("创建激励视频广告");
-                m_rewardedVideoAd = WX.CreateRewardedVideoAd(new WXCreateRewardedVideoAdParam
-                {
-                    adUnitId = adUnitId
-                });
+            m_rewardedVideoAd.OnError((res) => {
+                Debug.LogError($"激励视频广告错误: {res.errMsg}");
+            });
 
-                m_isShowRewardedVideoAd = true;
-                m_rewardedVideoAd.OnLoad((res) => {
-                    Debug.Log("激励视频广告加载完成");
-                    if (m_isShowRewardedVideoAd)
-                    {
-                        m_isShowRewardedVideoAd = false;
-                        Debug.Log("展示激励视频广告");
-                        m_rewardedVideoAd.Show();
-                    }
-                });
-
-                m_rewardedVideoAd.OnError((res) => {
-                    Debug.LogError($"激励视频广告错误: {res.errMsg}");
-                });
-
-                m_rewardedVideoAd.OnClose((res) => {
-                    Debug.Log($"关闭激励视频广告，播放情况：{res != null && res.isEnded}");
-                    m_rewardedVideoAdCallBack?.Invoke(res != null && res.isEnded);
-                });
+            m_rewardedVideoAd.OnClose((res) => {
+                m_rewardedVideoAdCallBack?.Invoke(res != null && res.isEnded);
+            });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
-                if (m_rewardedVideoAd != null)
-                {
-                    m_rewardedVideoAd.Show();
-                    return;
-                }
+            if (m_rewardedVideoAd != null)
+            {
+                m_rewardedVideoAd.Show();
+                return;
+            }
 
-                m_rewardedVideoAd = TT.CreateRewardedVideoAd(new CreateRewardedVideoAdParam
-                {
-                    AdUnitId = adUnitId
-                });
-
-                m_isShowRewardedVideoAd = true;
-                m_rewardedVideoAd.OnLoad += () => {
-                    if (m_isShowRewardedVideoAd)
-                    {
-                        m_isShowRewardedVideoAd = false;
-                        m_rewardedVideoAd.Show();
-                    }
-                };
-
-                m_rewardedVideoAd.OnError += (code, message) => {
-                    Debug.LogError($"激励视频广告错误: {message}");
-                };
-
-                m_rewardedVideoAd.OnClose += (isEnded, count) => {
-                    m_rewardedVideoAdCallBack?.Invoke(isEnded);
-                };
-#endif
+            m_rewardedVideoAd = TT.CreateRewardedVideoAd(new CreateRewardedVideoAdParam
+            {
+                AdUnitId = adUnitId
             });
+
+            m_isShowRewardedVideoAd = true;
+            m_rewardedVideoAd.OnLoad += () => {
+                if (m_isShowRewardedVideoAd)
+                {
+                    m_isShowRewardedVideoAd = false;
+                    m_rewardedVideoAd.Show();
+                }
+            };
+
+            m_rewardedVideoAd.OnError += (code, message) => {
+                Debug.LogError($"激励视频广告错误: {message}");
+            };
+
+            m_rewardedVideoAd.OnClose += (isEnded, count) => {
+                m_rewardedVideoAdCallBack?.Invoke(isEnded);
+            };
+#endif
         }
         #endregion
 

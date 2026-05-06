@@ -15,7 +15,7 @@ namespace MyTools
         public SpriteAlignment alignment;
         public Object[] directorys;
 
-        private string m_atlasRootPath = Application.dataPath + "/Editor/AtlasBuilder/";//Í¼¼¯´æ´¢Â·¾¶
+        private string m_atlasRootPath = Application.dataPath + "/Editor/MyTools/AtlasBuilder/";//Í¼¼¯´æ´¢Â·¾¶
 
         [ContextMenu(nameof(BuildAtlas))]
         public void BuildAtlas()
