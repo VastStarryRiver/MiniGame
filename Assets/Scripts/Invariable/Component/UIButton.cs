@@ -9,6 +9,7 @@ namespace Invariable
     public class UIButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
     {
         public bool m_isNotChangeScale = false;
+        public float m_changeScale = 1.1f;
 
         private int m_clickTimes = 0;
 
@@ -70,7 +71,7 @@ namespace Invariable
         {
             if (!m_isNotChangeScale)
             {
-                m_trans.localScale = new Vector3(1.1f, 1.1f, 1.1f);
+                m_trans.localScale = new Vector3(m_changeScale, m_changeScale, m_changeScale);
             }
 
             if (m_longPressFun != null)

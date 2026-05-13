@@ -640,5 +640,15 @@ namespace Invariable
 
             UnityEngine.Object.DontDestroyOnLoad(obj);
         }
+
+        public static Color GetColorByString(string colorStr)
+        {
+            if (ColorUtility.TryParseHtmlString(colorStr, out Color color))
+            {
+                return color;
+            }
+
+            return Color.white;
+        }
     }
 }

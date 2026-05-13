@@ -56,6 +56,7 @@ Shader "MyShader/Grayscale"
                 half4 color = tex2D(_MainTex, i.uv);
                 float gray = dot(color.rgb, half3(0.299, 0.587, 0.114));//»Ò¶È¹«Ê½
                 color.rgb = gray.xxx;//float3(gray, gray, gray)
+                color.a *= i.color.a;
                 return color;
             }
             ENDHLSL

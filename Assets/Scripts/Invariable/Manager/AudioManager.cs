@@ -23,25 +23,24 @@ namespace Invariable
 
         public void PlayAudio(string name, bool isLoop = false)
         {
-            if (!m_audioSources.ContainsKey(name) || m_audioSources[name].clip == null)
+            if (!m_audioSources.ContainsKey(name))
             {
-                CreateSource(name, isLoop);
+                GameObject go = new GameObject(name);
+                go.transform.SetParent(transform);
+                AudioSource audioSource = go.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+                m_audioSources.Add(name, audioSource);
+
+                audioSource.loop = isLoop;
 
                 YooAssetManager.Instance.AsyncLoadAsset<AudioClip>("Audios_" + name, (clip) =>
                 {
-                    m_audioSources[name].clip ??= clip;
-
-                    if (m_audioSources[name].isPlaying)
-                    {
-                        m_audioSources[name].Stop();
-                    }
-
-                    m_audioSources[name].Play();
+                    audioSource.clip = clip;
+                    audioSource.Play();
                 });
             }
-            else
+            else if (m_audioSources[name].clip != null && !m_audioSources[name].isPlaying)
             {
-                m_audioSources[name].Stop();
                 m_audioSources[name].loop = isLoop;
                 m_audioSources[name].Play();
             }
@@ -62,24 +61,19 @@ namespace Invariable
             }
         }
 
-        private void CreateSource(string name, bool isLoop)
+        public void PauseAudio(string name = "")
         {
-            AudioSource audioSource;
-
-            if (!m_audioSources.ContainsKey(name))
+            if (string.IsNullOrEmpty(name))
             {
-                GameObject go = new GameObject(name);
-                go.transform.SetParent(transform);
-                audioSource = go.AddComponent<AudioSource>();
-                audioSource.playOnAwake = false;
-                m_audioSources.Add(name, audioSource);
+                foreach (var item in m_audioSources)
+                {
+                    item.Value.Pause();
+                }
             }
-            else
+            else if (m_audioSources.ContainsKey(name))
             {
-                audioSource = m_audioSources[name];
+                m_audioSources[name].Pause();
             }
-
-            audioSource.loop = isLoop;
         }
     }
 }
