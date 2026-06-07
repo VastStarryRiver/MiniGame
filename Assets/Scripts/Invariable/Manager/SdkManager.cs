@@ -23,11 +23,13 @@ namespace Invariable
     {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
         private WXCustomAd m_bannerAd = null;
+        private WXInterstitialAd m_interstitialAd = null;
         private WXRewardedVideoAd m_rewardedVideoAd = null;
         private WXGameClubButton wXGameClubButton = null;
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
         private TTBannerAd m_bannerAd = null;
+        private TTInterstitialAd m_interstitialAd = null;
         private TTRewardedVideoAd m_rewardedVideoAd = null;
 #endif
 
@@ -35,6 +37,7 @@ namespace Invariable
         private bool m_isKeyboardShowing = false;
         private List<ScreenAdapter> m_screenAdapters = null;
         private bool m_isShowBannerAd = false;
+        private bool m_isShowInterstitialAd = false;
         private bool m_isShowRewardedVideoAd = false;
         private Action<bool> m_rewardedVideoAdCallBack = null;
 
@@ -365,7 +368,7 @@ namespace Invariable
             var info = WX.GetWindowInfo();
             double pixelRatio = info.pixelRatio;
 
-            m_bannerAd = WX.CreateCustomAd(new WXCreateCustomAdParam()
+            m_bannerAd = WX.CreateCustomAd(new WXCreateCustomAdParam
             {
                 adUnitId = adUnitId,
 
@@ -387,7 +390,7 @@ namespace Invariable
             });
 
             m_bannerAd.OnError((res) => {
-                Debug.LogError($"Banner广告加载失败: {res.errMsg}");
+                Debug.LogError($"横幅广告加载失败: {res.errMsg}");
             });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
@@ -400,7 +403,7 @@ namespace Invariable
             var systemInfo = TT.GetSystemInfo();
             double pixelRatio = systemInfo.pixelRatio;
 
-            m_bannerAd = TT.CreateBannerAd(new CreateBannerAdParam()
+            m_bannerAd = TT.CreateBannerAd(new CreateBannerAdParam
             {
                 BannerAdId = adUnitId,
 
@@ -422,7 +425,65 @@ namespace Invariable
             };
 
             m_bannerAd.OnError += (code, message) => {
-                Debug.LogError($"Banner广告加载失败: {message}");
+                Debug.LogError($"横幅广告加载失败: {message}");
+            };
+#endif
+        }
+
+        public void ShowInterstitialAd()
+        {
+            string adUnitId = "";
+
+#if UNITY_EDITOR
+
+#elif MINIGAME_SUBPLATFORM_WEIXIN
+            if (m_interstitialAd != null)
+            {
+                m_interstitialAd.Show();
+                return;
+            }
+
+            m_interstitialAd = WX.CreateInterstitialAd(new WXCreateInterstitialAdParam
+            {
+                adUnitId = adUnitId
+            });
+
+            m_isShowInterstitialAd = true;
+            m_interstitialAd.OnLoad((res) => {
+                if (m_isShowInterstitialAd)
+                {
+                    m_isShowInterstitialAd = false;
+                    m_interstitialAd.Show();
+                }
+            });
+
+            m_interstitialAd.OnError((res) => {
+                Debug.LogError($"插屏广告加载失败: {res.errMsg}");
+            });
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+            if (m_interstitialAd != null)
+            {
+                m_interstitialAd.Show();
+                return;
+            }
+
+            m_interstitialAd = TT.CreateInterstitialAd(new CreateInterstitialAdParam
+            {
+                InterstitialAdId = adUnitId
+            });
+
+            m_isShowInterstitialAd = true;
+            m_interstitialAd.OnLoad += () => {
+                if (m_isShowInterstitialAd)
+                {
+                    m_isShowInterstitialAd = false;
+                    m_interstitialAd.Show();
+                }
+            };
+
+            m_interstitialAd.OnError += (code, message) => {
+                Debug.LogError($"插屏广告加载失败: {message}");
             };
 #endif
         }
