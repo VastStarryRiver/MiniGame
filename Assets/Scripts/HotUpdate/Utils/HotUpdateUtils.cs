@@ -117,12 +117,12 @@ namespace HotUpdate
             return null;
         }
 
-        public static void OpenTipsPanel(string content, string btn1, Action callBack1 = null, string btn2 = "", Action callBack2 = null)
+        public static void OpenTipsPanel(string content, string btn1, Action callBack1 = null, string btn2 = "", Action callBack2 = null, string title = "")
         {
-            OpenUIPrefabPanel("TipsPanel", 1, (obj) =>
+            OpenUIPrefabPanel("TipsPanel", 2, (obj) =>
             {
                 TipsPanel tipsPanel = obj.GetComponent<TipsPanel>();
-                tipsPanel.ShowInfo(content, btn1, btn2, callBack1, callBack2);
+                tipsPanel.ShowInfo(content, btn1, btn2, callBack1, callBack2, title);
             });
         }
 

@@ -12,7 +12,7 @@ namespace HotUpdate
         public static void Play()
         {
             GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "¿ªÊ¼ÓÎÏ·");
-            HotUpdateUtils.OpenUIPrefabPanel("UI/Workflow/LoginPanel", 0);
+            HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0);
         }
     }
 }

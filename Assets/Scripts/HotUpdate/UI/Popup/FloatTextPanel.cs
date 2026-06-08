@@ -11,18 +11,18 @@ namespace HotUpdate
 {
     public class FloatTextPanel : UIPanel
     {
+        public GameObject m_item;
+
         private List<string> m_content;
+        private List<RectTransform> m_items;
         private int m_index1;
         private int m_index2;
-        private GameObject m_item;
-        private List<RectTransform> m_items;
 
 
 
         private void Awake()
         {
             m_content = new List<string>();
-            m_item = transform.Find("Ts_Item").gameObject;
             m_items = new List<RectTransform>();
         }
 

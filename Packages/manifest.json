@@ -3,7 +3,7 @@
     "cn.tuanjie.wx-uploader": "0.1.4",
     "cn.unity.uos.cdn": "https://cnb.cool/unity/uos/UosCdnSDK.git",
     "cn.unity.uos.launcher": "https://cnb.cool/unity/uos/UOSLauncher.git",
-    "com.bytedance.starksdk": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.6.8",
+    "com.bytedance.starksdk": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.7.6",
     "com.code-philosophy.hybridclr": "https://gitee.com/focus-creative-games/hybridclr_unity.git",
     "com.coffee.ui-particle": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
     "com.esotericsoftware.spine.spine-csharp": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-csharp/src#4.2",

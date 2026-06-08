@@ -11,19 +11,35 @@ namespace HotUpdate
 {
     public class TipsPanel : UIPanel
     {
-        public void ShowInfo(string content = "", string text1 = "", string text2 = "", Action callBack1 = null, Action callBack2 = null)
-        {
-            transform.Find("Ts_Parent/Ts_Layout2/Text_Content").GetComponent<TextMeshProUGUI>().text = content;
+        public TextMeshProUGUI m_textTitle;
+        public TextMeshProUGUI m_textContent;
+        public TextMeshProUGUI m_textBtn1;
+        public TextMeshProUGUI m_textBtn2;
+        public UIButton m_btn1;
+        public UIButton m_btn2;
 
-            GameObject btn2 = transform.Find("Ts_Parent/Ts_Layout/Btn_2").gameObject;
+
+
+        public void ShowInfo(string content = "", string text1 = "", string text2 = "", Action callBack1 = null, Action callBack2 = null, string title = "")
+        {
+            if (string.IsNullOrEmpty(title))
+            {
+                m_textTitle.text = "提示";
+            }
+            else
+            {
+                m_textTitle.text = title;
+            }
+
+            m_textContent.text = content;
 
             if (!string.IsNullOrEmpty(text2))
             {
-                btn2.SetActive(true);
+                m_btn2.gameObject.SetActive(true);
 
-                transform.Find("Ts_Parent/Ts_Layout/Btn_2/Text_2").GetComponent<TextMeshProUGUI>().text = text2;
+                m_textBtn2.text = text2;
 
-                transform.Find("Ts_Parent/Ts_Layout/Btn_2").GetComponent<UIButton>().AddClickListener(() =>
+                m_btn2.AddClickListener(() =>
                 {
                     callBack2?.Invoke();
                     Close();
@@ -31,12 +47,12 @@ namespace HotUpdate
             }
             else
             {
-                btn2.SetActive(false);
+                m_btn2.gameObject.SetActive(false);
             }
 
-            transform.Find("Ts_Parent/Ts_Layout/Btn_1/Text_1").GetComponent<TextMeshProUGUI>().text = text1;
+            m_textBtn1.text = text1;
 
-            transform.Find("Ts_Parent/Ts_Layout/Btn_1").GetComponent<UIButton>().AddClickListener(() =>
+            m_btn1.AddClickListener(() =>
             {
                 callBack1?.Invoke();
                 Close();

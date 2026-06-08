@@ -27,7 +27,7 @@
       "hash": "e1540186f8eaae4a4e0ca840d769bf9f09b5f8ec"
     },
     "com.bytedance.starksdk": {
-      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.6.8",
+      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.7.6",
       "depth": 0,
       "source": "local",
       "dependencies": {}
@@ -74,7 +74,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "f67e7851c345f514e9079819cae16273ff05b33c"
+      "hash": "34772d47da1a370437fe97c92855fb33fe31960c"
     },
     "com.tuyoogame.yooasset": {
       "version": "2.3.18",

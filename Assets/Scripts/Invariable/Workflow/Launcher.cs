@@ -43,7 +43,6 @@ namespace Invariable
 
             stateMachine.SetBlackboardValue("EPlayMode", m_playMode);
 
-            InitStartGameObject("SceneGameObject");
             InitStartGameObject("UI_Root");
 
             GameObject go = GameObject.Find("UI_Root/Canvas_0/Ts_Panel/HotUpdatePanel");
@@ -89,7 +88,7 @@ namespace Invariable
         private void ShowProgress(object arg)
         {
             List<long> progress = arg as List<long>;
-            m_hotUpdatePanel.SetProgress(progress[0], progress[1], $"{Utils.FormatFileByteSize(progress[0])}/{Utils.FormatFileByteSize(progress[1])}");
+            m_hotUpdatePanel.SetProgress(progress[0], progress[1]);
         }
 
         private void StartGame(object arg)

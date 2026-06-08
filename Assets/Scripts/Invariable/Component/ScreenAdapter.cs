@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Invariable
 {
+    [ExecuteInEditMode]
     public class ScreenAdapter : MonoBehaviour
     {
         private void OnEnable()

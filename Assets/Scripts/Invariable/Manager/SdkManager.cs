@@ -354,11 +354,11 @@ namespace Invariable
         #region ¹ã¸æ
         public void ShowBannerAd(int left, int top, int width)
         {
-            string adUnitId = "";
-
 #if UNITY_EDITOR
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
+            string adUnitId = "";
+
             if (m_bannerAd != null)
             {
                 m_bannerAd.Show();
@@ -394,6 +394,8 @@ namespace Invariable
             });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
+            string adUnitId = "";
+
             if (m_bannerAd != null)
             {
                 m_bannerAd.Show();
@@ -432,11 +434,11 @@ namespace Invariable
 
         public void ShowInterstitialAd()
         {
-            string adUnitId = "";
-
 #if UNITY_EDITOR
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
+            string adUnitId = "";
+
             if (m_interstitialAd != null)
             {
                 m_interstitialAd.Show();
@@ -462,6 +464,8 @@ namespace Invariable
             });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
+            string adUnitId = "";
+
             if (m_interstitialAd != null)
             {
                 m_interstitialAd.Show();
@@ -490,13 +494,13 @@ namespace Invariable
 
         public void ShowRewardedVideoAd(Action<bool> callBack = null)
         {
-            string adUnitId = "";
-
             m_rewardedVideoAdCallBack = callBack;
 
 #if UNITY_EDITOR
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
+            string adUnitId = "";
+
             if (m_rewardedVideoAd != null)
             {
                 m_rewardedVideoAd.Show();
@@ -526,6 +530,8 @@ namespace Invariable
             });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
+            string adUnitId = "";
+
             if (m_rewardedVideoAd != null)
             {
                 m_rewardedVideoAd.Show();

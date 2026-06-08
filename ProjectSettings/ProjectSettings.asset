@@ -1092,7 +1092,7 @@ PlayerSettings:
   weixinMiniGameInjectStrippedMethodLogger: 0
   weixinMiniGameEnableDotNetWasmExceptionHandling: 1
   weixinMiniGamePreserveEventDelegate: 0
-  activeSubplatform: 1
+  activeSubplatform: 8
   serializedFileTypeTreeMemoryOptimization: 0
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
