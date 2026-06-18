@@ -29,7 +29,6 @@ namespace Invariable
         public readonly static string m_hotUpdateDllPath = m_localRootPath + "Assets/GameAssets/DLL";
         public readonly static string m_cdnPath = m_localRootPath + "CDN";
         public readonly static string m_miniBuildPath = m_localRootPath + "Build";
-        public readonly static string m_miniWebglPath = m_miniBuildPath + "/webgl";
 
         /// <summary>
         /// CDN地址

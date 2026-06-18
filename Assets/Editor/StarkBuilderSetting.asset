@@ -34,7 +34,7 @@ MonoBehaviour:
   preloadFiles: 
   CDN: https://a.unity.cn/client_api/v1/buckets/b24fd050-49f0-4fa8-9c6a-6d4cf4fc99c6/release_by_badge/latest/content
   preloadDataListUrl: 
-  dataLoadType: 1
+  dataLoadType: 0
   dataFileSubPrefix: 
   iOSDevicePixelRatio: 0
   urlCacheList:
