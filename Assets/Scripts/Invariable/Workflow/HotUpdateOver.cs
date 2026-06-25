@@ -1,4 +1,4 @@
-using YooAsset;
+ï»¿using YooAsset;
 using System.Collections;
 using System;
 using System.Reflection;
@@ -32,11 +32,11 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ÇåÀí¾É»º´æ
+        /// æ¸…ç†æ—§ç¼“å­˜
         /// </summary>
         private IEnumerator ClearUnusedFiles()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ÇåÀí¾É»º´æ");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "æ¸…ç†æ—§ç¼“å­˜");
 
             var operation1 = YooAssetManager.Instance.Package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
             yield return operation1;
@@ -48,16 +48,16 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ³õÊ¼»¯ÔËĞĞÏµÍ³
+        /// åˆå§‹åŒ–è¿è¡Œç³»ç»Ÿ
         /// </summary>
         private void InitializeOperationSystem()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "³õÊ¼»¯ÔËĞĞÏµÍ³");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "åˆå§‹åŒ–è¿è¡Œç³»ç»Ÿ");
             SdkManager.Instance.InitSDK(() =>
             {
                 YooAssetManager.Instance.PreLoadDll((hotUpdateAss) =>
                 {
-                    GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "¿ªÊ¼ÓÎÏ·");
+                    GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "å¼€å§‹æ¸¸æˆ");
                     Type type = hotUpdateAss.GetType("HotUpdate.StartGame");
                     MethodInfo methodInfo = type.GetMethod("Play", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
                     methodInfo.Invoke(null, null);

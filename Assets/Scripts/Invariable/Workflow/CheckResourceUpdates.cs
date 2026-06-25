@@ -1,4 +1,4 @@
-using YooAsset;
+ï»¿using YooAsset;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -33,17 +33,17 @@ namespace Invariable
 
 
         /// <summary>
-        /// ¼ì²é×ÊÔ´¸üĞÂ
+        /// æ£€æŸ¥èµ„æºæ›´æ–°
         /// </summary>
         private IEnumerator CheckForResourceUpdates()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "¼ì²é×ÊÔ´¸üĞÂ");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "æ£€æŸ¥èµ„æºæ›´æ–°");
 
             int downloadingMaxNum = 10;
             int failedTryAgain = 3;
             ResourceDownloaderOperation downloader = YooAssetManager.Instance.Package.CreateResourceDownloader(downloadingMaxNum, failedTryAgain);
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "¼ì²é×ÊÔ´¸üĞÂ£¬³É¹¦£¡");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "æ£€æŸ¥èµ„æºæ›´æ–°ï¼ŒæˆåŠŸï¼");
 
             if (downloader.TotalDownloadCount == 0)
             {
@@ -55,7 +55,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ÏÂÔØ×ÊÔ´
+        /// ä¸‹è½½èµ„æº
         /// </summary>
         private IEnumerator DownloadUpdates(ResourceDownloaderOperation downloader)
         {
@@ -68,33 +68,33 @@ namespace Invariable
         }
 
         /// <summary>
-        /// µ±ÏÂÔØÆ÷½áÊø£¨ÎŞÂÛ³É¹¦»òÊ§°Ü£©
+        /// å½“ä¸‹è½½å™¨ç»“æŸï¼ˆæ— è®ºæˆåŠŸæˆ–å¤±è´¥ï¼‰
         /// </summary>
         /// <param name="data"></param>
         private void OnDownloadFinishFunction(DownloaderFinishData data)
         {
             if (data.Succeed)
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ÏÂÔØ×ÊÔ´£¬³É¹¦£¡");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ä¸‹è½½èµ„æºï¼ŒæˆåŠŸï¼");
                 m_machine.ChangeState<HotUpdateOver>();
             }
             else
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ÏÂÔØ×ÊÔ´£¬Ê§°Ü£¡");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ä¸‹è½½èµ„æºï¼Œå¤±è´¥ï¼");
             }
         }
 
         /// <summary>
-        /// µ±ÏÂÔØÆ÷·¢Éú´íÎó
+        /// å½“ä¸‹è½½å™¨å‘ç”Ÿé”™è¯¯
         /// </summary>
         /// <param name="data"></param>
         private void OnDownloadErrorFunction(DownloadErrorData data)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ÏÂÔØ×ÊÔ´£¬Ê§°Ü£¡");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ä¸‹è½½èµ„æºï¼Œå¤±è´¥ï¼");
         }
 
         /// <summary>
-        /// µ±ÏÂÔØ½ø¶È·¢Éú±ä»¯
+        /// å½“ä¸‹è½½è¿›åº¦å‘ç”Ÿå˜åŒ–
         /// </summary>
         /// <param name="data"></param>
         private void OnDownloadUpdateFunction(DownloadUpdateData data)
@@ -104,12 +104,12 @@ namespace Invariable
         }
 
         /// <summary>
-        /// µ±¿ªÊ¼ÏÂÔØÄ³¸öÎÄ¼ş
+        /// å½“å¼€å§‹ä¸‹è½½æŸä¸ªæ–‡ä»¶
         /// </summary>
         /// <param name="data"></param>
         private void OnDownloadFileBeginFunction(DownloadFileData data)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ÏÂÔØ×ÊÔ´ÖĞ");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "ä¸‹è½½èµ„æºä¸­");
         }
     }
 }

@@ -1,4 +1,4 @@
-using UnityEditor;
+锘縰sing UnityEditor;
 using Invariable;
 using System.IO;
 using HybridCLR.Editor.Commands;
@@ -10,13 +10,13 @@ namespace MyTools
 {
     public class DllTool
     {
-        [MenuItem("VastStarryRiver/DLL/导出所有DLL", false, 0)]
+        [MenuItem("VastStarryRiver/DLL/瀵煎嚭鎵�鏈塂LL", false, 0)]
         public static void BuildHotUpdateDLL()
         {
             PrebuildCommand.GenerateAll();
         }
 
-        [MenuItem("VastStarryRiver/DLL/复制热更新DLL", false, 1)]
+        [MenuItem("VastStarryRiver/DLL/澶嶅埗鐑洿鏂癉LL", false, 1)]
         public static void MoveHotUpdateDLL()
         {
             string platform = EditorUserBuildSettings.activeBuildTarget.ToString();
@@ -26,7 +26,7 @@ namespace MyTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("VastStarryRiver/DLL/复制元数据DLL", false, 2)]
+        [MenuItem("VastStarryRiver/DLL/澶嶅埗鍏冩暟鎹瓺LL", false, 2)]
         public static void MoveMetadataForAOTDLL()
         {
             string platform = EditorUserBuildSettings.activeBuildTarget.ToString();

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 
 
@@ -14,12 +14,12 @@ namespace Invariable
         private IStateNode m_preNode;
 
         /// <summary>
-        /// ×´Ì¬»ú³ÖÓĞÕß
+        /// çŠ¶æ€æœºæŒæœ‰è€…
         /// </summary>
         public object Owner { private set; get; }
 
         /// <summary>
-        /// µ±Ç°ÔËĞĞµÄ½ÚµãÃû³Æ
+        /// å½“å‰è¿è¡Œçš„èŠ‚ç‚¹åç§°
         /// </summary>
         public string CurrentNode
         {
@@ -27,7 +27,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// Ö®Ç°ÔËĞĞµÄ½ÚµãÃû³Æ
+        /// ä¹‹å‰è¿è¡Œçš„èŠ‚ç‚¹åç§°
         /// </summary>
         public string PreviousNode
         {
@@ -42,7 +42,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ¸üĞÂ×´Ì¬»ú
+        /// æ›´æ–°çŠ¶æ€æœº
         /// </summary>
         public void Update()
         {
@@ -51,7 +51,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// Æô¶¯×´Ì¬»ú
+        /// å¯åŠ¨çŠ¶æ€æœº
         /// </summary>
         public void Play<TNode>() where TNode : IStateNode
         {
@@ -76,7 +76,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ¼ÓÈëÒ»¸ö½Úµã
+        /// åŠ å…¥ä¸€ä¸ªèŠ‚ç‚¹
         /// </summary>
         public void AddNode<TNode>() where TNode : IStateNode
         {
@@ -100,7 +100,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ÇĞ»»×´Ì¬½Úµã
+        /// åˆ‡æ¢çŠ¶æ€èŠ‚ç‚¹
         /// </summary>
         public void ChangeState<TNode>() where TNode : IStateNode
         {
@@ -131,7 +131,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ÉèÖÃºÚ°åÊı¾İ
+        /// è®¾ç½®é»‘æ¿æ•°æ®
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
@@ -145,7 +145,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// »ñÈ¡ºÚ°åÊı¾İ
+        /// è·å–é»‘æ¿æ•°æ®
         /// </summary>
         public object GetBlackboardValue(string key)
         {
@@ -158,7 +158,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// »ñÈ¡ËùÓĞºÚ°åÊı¾İ
+        /// è·å–æ‰€æœ‰é»‘æ¿æ•°æ®
         /// </summary>
         public Dictionary<string, Action> GetAllBlackboardValue()
         {
@@ -166,7 +166,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ³¢ÊÔ»ñÈ¡½Úµã
+        /// å°è¯•è·å–èŠ‚ç‚¹
         /// </summary>
         /// <param name="nodeName"></param>
         /// <returns></returns>

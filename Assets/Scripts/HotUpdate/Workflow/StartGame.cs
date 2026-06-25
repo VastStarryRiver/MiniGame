@@ -7,11 +7,11 @@ namespace HotUpdate
     public class StartGame
     {
         /// <summary>
-        /// ¿ªÊ¼ÓÎÏ·
+        /// å¼€å§‹æ¸¸æˆ
         /// </summary>
         public static void Play()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "¿ªÊ¼ÓÎÏ·");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "å¼€å§‹æ¸¸æˆ");
             HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0);
         }
     }

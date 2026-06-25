@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -17,7 +17,7 @@ namespace MyTools
 
 
 
-        [MenuItem("VastStarryRiver/¹¹½¨AssetBundle", false, 20)]
+        [MenuItem("VastStarryRiver/æ„å»ºAssetBundle", false, 20)]
         public static void BuildAssetBundle()
         {
             ExecuteBuild();
@@ -26,7 +26,7 @@ namespace MyTools
 
 
         /// <summary>
-        /// Ö´ĞĞ¹¹½¨
+        /// æ‰§è¡Œæ„å»º
         /// </summary>
         private static void ExecuteBuild()
         {
@@ -63,16 +63,16 @@ namespace MyTools
 
             if (buildResult.Success)
             {
-                Debug.Log("YooAsset Build Success£¡");
+                Debug.Log("YooAsset Build Successï¼");
             }
             else
             {
-                Debug.LogError("YooAsset Build Fail£¡");
+                Debug.LogError("YooAsset Build Failï¼");
             }
         }
 
         /// <summary>
-        /// ´´½¨×ÊÔ´°ü¼ÓÃÜ·şÎñÀàÊµÀı
+        /// åˆ›å»ºèµ„æºåŒ…åŠ å¯†æœåŠ¡ç±»å®ä¾‹
         /// </summary>
         private static IEncryptionServices CreateEncryptionServicesInstance()
         {
@@ -86,7 +86,7 @@ namespace MyTools
         }
 
         /// <summary>
-        /// ´´½¨×ÊÔ´Çåµ¥¼ÓÃÜ·şÎñÀàÊµÀı
+        /// åˆ›å»ºèµ„æºæ¸…å•åŠ å¯†æœåŠ¡ç±»å®ä¾‹
         /// </summary>
         private static IManifestProcessServices CreateManifestProcessServicesInstance()
         {
@@ -100,7 +100,7 @@ namespace MyTools
         }
 
         /// <summary>
-        /// ´´½¨×ÊÔ´Çåµ¥½âÃÜ·şÎñÀàÊµÀı
+        /// åˆ›å»ºèµ„æºæ¸…å•è§£å¯†æœåŠ¡ç±»å®ä¾‹
         /// </summary>
         private static IManifestRestoreServices CreateManifestRestoreServicesInstance()
         {
@@ -114,8 +114,8 @@ namespace MyTools
         }
 
         /// <summary>
-        /// ÄÚÖÃ×ÅÉ«Æ÷×ÊÔ´°üÃû³Æ
-        /// ×¢Òâ£ººÍ×Ô¶¯ÊÕ¼¯µÄ×ÅÉ«Æ÷×ÊÔ´°üÃû±£³ÖÒ»ÖÂ£¡
+        /// å†…ç½®ç€è‰²å™¨èµ„æºåŒ…åç§°
+        /// æ³¨æ„ï¼šå’Œè‡ªåŠ¨æ”¶é›†çš„ç€è‰²å™¨èµ„æºåŒ…åä¿æŒä¸€è‡´ï¼
         /// </summary>
         private static string GetBuiltinShaderBundleName()
         {
@@ -125,7 +125,7 @@ namespace MyTools
         }
 
         /// <summary>
-        /// »ñÈ¡Ä¬ÈÏ°æ±¾
+        /// è·å–é»˜è®¤ç‰ˆæœ¬
         /// </summary>
         private static string GetDefaultPackageVersion()
         {
@@ -133,7 +133,7 @@ namespace MyTools
         }
 
         /// <summary>
-        /// »ñÈ¡×îĞÂ×ÊÔ´Êä³öÂ·¾¶
+        /// è·å–æœ€æ–°èµ„æºè¾“å‡ºè·¯å¾„
         /// </summary>
         /// <returns></returns>
         public static string GetOutPath()

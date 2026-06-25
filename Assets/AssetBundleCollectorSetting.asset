@@ -80,19 +80,6 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
-    - GroupName: Config
-      GroupDesc: 
-      AssetTags: 
-      ActiveRuleName: EnableGroup
-      Collectors:
-      - CollectPath: Assets/GameAssets/Config
-        CollectorGUID: e0220ca9bfedba548980cf07da883b39
-        CollectorType: 0
-        AddressRuleName: AddressByGroupAndFileName
-        PackRuleName: PackGroup
-        FilterRuleName: CollectAll
-        AssetTags: 
-        UserData: 
     - GroupName: Materials
       GroupDesc: 
       AssetTags: 

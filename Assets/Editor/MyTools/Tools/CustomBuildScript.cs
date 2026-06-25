@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Profile;
@@ -18,7 +18,7 @@ namespace MyTools
 {
     public class CustomBuildScript
     {
-        [MenuItem("VastStarryRiver/´ò°ü/´ò°üÎ¢ĞÅĞ¡ÓÎÏ·", false, 30)]
+        [MenuItem("VastStarryRiver/æ‰“åŒ…/æ‰“åŒ…å¾®ä¿¡å°æ¸¸æˆ", false, 30)]
         public static void PackageProject_WeiXin()
         {
             string path = $"{ConfigUtils.m_miniBuildPath}/WeChat";
@@ -37,18 +37,18 @@ namespace MyTools
                 {
                     if (!string.IsNullOrEmpty(WXConvertCore.FirstBundlePath) && File.Exists(WXConvertCore.FirstBundlePath))
                     {
-                        Debug.Log("Î¢ĞÅĞ¡ÓÎÏ·¹¹½¨Íê³É£¡");
+                        Debug.Log("å¾®ä¿¡å°æ¸¸æˆæ„å»ºå®Œæˆï¼");
                     }
                     else
                     {
-                        Debug.LogError("Î¢ĞÅĞ¡ÓÎÏ·¹¹½¨Ê§°Ü");
+                        Debug.LogError("å¾®ä¿¡å°æ¸¸æˆæ„å»ºå¤±è´¥");
                     }
                 }
             }
 #endif
         }
 
-        [MenuItem("VastStarryRiver/´ò°ü/´ò°üÎ¢ĞÅĞ¡ÓÎÏ·", true, 30)]
+        [MenuItem("VastStarryRiver/æ‰“åŒ…/æ‰“åŒ…å¾®ä¿¡å°æ¸¸æˆ", true, 30)]
         public static bool PackageProject_WeiXin_Enable()
         {
 #if MINIGAME_SUBPLATFORM_WEIXIN
@@ -58,7 +58,7 @@ namespace MyTools
 #endif
         }
 
-        [MenuItem("VastStarryRiver/´ò°ü/´ò°ü¶¶ÒôĞ¡ÓÎÏ·", false, 31)]
+        [MenuItem("VastStarryRiver/æ‰“åŒ…/æ‰“åŒ…æŠ–éŸ³å°æ¸¸æˆ", false, 31)]
         public static void PackageProject_DouYin()
         {
             string path = $"{ConfigUtils.m_miniBuildPath}/DouYin";
@@ -77,7 +77,7 @@ namespace MyTools
 #endif
         }
 
-        [MenuItem("VastStarryRiver/´ò°ü/´ò°ü¶¶ÒôĞ¡ÓÎÏ·", true, 31)]
+        [MenuItem("VastStarryRiver/æ‰“åŒ…/æ‰“åŒ…æŠ–éŸ³å°æ¸¸æˆ", true, 31)]
         public static bool PackageProject_DouYin_Enable()
         {
 #if MINIGAME_SUBPLATFORM_DOUYIN
@@ -87,7 +87,7 @@ namespace MyTools
 #endif
         }
 
-        [MenuItem("VastStarryRiver/´ò°ü/¸´ÖÆbundleµ½CDNÄ¿Â¼", false, 32)]
+        [MenuItem("VastStarryRiver/æ‰“åŒ…/å¤åˆ¶bundleåˆ°CDNç›®å½•", false, 32)]
         public static void MoveBundleFileToCND()
         {
             string path2 = ConfigUtils.m_cdnPath + "/yoo";
@@ -118,7 +118,7 @@ namespace MyTools
             }
         }
 
-        [MenuItem("VastStarryRiver/´ò°ü/¸´ÖÆunityweb.binµ½CDNÄ¿Â¼", false, 33)]
+        [MenuItem("VastStarryRiver/æ‰“åŒ…/å¤åˆ¶unityweb.binåˆ°CDNç›®å½•", false, 33)]
         public static void MoveCodeFileToCND()
         {
             string path = "";

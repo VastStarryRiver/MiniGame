@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
@@ -66,7 +66,7 @@ namespace Invariable
 #endif
         }
 
-        #region ÓÎÏ·ÉúÃüÖÜÆÚÊÂ¼ş¼àÌı
+        #region æ¸¸æˆç”Ÿå‘½å‘¨æœŸäº‹ä»¶ç›‘å¬
         private void AddOnShowListener()
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
@@ -85,7 +85,7 @@ namespace Invariable
 
                 if (launchFrom == "homepage" && location == "sidebar_card")
                 {
-                    Debug.Log("²à±ßÀ¸¸´·Ã");
+                    Debug.Log("ä¾§è¾¹æ å¤è®¿");
                 }
             };
 #endif
@@ -100,13 +100,13 @@ namespace Invariable
             {
                 if (result.hasUpdate)
                 {
-                    Debug.Log("ÓĞĞÂ°æ±¾·¢²¼ÁË£¡");
+                    Debug.Log("æœ‰æ–°ç‰ˆæœ¬å‘å¸ƒäº†ï¼");
                 }
             });
 
             wXUpdateManager.OnUpdateReady((result) =>
             {
-                Debug.Log("ÖØÆôÓÎÏ·Ó¦ÓÃĞÂ°æ±¾£¡");
+                Debug.Log("é‡å¯æ¸¸æˆåº”ç”¨æ–°ç‰ˆæœ¬ï¼");
                 wXUpdateManager.ApplyUpdate();
             });
 
@@ -117,20 +117,20 @@ namespace Invariable
             {
                 if (result.HasUpdate)
                 {
-                    Debug.Log("ÓĞĞÂ°æ±¾·¢²¼ÁË£¡");
+                    Debug.Log("æœ‰æ–°ç‰ˆæœ¬å‘å¸ƒäº†ï¼");
                 }
             });
 
             tTUpdateManager.OnUpdateReady(() =>
             {
-                Debug.Log("ÖØÆôÓÎÏ·Ó¦ÓÃĞÂ°æ±¾£¡");
+                Debug.Log("é‡å¯æ¸¸æˆåº”ç”¨æ–°ç‰ˆæœ¬ï¼");
                 tTUpdateManager.ApplyUpdate(new ApplyUpdateParams());
             });
 #endif
         }
         #endregion
 
-        #region Êı¾İ´æ´¢
+        #region æ•°æ®å­˜å‚¨
         public void SetLocalData(string key, string data)
         {
 #if UNITY_EDITOR
@@ -169,7 +169,7 @@ namespace Invariable
         }
         #endregion
 
-        #region ÊäÈë¿ò
+        #region è¾“å…¥æ¡†
         public void ShowKeyboard(TMP_InputField InputField)
         {
             if (m_isKeyboardShowing)
@@ -264,7 +264,7 @@ namespace Invariable
 #endif
         #endregion
 
-        #region ÆÁÄ»ÊÊÅä
+        #region å±å¹•é€‚é…
         public void AddScreenAdapter(ScreenAdapter screenAdapter)
         {
             m_screenAdapters ??= new List<ScreenAdapter>();
@@ -327,10 +327,10 @@ namespace Invariable
         }
 
         /// <summary>
-        /// »ñÈ¡°²È«ÇøÓò£¬¹Ì¶¨Ğ´ËÀ
+        /// è·å–å®‰å…¨åŒºåŸŸï¼Œå›ºå®šå†™æ­»
         /// </summary>
-        /// <param name="offsetMin">Ïà¶ÔÓÚ×óÏÂ½ÇµÄÆ«ÒÆÁ¿</param>
-        /// <param name="offsetMax">Ïà¶ÔÓÚÓÒÉÏ½ÇµÄÆ«ÒÆÁ¿</param>
+        /// <param name="offsetMin">ç›¸å¯¹äºå·¦ä¸‹è§’çš„åç§»é‡</param>
+        /// <param name="offsetMax">ç›¸å¯¹äºå³ä¸Šè§’çš„åç§»é‡</param>
         public void GetSafeAnchor(out Vector2 offsetMin, out Vector2 offsetMax)
         {
             offsetMin = new Vector2(30, 130); // Left = 30, Bottom = 130
@@ -351,7 +351,7 @@ namespace Invariable
 #endif
         #endregion
 
-        #region ¹ã¸æ
+        #region å¹¿å‘Š
         public void ShowInterstitialAd()
         {
 #if UNITY_EDITOR
@@ -380,7 +380,7 @@ namespace Invariable
             });
 
             m_interstitialAd.OnError((res) => {
-                Debug.LogError($"²åÆÁ¹ã¸æ¼ÓÔØÊ§°Ü: {res.errMsg}");
+                Debug.LogError($"æ’å±å¹¿å‘ŠåŠ è½½å¤±è´¥: {res.errMsg}");
             });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
@@ -407,7 +407,7 @@ namespace Invariable
             };
 
             m_interstitialAd.OnError += (code, message) => {
-                Debug.LogError($"²åÆÁ¹ã¸æ¼ÓÔØÊ§°Ü: {message}");
+                Debug.LogError($"æ’å±å¹¿å‘ŠåŠ è½½å¤±è´¥: {message}");
             };
 #endif
         }
@@ -442,7 +442,7 @@ namespace Invariable
             });
 
             m_rewardedVideoAd.OnError((res) => {
-                Debug.LogError($"¼¤ÀøÊÓÆµ¹ã¸æ´íÎó: {res.errMsg}");
+                Debug.LogError($"æ¿€åŠ±è§†é¢‘å¹¿å‘Šé”™è¯¯: {res.errMsg}");
             });
 
             m_rewardedVideoAd.OnClose((res) => {
@@ -473,7 +473,7 @@ namespace Invariable
             };
 
             m_rewardedVideoAd.OnError += (code, message) => {
-                Debug.LogError($"¼¤ÀøÊÓÆµ¹ã¸æ´íÎó: {message}");
+                Debug.LogError($"æ¿€åŠ±è§†é¢‘å¹¿å‘Šé”™è¯¯: {message}");
             };
 
             m_rewardedVideoAd.OnClose += (isEnded, count) => {
@@ -483,7 +483,7 @@ namespace Invariable
         }
         #endregion
 
-        #region ²à±ßÀ¸¸´·Ã
+        #region ä¾§è¾¹æ å¤è®¿
         public void ShowSidebar()
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
@@ -506,7 +506,7 @@ namespace Invariable
         }
         #endregion
 
-        #region ÓÎÏ·È¦
+        #region æ¸¸æˆåœˆ
         public void ShowGameClubButton(Rect rect = default, float fontSize = 0)
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
@@ -521,25 +521,25 @@ namespace Invariable
                     text = "",
                     style = new GameClubButtonStyle()
                     {
-                        //Î»ÖÃºÍ´óĞ¡
+                        //ä½ç½®å’Œå¤§å°
                         left = (int)(rect.x / pixelRatio),
                         top = (int)(rect.y / pixelRatio),
                         width = (int)(rect.width / pixelRatio),
                         height = (int)(rect.height / pixelRatio),
 
-                        // ±³¾°ÑÕÉ«
+                        // èƒŒæ™¯é¢œè‰²
                         backgroundColor = "#FFFFFF00",
 
-                        // ÎÄ×ÖÑùÊ½
+                        // æ–‡å­—æ ·å¼
                         color = "#BBDD88",
                         textAlign = GameClubButtonTextAlign.center,
                         fontSize = (int)(fontSize / pixelRatio),
                         lineHeight = (int)((fontSize + 10) / pixelRatio),
 
-                        // ±ß¿òÑùÊ½
+                        // è¾¹æ¡†æ ·å¼
                         borderColor = "#00000000",
                         borderWidth = 1,
-                        //borderRadius = 30 // Ô²½Ç
+                        //borderRadius = 30 // åœ†è§’
                     }
                 });
             }
@@ -563,7 +563,7 @@ namespace Invariable
         }
         #endregion
 
-        #region »·¾³
+        #region ç¯å¢ƒ
         public bool IsWeChat()
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN

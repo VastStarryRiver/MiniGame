@@ -23,7 +23,7 @@ namespace Invariable
         private const string m_key = "95gbt368426hyb13";
         private const string m_iv = "i8g3451h5cxmj6rf";
         public readonly static string m_configExcelPath = m_localRootPath + "Excel";
-        public readonly static string m_configBinPath = m_localRootPath + "Assets/GameAssets/Config";
+        public readonly static string m_configCsPath = m_localRootPath + "Assets/Scripts/HotUpdate/Config";
         public readonly static string m_localResourcePath = m_localRootPath + "Assets/Resources/LocalAssets";
         public readonly static string m_keystorePath = m_localRootPath + "SpectraAbyss.keystore";
         public readonly static string m_hotUpdateDllPath = m_localRootPath + "Assets/GameAssets/DLL";
@@ -102,58 +102,6 @@ namespace Invariable
         }
 
 
-
-        public static void GetConfigData(string configName, int id, string name = "", Action<string> callBack = null)
-        {
-            GetConfigData(configName, id.ToString(), name, callBack);
-        }
-
-        public static void GetConfigData(string configName, string index, string name = "", Action<string> callBack = null)
-        {
-            string key = "Config_" + configName;
-
-            if (key.Contains(".bin"))
-            {
-                key = key.Replace(".bin", "");
-            }
-
-            YooAssetManager.Instance.AsyncLoadAsset<BinAsset>(key, (data) =>
-            {
-                var config = ReadSafeFile<Dictionary<string, Dictionary<string, string>>>(data.bytes);
-
-                if (config.ContainsKey(index))
-                {
-                    if (string.IsNullOrEmpty(name))
-                    {
-                        callBack?.Invoke(config[index].ToString());
-                        return;
-                    }
-                    else if (config[index].ContainsKey(name))
-                    {
-                        callBack?.Invoke(config[index][name]);
-                        return;
-                    }
-                }
-
-                callBack?.Invoke("");
-            });
-        }
-
-        public static void GetConfigData(string configName, Action<Dictionary<string, Dictionary<string, string>>> callBack = null)
-        {
-            string key = "Config_" + configName;
-
-            if (key.Contains(".bin"))
-            {
-                key = key.Replace(".bin", "");
-            }
-
-            YooAssetManager.Instance.AsyncLoadAsset<BinAsset>(key, (data) =>
-            {
-                var config = ReadSafeFile<Dictionary<string, Dictionary<string, string>>>(data.bytes);
-                callBack?.Invoke(config);
-            });
-        }
 
         public static byte[] ReadFileByteData(string path)
         {

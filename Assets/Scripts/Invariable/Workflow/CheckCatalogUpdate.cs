@@ -1,4 +1,4 @@
-using YooAsset;
+锘縰sing YooAsset;
 using System.Collections;
 
 
@@ -30,44 +30,44 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 获取资源版本
+        /// 鑾峰彇璧勬簮鐗堟湰
         /// </summary>
         private IEnumerator RequestPackageVersion()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "获取资源版本");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "鑾峰彇璧勬簮鐗堟湰");
 
             var operation = YooAssetManager.Instance.Package.RequestPackageVersionAsync(false);
             yield return operation;
 
             if (operation.Status == EOperationStatus.Succeed)
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "获取资源版本，成功！");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "鑾峰彇璧勬簮鐗堟湰锛屾垚鍔燂紒");
                 GameManager.Instance.StartCoroutine(UpdatePackageManifest(operation.PackageVersion));
             }
             else
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "获取资源版本，失败！");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "鑾峰彇璧勬簮鐗堟湰锛屽け璐ワ紒");
             }
         }
 
         /// <summary>
-        /// 更新资源清单
+        /// 鏇存柊璧勬簮娓呭崟
         /// </summary>
         private IEnumerator UpdatePackageManifest(string packageVersion)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新资源清单");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "鏇存柊璧勬簮娓呭崟");
 
             var operation = YooAssetManager.Instance.Package.UpdatePackageManifestAsync(packageVersion);
             yield return operation;
 
             if (operation.Status == EOperationStatus.Succeed)
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新资源清单，成功！");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "鏇存柊璧勬簮娓呭崟锛屾垚鍔燂紒");
                 m_machine.ChangeState<CheckResourceUpdates>();
             }
             else
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新资源清单，失败！");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "鏇存柊璧勬簮娓呭崟锛屽け璐ワ紒");
             }
         }
     }

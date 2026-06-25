@@ -1,4 +1,4 @@
-using System;
+Ôªøusing System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
@@ -56,7 +56,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ‘§º”‘ÿDll
+        /// È¢ÑÂä†ËΩΩDll
         /// </summary>
         /// <param name="callBack"></param>
         public void PreLoadDll(Action<Assembly> callBack)
@@ -78,7 +78,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ≤π≥‰‘™ ˝æ›
+        /// Ë°•ÂÖÖÂÖÉÊï∞ÊçÆ
         /// </summary>
         private void LoadMetadataForAOTAssemblies(string platform, Action<Assembly> callBack)
         {
@@ -116,7 +116,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// “Ï≤Ωº”‘ÿ◊ ‘¥
+        /// ÂºÇÊ≠•Âä†ËΩΩËµÑÊ∫ê
         /// </summary>
         /// <param name="address"></param>
         /// <param name="callBack"></param>
@@ -140,14 +140,14 @@ namespace Invariable
                     }
                     else
                     {
-                        Debug.LogError($"“Ï≤Ωº”‘ÿ◊ ‘¥ ß∞‹£°address:{address}");
+                        Debug.LogError($"ÂºÇÊ≠•Âä†ËΩΩËµÑÊ∫êÂ§±Ë¥•ÔºÅaddress:{address}");
                     }
                 };
             }
         }
 
         /// <summary>
-        /// “Ï≤Ωº”‘ÿ≥°æ∞
+        /// ÂºÇÊ≠•Âä†ËΩΩÂú∫ÊôØ
         /// </summary>
         /// <param name="address"></param>
         /// <param name="loadSceneMode"></param>
@@ -173,14 +173,14 @@ namespace Invariable
                     }
                     else
                     {
-                        Debug.LogError($"“Ï≤Ωº”‘ÿ≥°æ∞ ß∞‹£°address:{address}");
+                        Debug.LogError($"ÂºÇÊ≠•Âä†ËΩΩÂú∫ÊôØÂ§±Ë¥•ÔºÅaddress:{address}");
                     }
                 };
             }
         }
 
         /// <summary>
-        /// –∂‘ÿ◊ ‘¥
+        /// Âç∏ËΩΩËµÑÊ∫ê
         /// </summary>
         public void UnLoadAsset()
         {
@@ -196,7 +196,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// –∂‘ÿ≥°æ∞
+        /// Âç∏ËΩΩÂú∫ÊôØ
         /// </summary>
         public void UnLoadScene(string address)
         {

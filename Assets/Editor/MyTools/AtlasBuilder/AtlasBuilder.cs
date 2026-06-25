@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.IO;
 using System.Collections.Generic;
 using UnityEditor;
@@ -15,7 +15,7 @@ namespace MyTools
         public SpriteAlignment alignment;
         public Object[] directorys;
 
-        private string m_atlasRootPath = Application.dataPath + "/Editor/MyTools/AtlasBuilder/";//ͼ���洢·��
+        private string m_atlasRootPath = Application.dataPath + "/Editor/MyTools/AtlasBuilder/";//图集存储路径
 
         [ContextMenu(nameof(BuildAtlas))]
         public void BuildAtlas()

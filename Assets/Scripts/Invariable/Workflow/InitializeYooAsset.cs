@@ -1,4 +1,4 @@
-using YooAsset;
+ï»¿using YooAsset;
 using System.Collections;
 
 
@@ -30,7 +30,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ³õÊ¼»¯YooAsset×ÊÔ´¹ÜÀíÏµÍ³
+        /// åˆå§‹åŒ–YooAssetèµ„æºç®¡ç†ç³»ç»Ÿ
         /// </summary>
         private void InitializeSystem()
         {
@@ -42,13 +42,13 @@ namespace Invariable
 
             YooAssetManager.Instance.SetWebInfo();
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "³õÊ¼»¯×ÊÔ´¹ÜÀíÏµÍ³");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "åˆå§‹åŒ–èµ„æºç®¡ç†ç³»ç»Ÿ");
 
             YooAssets.Initialize();
 
             YooAssets.SetOperationSystemMaxTimeSlice(1000);
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "³õÊ¼»¯×ÊÔ´¹ÜÀíÏµÍ³£¬³É¹¦£¡");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "åˆå§‹åŒ–èµ„æºç®¡ç†ç³»ç»Ÿï¼ŒæˆåŠŸï¼");
 
             ResourcePackage package = YooAssetManager.Instance.Package;
 
@@ -56,11 +56,11 @@ namespace Invariable
         }
 
         /// <summary>
-        /// ³õÊ¼»¯Package
+        /// åˆå§‹åŒ–Package
         /// </summary>
         private IEnumerator InitializePackage(ResourcePackage package)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "³õÊ¼»¯Package");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "åˆå§‹åŒ–Package");
 
             EPlayMode playMode = (EPlayMode)m_machine.GetBlackboardValue("EPlayMode");
 
@@ -94,12 +94,12 @@ namespace Invariable
 
             if (initOperation.Status == EOperationStatus.Succeed)
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "³õÊ¼»¯Package£¬³É¹¦£¡");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "åˆå§‹åŒ–Packageï¼ŒæˆåŠŸï¼");
                 m_machine.ChangeState<CheckCatalogUpdate>();
             }
             else
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "³õÊ¼»¯Package£¬Ê§°Ü£¡");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "åˆå§‹åŒ–Packageï¼Œå¤±è´¥ï¼");
             }
         }
     }

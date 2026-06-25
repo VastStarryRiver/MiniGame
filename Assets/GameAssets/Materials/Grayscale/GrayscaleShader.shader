@@ -14,31 +14,31 @@ Shader "MyShader/Grayscale"
 
         Pass
         {
-            // äÖÈ¾Ö¸Áî
+            // æ¸²æŸ“æŒ‡ä»¤
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
-            #pragma vertex analyzeInputData// Ö¸¶¨¶¥µã×ÅÉ«Æ÷º¯Êı
-            #pragma fragment getOutputData// Ö¸¶¨Æ¬¶Î×ÅÉ«Æ÷º¯Êı
+            #pragma vertex analyzeInputData// æŒ‡å®šé¡¶ç‚¹ç€è‰²å™¨å‡½æ•°
+            #pragma fragment getOutputData// æŒ‡å®šç‰‡æ®µç€è‰²å™¨å‡½æ•°
             #include "UnityCG.cginc"
 
-            sampler2D _MainTex; // Êµ¼ÊµÄ2DÎÆÀí¶ÔÏó
-            float4 _MainTex_ST; // ÓëÎÆÀí×ø±êÏà¹ØµÄ±ä»»ĞÅÏ¢£¨Æ½ÒÆºÍËõ·Å£©
+            sampler2D _MainTex; // å®é™…çš„2Dçº¹ç†å¯¹è±¡
+            float4 _MainTex_ST; // ä¸çº¹ç†åæ ‡ç›¸å…³çš„å˜æ¢ä¿¡æ¯ï¼ˆå¹³ç§»å’Œç¼©æ”¾ï¼‰
 
             struct vertexStruct
             {
-                float4 vertex : POSITION; // ¶¥µãÎ»ÖÃ£¨ÊÀ½ç¿Õ¼ä»ò¶ÔÏó¿Õ¼ä£©
-                float3 normal : NORMAL; // ¶¥µã·¨Ïß
-                float4 color : COLOR; // ¶¥µãÑÕÉ«£¨Èç¹ûÓĞµÄ»°£©
-                float2 uv : TEXCOORD0; // ÎÆÀí×ø±ê
+                float4 vertex : POSITION; // é¡¶ç‚¹ä½ç½®ï¼ˆä¸–ç•Œç©ºé—´æˆ–å¯¹è±¡ç©ºé—´ï¼‰
+                float3 normal : NORMAL; // é¡¶ç‚¹æ³•çº¿
+                float4 color : COLOR; // é¡¶ç‚¹é¢œè‰²ï¼ˆå¦‚æœæœ‰çš„è¯ï¼‰
+                float2 uv : TEXCOORD0; // çº¹ç†åæ ‡
             };
 
             struct fragmentStruct
             {
-                float4 pos : SV_POSITION; // ¶¥µãÔÚ²Ã¼ô¿Õ¼äÖĞµÄÎ»ÖÃ
-                float4 color : COLOR; // ¶¥µãÑÕÉ«£¨¾­¹ı²åÖµ£©
-                float2 uv : TEXCOORD0; // ÎÆÀí×ø±ê£¨¾­¹ı²åÖµ£©
-                float3 normal : TEXCOORD1; // ¶¥µã·¨Ïß£¨¾­¹ı²åÖµ£©
+                float4 pos : SV_POSITION; // é¡¶ç‚¹åœ¨è£å‰ªç©ºé—´ä¸­çš„ä½ç½®
+                float4 color : COLOR; // é¡¶ç‚¹é¢œè‰²ï¼ˆç»è¿‡æ’å€¼ï¼‰
+                float2 uv : TEXCOORD0; // çº¹ç†åæ ‡ï¼ˆç»è¿‡æ’å€¼ï¼‰
+                float3 normal : TEXCOORD1; // é¡¶ç‚¹æ³•çº¿ï¼ˆç»è¿‡æ’å€¼ï¼‰
             };
 
             fragmentStruct analyzeInputData(vertexStruct v)
@@ -46,15 +46,15 @@ Shader "MyShader/Grayscale"
                 fragmentStruct o;
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.color = v.color;
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex); // ×Ô¶¯½«_MainTex_STµÄÄÚÈİÓ¦ÓÃµ½uv×ø±êÉÏ
-                o.normal = v.normal; // Ìí¼Ó·¨ÏßµÄ³õÊ¼»¯
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex); // è‡ªåŠ¨å°†_MainTex_STçš„å†…å®¹åº”ç”¨åˆ°uvåæ ‡ä¸Š
+                o.normal = v.normal; // æ·»åŠ æ³•çº¿çš„åˆå§‹åŒ–
                 return o;
             }
 
             half4 getOutputData(fragmentStruct i) : SV_Target
             {
                 half4 color = tex2D(_MainTex, i.uv);
-                float gray = dot(color.rgb, half3(0.299, 0.587, 0.114));//»Ò¶È¹«Ê½
+                float gray = dot(color.rgb, half3(0.299, 0.587, 0.114));//ç°åº¦å…¬å¼
                 color.rgb = gray.xxx;//float3(gray, gray, gray)
                 color.a *= i.color.a;
                 return color;

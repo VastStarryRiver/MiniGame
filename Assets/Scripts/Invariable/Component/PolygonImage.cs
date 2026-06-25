@@ -18,14 +18,14 @@ namespace Invariable
 
         public override bool IsRaycastLocationValid(Vector2 screenPoint, Camera eventCamera)
         {
-            // ×ª»»ÎªUI¾Ö²¿×ø±ê
+            // è½¬æ¢ä¸ºUIå±€éƒ¨åæ ‡
             RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint, eventCamera, out Vector2 localPoint);
 
-            // ×ª»»ÎªÅö×²Ìå×ø±êÏµ£¨»ùÓÚÖáĞÄĞŞÕı×ø±êÏµ£©
+            // è½¬æ¢ä¸ºç¢°æ’ä½“åæ ‡ç³»ï¼ˆåŸºäºè½´å¿ƒä¿®æ­£åæ ‡ç³»ï¼‰
             Vector2 pivotOffset = rectTransform.rect.size * rectTransform.pivot;
             localPoint += pivotOffset;
 
-            // ¼ì²âµãÊÇ·ñÔÚ¶à±ßĞÎÅö×²ÌåÄÚ
+            // æ£€æµ‹ç‚¹æ˜¯å¦åœ¨å¤šè¾¹å½¢ç¢°æ’ä½“å†…
             return polyCollider.OverlapPoint(localPoint);
         }
     }
