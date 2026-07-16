@@ -23,7 +23,7 @@ namespace MyTools
 
 
 
-        [MenuItem("VastStarryRiver/Config/导出Web配置", false, 10)]
+        [MenuItem("VastStarryRiver/Config/导出Web配置", false, 0)]
         public static void BuildWebBinFile()
         {
             using (FileStream fileStream = new FileStream(ConfigUtils.m_localRootPath + "WebData.txt", FileMode.Open))
@@ -37,7 +37,7 @@ namespace MyTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("VastStarryRiver/Config/导出Excel配置", false, 11)]
+        [MenuItem("VastStarryRiver/Config/导出Excel配置", false, 1)]
         public static void ExportConfig()
         {
             if (Directory.Exists(ConfigUtils.m_configCsPath))
@@ -257,7 +257,6 @@ namespace MyTools
 
             stringBuilder.AppendLine("using System;");
             stringBuilder.AppendLine("using System.Collections.Generic;");
-            stringBuilder.AppendLine("using UnityEngine;");
             stringBuilder.AppendLine();
             stringBuilder.AppendLine();
             stringBuilder.AppendLine();
@@ -437,7 +436,6 @@ namespace MyTools
             stringBuilder.AppendLine("            s_configs.Add(row);");
             stringBuilder.AppendLine("            s_configDict[key] = row;");
             stringBuilder.AppendLine("        }");
-            stringBuilder.AppendLine();
 
             stringBuilder.AppendLine("    }");
             stringBuilder.AppendLine("}");

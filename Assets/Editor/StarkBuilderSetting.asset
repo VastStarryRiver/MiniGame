@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tag: 0
   wasmResourceUrl: http://
-  OutputDir: E:/MyFramework/MiniGame/Build
+  OutputDir: E:/MyFramework/MiniGame/Build/DouYin
   useByteAudioAPI: 0
   wasmMemorySize: 128
   isWebGL2: 1

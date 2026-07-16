@@ -10,13 +10,13 @@ namespace MyTools
 {
     public class DllTool
     {
-        [MenuItem("VastStarryRiver/DLL/导出所有DLL", false, 0)]
+        [MenuItem("VastStarryRiver/DLL/导出所有DLL", false, 10)]
         public static void BuildHotUpdateDLL()
         {
             PrebuildCommand.GenerateAll();
         }
 
-        [MenuItem("VastStarryRiver/DLL/复制热更新DLL", false, 1)]
+        [MenuItem("VastStarryRiver/DLL/复制热更新DLL", false, 11)]
         public static void MoveHotUpdateDLL()
         {
             string platform = EditorUserBuildSettings.activeBuildTarget.ToString();
@@ -26,7 +26,7 @@ namespace MyTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("VastStarryRiver/DLL/复制元数据DLL", false, 2)]
+        [MenuItem("VastStarryRiver/DLL/复制元数据DLL", false, 12)]
         public static void MoveMetadataForAOTDLL()
         {
             string platform = EditorUserBuildSettings.activeBuildTarget.ToString();
