@@ -83,7 +83,7 @@ Editor 代码不能被运行时程序集引用。
 
 ## 3. 代码书写规范
 
-本项目新增或修改 C# 脚本时，统一参照 `Assets/Scripts/HotUpdate/UI/MainPanel/MainPanel.cs` 的书写风格。以下规范适用于 `HotUpdate`、`Invariable` 和 Editor 工具代码；自动生成的 `Tab_*.cs` 以生成器输出格式为准。
+以下规范适用于 `HotUpdate`、`Invariable` 和 Editor 工具代码；自动生成的 `Tab_*.cs` 以生成器输出格式为准。
 
 ### 3.1 文件整体结构
 
