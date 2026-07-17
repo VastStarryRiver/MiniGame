@@ -189,12 +189,13 @@ HotUpdateOver
 
 职责：
 
-1. 读取 `Resources/LocalAssets/WebData.bin`；
-2. 解密并解析 CDN 等 Web 配置；
-3. 初始化 YooAsset；
-4. 创建或获取包 `MyPackage`；
-5. 设置为默认包；
-6. 按模式初始化文件系统。
+1. 若 `YooAssets.Initialized` 已为 true，直接跳到 `HotUpdateOver`（跳过清单检查与资源下载）；
+2. 否则读取 `Resources/LocalAssets/WebData.bin`；
+3. 解密并解析 CDN 等 Web 配置；
+4. 初始化 YooAsset；
+5. 创建或获取包 `MyPackage`；
+6. 设置为默认包；
+7. 按模式初始化文件系统。
 
 编辑器：
 
@@ -210,6 +211,8 @@ WebPlayModeParameters
   -> SdkManager.InitializeYooAsset
   -> 微信或抖音自定义文件系统
 ```
+
+注意：编辑器域重载或二次进入启动流程时，若 YooAsset 已初始化，会走短路进入 `HotUpdateOver`，排查“未重新拉清单/未下载”时需先确认此分支。
 
 ### 4.5 `CheckCatalogUpdate`
 
@@ -269,6 +272,7 @@ method.Invoke(null, null);
 当前行为：
 
 ```csharp
+GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "开始游戏");
 HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0);
 ```
 
@@ -528,7 +532,7 @@ HotUpdateUtils.ShowFloatText(...);
 | `UIPopup` | 弹窗开关动画 |
 | `LoopScrollList` | 横向/纵向循环列表 |
 | `MiniInputField` | 调起小游戏原生键盘 |
-| `ScreenAdapter` | 注册安全区适配 |
+| `ScreenAdapter` | 注册安全区适配；实际偏移由 `SdkManager.GetSafeAnchor` 写死为 Left/Bottom=30/130、Right/Top=30/90，非设备 SafeArea |
 | `BgAdapter` | 背景等比铺满 |
 | `UIDrag` | UI 拖拽及 ScrollRect 事件转发 |
 | `Rocker` | 虚拟摇杆 |
