@@ -88,7 +88,7 @@ PlayerSettings:
   androidPredictiveBackSupport: 0
   defaultIsNativeResolution: 1
   macRetinaSupport: 1
-  runInBackground: 0
+  runInBackground: 1
   captureSingleScreen: 0
   muteOtherAudioSources: 0
   Prepare IOS For Recording: 0
@@ -1071,7 +1071,7 @@ PlayerSettings:
     -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s TOTAL_MEMORY=256MB -s EXPORTED_RUNTIME_METHODS=''["ccall","cwrap","stackTrace","addRunDependency","removeRunDependency","FS_createPath","FS_createDataFile","stackTrace","writeStackCookie","checkStackCookie","lengthBytesUTF8","stringToUTF8"]''
     --profiling-funcs '
   weixinMiniGameModulesDirectory: 
-  weixinMiniGameTemplate: PATH:E:\MyFramework\MiniGame\Library\PackageCache\com.qq.weixin.minigame@ed4ad28f43\WebGLTemplates\WXTemplate2022TJ
+  weixinMiniGameTemplate: APPLICATION:Default
   weixinMiniGameAnalyzeBuildSize: 0
   weixinMiniGameUseEmbeddedResources: 0
   weixinMiniGameCompressionFormat: 2

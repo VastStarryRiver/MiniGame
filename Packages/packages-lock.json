@@ -26,6 +26,15 @@
       },
       "hash": "e1540186f8eaae4a4e0ca840d769bf9f09b5f8ec"
     },
+    "com.boxqkrtm.ide.cursor": {
+      "version": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.9"
+      },
+      "hash": "fd8ff1fb700caf062eb5cce364c1d0a85f99ebe6"
+    },
     "com.bytedance.starksdk": {
       "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.7.6",
       "depth": 0,
