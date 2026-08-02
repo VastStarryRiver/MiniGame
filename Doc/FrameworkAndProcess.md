@@ -410,7 +410,7 @@ Assets/AssetBundleCollectorSetting.asset
 |---|---|
 | `YooAssetManager` | 包、资源、场景、DLL |
 | `UIManager` | 已打开页面字典 |
-| `SdkManager` | 平台 SDK、存储、键盘、广告、适配 |
+| `SdkManager` | 平台 SDK、存储、键盘、广告、分享、适配 |
 
 基类：
 

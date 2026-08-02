@@ -56,10 +56,11 @@ Assets/Scripts/Invariable/Manager/SdkManager.cs
 | 本地字符串存储 | PlayerPrefs | WX Storage | TT Save |
 | 原生键盘 | 无平台调用 | WX Keyboard | TT Keyboard |
 | 方向变化 | 直接适配 | WX 监听 | TT 监听 |
-| 插屏广告 | 空操作 | 已有框架 | 已有框架 |
-| 激励视频 | 空操作且当前不回调 | 已有框架 | 已有框架 |
-| 侧边栏复访 | 无 | 无 | 有 |
+| 激励视频 | 直接回调成功 | 已有框架 | 已有框架 |
+| 侧边栏复访 | 无 | 无 | 有（跳转成功写入本地 IsGetReward=1） |
 | 游戏圈按钮 | 无 | 有 | 无 |
+| 分享 | 输出日志 | WX.ShareAppMessage | TT.ShareAppMessage（成功/失败/取消回调） |
+| 环境判断 | IsWeChat/IsDouYin 均返回 false | IsWeChat 返回 true | IsDouYin 返回 true |
 | YooAsset 文件系统 | 不走此接口 | 微信 FS | 抖音 FS |
 
 ## 3. YooAsset 小游戏平台文件系统
@@ -506,8 +507,8 @@ Editor 工具本身不进入运行时，但其产物变化可能要求重新构�
 | 原生键盘 | 无完整模拟 | 必测 | 必测 |
 | 前后台切换 | 有限 | 必测 | 必测 |
 | 小游戏版本更新 | 无 | 必测 | 必测 |
-| 激励视频完整/中断 | 当前 Editor 不可用 | 配置后必测 | 配置后必测 |
-| 插屏广告失败重试 | 无 | 配置后必测 | 配置后必测 |
+| 激励视频完整/中断 | 直接回调成功 | 配置后必测 | 配置后必测 |
+| 分享成功/失败/取消 | 输出日志 | 必测 | 必测 |
 | 安全区/横竖屏 | 有限 | 多机型 | 多机型 |
 | CDN 异常/断网 | 可模拟 | 必测 | 必测 |
 

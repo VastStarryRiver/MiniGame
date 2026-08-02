@@ -22,22 +22,16 @@ namespace Invariable
     public class SdkManager : Singleton<SdkManager>
     {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
-        private WXCustomAd m_bannerAd = null;
-        private WXInterstitialAd m_interstitialAd = null;
         private WXRewardedVideoAd m_rewardedVideoAd = null;
         private WXGameClubButton wXGameClubButton = null;
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
-        private TTBannerAd m_bannerAd = null;
-        private TTInterstitialAd m_interstitialAd = null;
         private TTRewardedVideoAd m_rewardedVideoAd = null;
 #endif
 
         private TMP_InputField m_inputField = null;
         private bool m_isKeyboardShowing = false;
         private List<ScreenAdapter> m_screenAdapters = null;
-        private bool m_isShowBannerAd = false;
-        private bool m_isShowInterstitialAd = false;
         private bool m_isShowRewardedVideoAd = false;
         private Action<bool> m_rewardedVideoAdCallBack = null;
 
@@ -352,71 +346,12 @@ namespace Invariable
         #endregion
 
         #region 广告
-        public void ShowInterstitialAd()
-        {
-#if UNITY_EDITOR
-
-#elif MINIGAME_SUBPLATFORM_WEIXIN
-            string adUnitId = "";
-
-            if (m_interstitialAd != null)
-            {
-                m_interstitialAd.Show();
-                return;
-            }
-
-            m_interstitialAd = WX.CreateInterstitialAd(new WXCreateInterstitialAdParam
-            {
-                adUnitId = adUnitId
-            });
-
-            m_isShowInterstitialAd = true;
-            m_interstitialAd.OnLoad((res) => {
-                if (m_isShowInterstitialAd)
-                {
-                    m_isShowInterstitialAd = false;
-                    m_interstitialAd.Show();
-                }
-            });
-
-            m_interstitialAd.OnError((res) => {
-                Debug.LogError($"插屏广告加载失败: {res.errMsg}");
-            });
-
-#elif MINIGAME_SUBPLATFORM_DOUYIN
-            string adUnitId = "";
-
-            if (m_interstitialAd != null)
-            {
-                m_interstitialAd.Show();
-                return;
-            }
-
-            m_interstitialAd = TT.CreateInterstitialAd(new CreateInterstitialAdParam
-            {
-                InterstitialAdId = adUnitId
-            });
-
-            m_isShowInterstitialAd = true;
-            m_interstitialAd.OnLoad += () => {
-                if (m_isShowInterstitialAd)
-                {
-                    m_isShowInterstitialAd = false;
-                    m_interstitialAd.Show();
-                }
-            };
-
-            m_interstitialAd.OnError += (code, message) => {
-                Debug.LogError($"插屏广告加载失败: {message}");
-            };
-#endif
-        }
-
         public void ShowRewardedVideoAd(Action<bool> callBack = null)
         {
             m_rewardedVideoAdCallBack = callBack;
 
 #if UNITY_EDITOR
+            m_rewardedVideoAdCallBack?.Invoke(true);
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
             string adUnitId = "";
@@ -486,7 +421,13 @@ namespace Invariable
         #region 侧边栏复访
         public void ShowSidebar()
         {
-#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+#if UNITY_EDITOR
+            Debug.Log("展示侧边栏");
+
+#elif MINIGAME_SUBPLATFORM_WEIXIN
+            Debug.Log("展示侧边栏");
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
             TT.CheckScene(TTSideBar.SceneEnum.SideBar, (isJump) =>
             {
                 if (isJump)
@@ -509,7 +450,10 @@ namespace Invariable
         #region 游戏圈
         public void ShowGameClubButton(Rect rect = default, float fontSize = 0)
         {
-#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+#if UNITY_EDITOR
+            Debug.Log("展示游戏圈按钮");
+
+#elif MINIGAME_SUBPLATFORM_WEIXIN
             if (wXGameClubButton == null)
             {
                 var info = WX.GetWindowInfo();
@@ -547,18 +491,64 @@ namespace Invariable
             {
                 wXGameClubButton.Show();
             }
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+            Debug.Log("展示游戏圈按钮");
 #endif
         }
 
         public void HideGameClubButton()
         {
-#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+#if UNITY_EDITOR
+            Debug.Log("隐藏游戏圈按钮");
+
+#elif MINIGAME_SUBPLATFORM_WEIXIN
             if (wXGameClubButton == null)
             {
                 return;
             }
 
             wXGameClubButton.Hide();
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+            Debug.Log("隐藏游戏圈按钮");
+#endif
+        }
+        #endregion
+
+        #region 分享
+        public void Share(string desc)
+        {
+#if UNITY_EDITOR
+            Debug.Log("分享");
+
+#elif MINIGAME_SUBPLATFORM_WEIXIN
+            WX.ShareAppMessage(new ShareAppMessageOption
+            {
+                title = desc, // 小游戏名称和icon都会单独展示，这里写自定义文本
+                imageUrl = "",
+                query = ""
+            });
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+            var data = new JsonData
+            {
+                ["title"] = "游戏名称", // 小游戏名称固定写上去
+                ["desc"] = desc, // 自定义文本
+                ["imageUrl"] = "",
+                ["query"] = ""
+            };
+
+            TT.ShareAppMessage(data, () =>
+            {
+                Debug.Log("分享成功");
+            }, (errMsg) =>
+            {
+                Debug.LogError($"分享失败: {errMsg}");
+            }, () =>
+            {
+                Debug.Log("分享取消");
+            });
 #endif
         }
         #endregion

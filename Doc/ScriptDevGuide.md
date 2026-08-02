@@ -797,17 +797,18 @@ string name = SdkManager.Instance.GetLocalData(
 
 推荐做法：
 
-1. 在 `SdkManager` 添加平台无关的公共方法；
-2. 方法内部使用平台宏分支；
-3. Editor 分支提供可预测的模拟结果；
-4. 热更新业务只调用公共方法；
-5. 真机分别验证微信和抖音；
-6. 明确回调在成功、失败、取消时是否都能结束。
+1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`），避免重复实现；
+2. 在 `SdkManager` 添加平台无关的公共方法；
+3. 方法内部使用平台宏分支；
+4. Editor 分支提供可预测的模拟结果；
+5. 热更新业务只调用公共方法；
+6. 真机分别验证微信和抖音；
+7. 明确回调在成功、失败、取消时是否都能结束。
 
 示例结构：
 
 ```csharp
-public void Share(Action<bool> callback)
+public void DoPlatformAction(Action<bool> callback)
 {
 #if UNITY_EDITOR
     callback?.Invoke(true);
@@ -817,9 +818,6 @@ public void Share(Action<bool> callback)
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
     // 抖音实现
-
-#else
-    callback?.Invoke(false);
 #endif
 }
 ```
