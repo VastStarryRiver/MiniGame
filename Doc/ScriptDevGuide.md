@@ -122,16 +122,16 @@ Editor 代码不能被运行时程序集引用。
 
 常用 Unity/UI 字段缩写沿用现有工程风格：
 
-| 前缀 | 类型/用途 | 示例 |
-|---|---|---|
-| `m_btn` | `UIButton` 或按钮 | `m_btnPlay` |
-| `m_ts` | `Transform` / `RectTransform` | `m_tsPlay` |
-| `m_text` | TextMeshPro 文本 | `m_textTitle` |
-| `m_img` | `Image` | `m_imgIcon` |
-| `m_rawImg` | `RawImage` | `m_rawImgPreview` |
-| `m_go` | `GameObject` | `m_goContent` |
-| `m_sli` | `Slider` | `m_sliProgress` |
-| `m_scroll` | `ScrollRect` | `m_scrollList` |
+| 前缀 | 类型/用途 | 对应节点名 | 示例 |
+|---|---|---|---|
+| `m_btn` | `UIButton` 或按钮 | `Btn_{业务名}` | `m_btnPlay` → `Btn_Play` |
+| `m_ts` | `Transform` / `RectTransform` | `Ts_{业务名}` | `m_tsPlay` → `Ts_Play` |
+| `m_text` | TextMeshPro 文本 | `Text_{业务名}` | `m_textTitle` → `Text_Title` |
+| `m_img` | `Image` | `Img_{业务名}` | `m_imgIcon` → `Img_Icon` |
+| `m_raw` | `RawImage` | `Raw_{业务名}` | `m_rawPreview` → `Raw_Preview` |
+| `m_obj` | `GameObject` | `Obj_{业务名}` | `m_objContent` → `Obj_Content` |
+| `m_sli` | `Slider` | `Sli_{业务名}` | `m_sliProgress` → `Sli_Progress` |
+| `m_scr` | `ScrollRect` | `Scr_{业务名}` | `m_scrList` → `Scr_List` |
 
 命名必须表达业务含义，不使用 `a`、`b`、`temp1`、`obj2` 等无法判断用途的名称。
 
@@ -147,6 +147,26 @@ Editor 代码不能被运行时程序集引用。
 ### 3.5 组件引用与预制体绑定
 
 所有能够在 Unity Inspector 中配置的组件引用，必须声明为 `public` 成员字段，并在场景或预制体上通过拖拽完成赋值。
+
+#### 命名对应规则
+
+脚本字段、Prefab 节点名与挂载组件必须一一对应：
+
+| 脚本字段 | Prefab 节点名 | 挂载组件 |
+|---|---|---|
+| `m_textPlay` | `Text_Play` | `TextMeshProUGUI` |
+| `m_btnPlay` | `Btn_Play` | `UIButton` |
+| `m_tsPlay` | `Ts_Play` | `RectTransform` / `Transform` |
+| `m_imgPlay` | `Img_Play` | `Image` |
+| `m_rawPlay` | `Raw_Play` | `RawImage` |
+
+通用换算：
+
+- 脚本字段 = `m_` + 小写语义前缀 + PascalCase 业务名；
+- Prefab 节点名 = 语义前缀首字母大写 + `_` + 同一业务名；
+- 节点必须挂载与字段类型匹配的组件，再绑定到脚本字段。
+
+其余类型同理，例如：`m_objContent` ↔ `Obj_Content` ↔ `GameObject`；`m_sliProgress` ↔ `Sli_Progress` ↔ `Slider`；`m_scrList` ↔ `Scr_List` ↔ `ScrollRect`。
 
 推荐写法：
 
@@ -171,6 +191,7 @@ private void Awake()
 
 - UI 控件、动画节点、文本、图片、列表、按钮及其他固定组件引用，统一使用 `public` 字段；
 - `public` 组件字段必须使用 `m_` 前缀和对应的类型语义前缀；
+- Prefab 节点名必须与字段语义前缀及业务名对应，并挂载匹配组件；
 - 字段必须在对应场景或 Prefab 的 Inspector 中拖拽赋值；
 - 新增或修改字段后，必须打开对应场景或 Prefab 检查引用是否完整；
 - 不允许为了减少 Inspector 字段而使用 `GameObject.Find`、`Transform.Find` 或 `GetComponent` 查找固定组件；

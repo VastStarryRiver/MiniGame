@@ -9,7 +9,7 @@ namespace Invariable
 {
     public class UIDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
-        public ScrollRect m_scroll = null;
+        public ScrollRect m_scrDrag = null;
         public int m_layer = 0;
 
         private RectTransform m_parent = null;
@@ -26,7 +26,7 @@ namespace Invariable
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            m_scroll?.OnBeginDrag(eventData);
+            m_scrDrag?.OnBeginDrag(eventData);
 
             if (m_parent != null)
             {
@@ -37,7 +37,7 @@ namespace Invariable
 
         public void OnDrag(PointerEventData eventData)
         {
-            m_scroll?.OnDrag(eventData);
+            m_scrDrag?.OnDrag(eventData);
 
             if (m_parent != null)
             {
@@ -48,7 +48,7 @@ namespace Invariable
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            m_scroll?.OnEndDrag(eventData);
+            m_scrDrag?.OnEndDrag(eventData);
 
             if (m_parent != null)
             {
