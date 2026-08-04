@@ -36,7 +36,7 @@ namespace Invariable
         /// </summary>
         private IEnumerator ClearUnusedFiles()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "清理旧缓存");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "清理缓存中...");
 
             var operation1 = YooAssetManager.Instance.Package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
             yield return operation1;
@@ -52,15 +52,19 @@ namespace Invariable
         /// </summary>
         private void InitializeOperationSystem()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化运行系统");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化游戏中...");
             SdkManager.Instance.InitSDK(() =>
             {
-                YooAssetManager.Instance.PreLoadDll((hotUpdateAss) =>
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "同步数据中...");
+                CloudManager.Instance.InitCloudData(() =>
                 {
-                    GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "开始游戏");
-                    Type type = hotUpdateAss.GetType("HotUpdate.StartGame");
-                    MethodInfo methodInfo = type.GetMethod("Play", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-                    methodInfo.Invoke(null, null);
+                    YooAssetManager.Instance.PreLoadDll((hotUpdateAss) =>
+                    {
+                        GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "即将进入游戏...");
+                        Type type = hotUpdateAss.GetType("HotUpdate.StartGame");
+                        MethodInfo methodInfo = type.GetMethod("Play", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                        methodInfo.Invoke(null, null);
+                    });
                 });
             });
         }

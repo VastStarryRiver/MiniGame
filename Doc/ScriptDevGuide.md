@@ -787,6 +787,8 @@ Assets/Editor/MyTools/Tools/ConfigTool.cs
 
 ## 12. 使用平台存储
 
+### 12.1 本地存储
+
 统一接口：
 
 ```csharp
@@ -806,6 +808,25 @@ string name = SdkManager.Instance.GetLocalData(
 | 微信 | `WX.Storage*Sync` |
 | 抖音 | `TT.Save` / `TT.LoadSaving` |
 
+### 12.2 云存档读写
+
+业务侧统一走 `SdkManager`（与本地存储同属数据存储模块）：
+
+```csharp
+SdkManager.Instance.SetCloudData("Score", "100");
+
+string score = SdkManager.Instance.GetCloudData("Score", "0");
+```
+
+对应实现：
+
+| 环境 | 实现 |
+|---|---|
+| Editor | 转发 `SetLocalData` / `GetLocalData` |
+| 微信/抖音 | 转发 `CloudManager` 云缓存；写后异步上传 |
+
+云初始化失败后 Set 静默丢弃、Get 返回默认值。全量拉取用 `CloudManager.Instance.GetAllCloudData`。云函数/密钥约束见 `cloud-service` 规则。
+
 存档修改应考虑：
 
 - key 不要随意改名；
@@ -818,7 +839,7 @@ string name = SdkManager.Instance.GetLocalData(
 
 推荐做法：
 
-1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`），避免重复实现；
+1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`、云读写 `SetCloudData/GetCloudData`），避免重复实现；云存档/云函数能力见 `CloudManager` 与 `cloud-service` 规则；
 2. 在 `SdkManager` 添加平台无关的公共方法；
 3. 方法内部使用平台宏分支；
 4. Editor 分支提供可预测的模拟结果；

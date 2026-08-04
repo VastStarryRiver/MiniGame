@@ -1,4 +1,4 @@
-﻿using YooAsset;
+using YooAsset;
 using System.Collections;
 
 
@@ -42,13 +42,13 @@ namespace Invariable
 
             YooAssetManager.Instance.SetWebInfo();
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化资源管理系统");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "游戏加载中...");
 
             YooAssets.Initialize();
 
             YooAssets.SetOperationSystemMaxTimeSlice(1000);
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化资源管理系统，成功！");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "游戏加载完成");
 
             ResourcePackage package = YooAssetManager.Instance.Package;
 
@@ -60,7 +60,7 @@ namespace Invariable
         /// </summary>
         private IEnumerator InitializePackage(ResourcePackage package)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化Package");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "资源加载中...");
 
             EPlayMode playMode = (EPlayMode)m_machine.GetBlackboardValue("EPlayMode");
 
@@ -94,12 +94,12 @@ namespace Invariable
 
             if (initOperation.Status == EOperationStatus.Succeed)
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化Package，成功！");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "资源加载完成");
                 m_machine.ChangeState<CheckCatalogUpdate>();
             }
             else
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化Package，失败！");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "资源加载失败，请检查网络后重启游戏");
             }
         }
     }

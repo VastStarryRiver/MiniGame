@@ -14,6 +14,7 @@
 | 动画 | DOTween | UI 补间 |
 | 配置 | ExcelDataReader + 自定义生成器 | Excel 转嵌入式 C# 配置 |
 | 其他 | Spine、UIParticle、UOS CDN | 动画、UI 粒子和 CDN |
+| UOS 服务 | UOS Launcher / CloudSave / Func Stateless | 账号登录、云存档与云函数 |
 
 ## 2. 程序集架构
 
@@ -27,14 +28,17 @@
 - YooAsset、HybridCLR 和平台 SDK 初始化；
 - 游戏全局事件、计时器、音频、UI 注册表；
 - UI 基础控件和通用工具；
-- 微信/抖音统一接口。
+- 微信/抖音统一接口（含平台登录）；
+- 云存档读写入口（`SetCloudData` / `GetCloudData`）；
+- 云存档初始化与全量拉取（`CloudManager`）。
 
 特点：
 
 - `autoReferenced: false`；
 - 运行于热更新 DLL 加载之前；
 - 修改后不能只替换 `HotUpdate.dll`，通常需要重新构建并发布小游戏基础包；
-- 不直接引用 `HotUpdate`，通过字符串和反射启动热更新层。
+- 不直接引用 `HotUpdate`，通过字符串和反射启动热更新层；
+- 引用 `CloudService`，通过 Func Stateless 远程代理调用云函数。
 
 主要命名空间：`Invariable`。
 
@@ -58,7 +62,27 @@
 
 主要命名空间：`HotUpdate`。
 
-### 2.3 `MyTools`
+### 2.3 `CloudService`
+
+位置：`Assets/Scripts/CloudService/`
+
+职责：
+
+- UOS Func Stateless 云函数（平台登录换 token、全量云存档拉取等）；
+- 客户端经 SDK 远程代理调用，不在客户端执行函数体中的密钥逻辑；
+- 云存档相关数据模型（一类一文件，放在 `CloudService/Model/`）。
+
+特点：
+
+- 独立程序集，被 `Invariable` 引用；
+- `autoReferenced: false`；
+- 修改后需重新构建并发布小游戏基础包，不能只热更；
+- 所有游戏可共享同一 UOS App；每个游戏工程在 `CloudHelper.Secrets` 中只配置本游戏密钥；
+- 云函数类与 `Model/` 数据类同属 `Assets/Scripts/CloudService/` 目录树，满足 Func Stateless 同目录打包约束。
+
+主要命名空间：`CloudService`。
+
+### 2.4 `MyTools`
 
 位置：`Assets/Editor/MyTools/MyTools.asmdef`
 
@@ -72,7 +96,7 @@
 
 仅包含 Editor 平台，不进入运行时。
 
-### 2.4 `YooAsset.MiniGame`
+### 2.5 `YooAsset.MiniGame`
 
 位置：`Assets/ToolPackage/YooAsset/YooAsset.MiniGame.asmdef`
 
@@ -247,9 +271,10 @@ Package.CreateResourceDownloader(
 1. 清理未使用清单缓存；
 2. 清理未使用 Bundle 缓存；
 3. 初始化平台 SDK；
-4. 加载 AOT 补充元数据；
-5. 加载 `HotUpdate.dll`；
-6. 反射调用热更新入口。
+4. 初始化云存档（平台登录 → 云函数换 token → 拉取云端存档）；
+5. 加载 AOT 补充元数据；
+6. 加载 `HotUpdate.dll`；
+7. 反射调用热更新入口。
 
 反射契约：
 
@@ -272,11 +297,10 @@ method.Invoke(null, null);
 当前行为：
 
 ```csharp
-GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "开始游戏");
 HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0);
 ```
 
-`MainPanel.Awake` 触发 `Launcher_StartGame`，销毁加载面板和 Launcher。
+进入前由 `HotUpdateOver` 提示“即将进入游戏...”。`MainPanel.Awake` 触发 `Launcher_StartGame`，销毁加载面板和 Launcher。
 
 ## 5. HybridCLR DLL 加载
 
@@ -410,7 +434,8 @@ Assets/AssetBundleCollectorSetting.asset
 |---|---|
 | `YooAssetManager` | 包、资源、场景、DLL |
 | `UIManager` | 已打开页面字典 |
-| `SdkManager` | 平台 SDK、存储、键盘、广告、分享、适配 |
+| `SdkManager` | 平台 SDK、平台登录、本地/云读写入口、键盘、广告、分享、适配 |
+| `CloudManager` | 云存档初始化、云缓存、全量拉取、云函数代理 |
 
 基类：
 
@@ -662,3 +687,33 @@ Assets/Resources/LocalAssets/WebData.bin
 - HTML 颜色解析。
 
 这类 API 依赖字符串路径和资源地址，新增功能时应优先检查空对象与地址有效性。
+
+## 15. UOS 服务与云存档
+
+`Assets/Resources/UOSSettings.asset` 经 UOS Launcher 关联 UOS App（所有游戏共享同一 App）。
+
+云存档链路：
+
+1. `CloudManager.InitCloudData`；
+2. `SdkManager.PlatformLogin`（`WX.Login` / `TT.Login`，抖音 `forceLogin=true`）；
+3. Func Stateless 云函数（code 换 openid，再 External Login 换 token）；
+4. `AuthTokenManager.SaveToken`；
+5. CloudSave 单存档 KV 拉取/上传。
+
+数据隔离规则：
+
+- `externalUserID = wx-` / `dy-` + openid（openid 按平台小游戏隔离）；
+- `namespace = minigame_kv_{游戏标识}`（`CloudManager.CLOUD_SAVE_GAME_ID`，每个游戏项目必须唯一）；
+- 同游戏同账号才同数据。
+
+客户端入口：`CloudManager` 负责 `InitCloudData` / `GetAllCloudData`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）。`GetAllCloudData`：客户端传入游戏标识，云函数校验与 `CloudHelper.Secrets.GameId` 一致后自行拼 `minigame_kv_{gameId}`，再调 CloudSave 服务端 API 拉取该游戏全部玩家云数据，供排行榜等全量场景使用；客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。
+
+编辑器环境 `SdkManager.SetCloudData` / `GetCloudData` 走本地存储；真机转发 `CloudManager` 云缓存；云初始化失败后 Set 静默丢弃、Get 返回默认值。
+
+云函数部署：
+
+1. 在 `CloudHelper.Secrets` 填入当前游戏的 `GameId` 与平台 AppID/AppSecret；`CloudManager.CLOUD_SAVE_GAME_ID` 必须与其一致；
+2. 菜单 `UOS -> Func Stateless -> Open Panel` 上传；
+3. 切换为远程调用模式。
+
+合法域名需包含：`save.unity.cn`、`p.unity.cn`、`f.unity.cn`、`metrics2.unity.cn`。

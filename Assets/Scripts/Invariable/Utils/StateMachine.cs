@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 
 
@@ -70,7 +71,7 @@ namespace Invariable
             m_preNode = m_curNode;
 
             if (m_curNode == null)
-                throw new Exception($"Not found entry node: {entryNode}");
+                Debug.LogError($"Not found entry node: {entryNode}");
 
             m_curNode.OnEnter();
         }

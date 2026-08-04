@@ -11,7 +11,6 @@ namespace HotUpdate
         /// </summary>
         public static void Play()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "开始游戏");
             HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0);
         }
     }

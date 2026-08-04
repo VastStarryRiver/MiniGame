@@ -1,0 +1,16 @@
+{
+    "name": "CloudService",
+    "rootNamespace": "",
+    "references": [
+        "GUID:deb9c0ce928144d2083bfaba942a7276"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

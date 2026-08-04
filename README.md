@@ -8,7 +8,7 @@
    - 项目技术栈
    - 程序集边界
    - 启动、资源更新、HybridCLR 热更新流程
-   - 管理器、事件、计时器、UI、配置等模块
+   - 管理器、事件、计时器、UI、配置、UOS 云存档等模块
 2. [ScriptDevGuide.md](Doc/ScriptDevGuide.md) `脚本开发与修改指南`
    - 新脚本应该放在哪里
    - 新增 UI、业务功能、配置表、资源、平台能力的方法
@@ -16,7 +16,7 @@
 3. [HotUpdateBuildAdapt.md](Doc/HotUpdateBuildAdapt.md) `构建热更新与平台适配`
    - 微信/抖音平台差异
    - WebData、HybridCLR DLL、YooAsset、CDN 和小游戏构建顺序
-   - 热更新发布边界
+   - 热更新发布边界（含云函数上传与远程调用）
 
 ## 2. 项目一句话架构
 
@@ -24,6 +24,7 @@
 
 - `Invariable` 程序集承载不可热更的启动框架、平台 SDK、资源管理和基础组件；
 - `HotUpdate` 程序集承载可通过 HybridCLR 更新的业务代码、UI 脚本和生成配置；
+- `CloudService` 程序集承载 UOS Func Stateless 云函数与云存档数据模型；
 - YooAsset 管理远程资源和热更新 DLL；
 - 微信 SDK / 抖音 StarkSDK 提供平台能力；
 - 启动完成后通过反射调用 `HotUpdate.StartGame.Play()` 进入业务层。
@@ -38,6 +39,7 @@ Assets/Scenes/Start.scene
   -> CheckResourceUpdates
   -> HotUpdateOver
   -> SdkManager.InitSDK
+  -> CloudManager.InitCloudData
   -> YooAssetManager.PreLoadDll
   -> 反射 HotUpdate.StartGame.Play
   -> HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0)
@@ -48,8 +50,9 @@ Assets/Scenes/Start.scene
 ```text
 Assets/
 ├─ Scripts/
-│  ├─ Invariable/          # 不可热更：启动、平台、资源、基础能力
-│  └─ HotUpdate/           # 可热更：业务、UI、生成配置
+│  ├─ Invariable/          # 不可热更：启动、平台、资源、基础能力、云存档客户端
+│  ├─ HotUpdate/           # 可热更：业务、UI、生成配置
+│  └─ CloudService/        # 不可热更：UOS 云函数与云存档数据模型
 ├─ GameAssets/             # YooAsset 收集的动态资源
 │  ├─ DLL/MiniGame/        # 加密后的 HotUpdate/AOT DLL .bin
 │  ├─ Prefabs/UI/          # UI 预制体
@@ -74,7 +77,10 @@ Excel/                    # 配置源文件
 | 新 UI 页面脚本 | `Assets/Scripts/HotUpdate/UI` | 是，但预制体也要进入 YooAsset 更新 |
 | 修改 Excel 数值 | `Excel`，然后重新导出配置 | 是 |
 | UI 基础控件、资源框架、启动链 | `Assets/Scripts/Invariable` | 否，通常需要重新发布小游戏基础包 |
-| 微信/抖音 SDK 能力 | `Invariable/Manager/SdkManager.cs` | 否 |
+| 微信/抖音 SDK 能力、平台登录、本地/云读写入口 | `Invariable/Manager/SdkManager.cs` | 否 |
+| 云存档初始化、全量拉取、云缓存 | `Invariable/Manager/CloudManager.cs` | 否 |
+| 云函数/平台密钥 | `Assets/Scripts/CloudService` | 否；改后需重新上传云函数并切远程调用 |
+| 云存档数据模型 DTO | `Assets/Scripts/CloudService/Model` | 否；改契约需同步重新上传云函数 |
 | YooAsset 小游戏文件系统 | `Assets/ToolPackage/YooAsset` | 否 |
 | 编辑器导出/构建工具 | `Assets/Editor/MyTools` | 不属于运行时发布 |
 | 修改启动加载面板 | `Assets/Resources/LocalAssets` 与 `Invariable/Workflow` | 通常否 |
@@ -139,3 +145,5 @@ BUG 出现前的操作、实际结果、预期结果、日志或截图
   - `MINIGAME_SUBPLATFORM_WEIXIN`
   - `MINIGAME_SUBPLATFORM_DOUYIN`
 - 当前安全区是固定偏移，不是根据设备实时安全区计算。
+- UOS：Launcher / CloudSave / Func Stateless；云存档 namespace 为 `minigame_kv_{CloudManager.CLOUD_SAVE_GAME_ID}`，须与 `CloudHelper.Secrets.GameId` 一致。
+- 云读写业务入口：`SdkManager.SetCloudData` / `GetCloudData`；云初始化：`CloudManager.InitCloudData`。

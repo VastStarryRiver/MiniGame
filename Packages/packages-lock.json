@@ -17,6 +17,24 @@
       "dependencies": {},
       "hash": "bb6d3a7b152662c98a7d1b2833fc4c862c4e9e1f"
     },
+    "cn.unity.uos.cloudsave": {
+      "version": "https://cnb.cool/unity/uos/CloudSaveSDK.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      },
+      "hash": "44c6d5140b71cf648b8b750da1dfc5c86c548d90"
+    },
+    "cn.unity.uos.func.stateless": {
+      "version": "https://cnb.cool/unity/uos/FuncStatelessSDK.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      },
+      "hash": "fc6289d6478d253368d6021488736e4f9d6f243f"
+    },
     "cn.unity.uos.launcher": {
       "version": "https://cnb.cool/unity/uos/UOSLauncher.git",
       "depth": 0,
@@ -24,7 +42,25 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       },
-      "hash": "e1540186f8eaae4a4e0ca840d769bf9f09b5f8ec"
+      "hash": "76a5a7e54c24e8f428e43b5071892f60260beea2"
+    },
+    "cn.unity.uos.passport.core": {
+      "version": "https://cnb.cool/unity/uos/PassportCore.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      },
+      "hash": "0b673f4fc3a3442dd695b28ec99cdd8f38907896"
+    },
+    "cn.unity.uos.passport.feature": {
+      "version": "https://cnb.cool/unity/uos/PassportFeatureSDK.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      },
+      "hash": "5a7531c0cc034129325b32f798accdc12b188f90"
     },
     "com.boxqkrtm.ide.cursor": {
       "version": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
@@ -94,6 +130,13 @@
         "com.esotericsoftware.spine.spine-csharp": "4.2.0"
       },
       "hash": "a554d4f1b0cb80f481682c05cb575b0255bc8e1c"
+    },
+    "com.github-glitchenzo.nugetforunity": {
+      "version": "https://e.coding.net/unitychina/uos/NuGetForUnity.git?path=/src/NuGetForUnity",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "d57272a041eef9793e8b778e6a75477c5a9e63da"
     },
     "com.qq.weixin.minigame": {
       "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git",

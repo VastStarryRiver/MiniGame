@@ -10,7 +10,10 @@
         "GUID:67db3e66202e3dc40944076d390a96b0",
         "GUID:13ba8ce62aa80c74598530029cb2d649",
         "GUID:5efd170ecd8084500bed5692932fe14e",
-        "GUID:afccbff78309d9e49a78ed2fd8e69c02"
+        "GUID:afccbff78309d9e49a78ed2fd8e69c02",
+        "GUID:9b141a98a376450991ae06af55d1ecb2",
+        "GUID:65753b4018ebb4a9bbea17491706dcd8",
+        "CloudService"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,4 +1,4 @@
-﻿using YooAsset;
+using YooAsset;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -37,13 +37,13 @@ namespace Invariable
         /// </summary>
         private IEnumerator CheckForResourceUpdates()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "检查资源更新");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "检查更新中...");
 
             int downloadingMaxNum = 10;
             int failedTryAgain = 3;
             ResourceDownloaderOperation downloader = YooAssetManager.Instance.Package.CreateResourceDownloader(downloadingMaxNum, failedTryAgain);
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "检查资源更新，成功！");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新检查完成");
 
             if (downloader.TotalDownloadCount == 0)
             {
@@ -75,12 +75,12 @@ namespace Invariable
         {
             if (data.Succeed)
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "下载资源，成功！");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新完成");
                 m_machine.ChangeState<HotUpdateOver>();
             }
             else
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "下载资源，失败！");
+                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新失败，请检查网络后重启游戏");
             }
         }
 
@@ -90,7 +90,7 @@ namespace Invariable
         /// <param name="data"></param>
         private void OnDownloadErrorFunction(DownloadErrorData data)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "下载资源，失败！");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新失败，请检查网络后重启游戏");
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Invariable
         /// <param name="data"></param>
         private void OnDownloadFileBeginFunction(DownloadFileData data)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "下载资源中");
+            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "正在更新中...");
         }
     }
 }

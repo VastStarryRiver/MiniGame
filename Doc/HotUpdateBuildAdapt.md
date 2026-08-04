@@ -52,8 +52,10 @@ Assets/Scripts/Invariable/Manager/SdkManager.cs
 | 能力 | Editor | 微信 | 抖音 |
 |---|---|---|---|
 | SDK 初始化 | 立即回调 | `WX.InitSDK` | `TT.InitSDK` |
+| 平台登录 | 返回 null | `WX.Login` | `TT.Login`（`forceLogin=true`） |
 | 小游戏版本更新 | 无 | `WXUpdateManager` | `TTUpdateManager` |
 | 本地字符串存储 | PlayerPrefs | WX Storage | TT Save |
+| 云存档读写入口 | 走本地存储 | 转发 `CloudManager` 云缓存 | 转发 `CloudManager` 云缓存 |
 | 原生键盘 | 无平台调用 | WX Keyboard | TT Keyboard |
 | 方向变化 | 直接适配 | WX 监听 | TT 监听 |
 | 激励视频 | 直接回调成功 | 已有框架 | 已有框架 |
@@ -447,11 +449,12 @@ CDN/
 11. 构建 YooAsset；
 12. 复制 Bundle 到 `CDN/yoo`；
 13. 上传/发布 CDN 内容；
-14. 构建微信或抖音小游戏；
-15. 如平台数据走 CDN，复制并上传 unityweb 数据文件；
-16. 使用平台开发者工具启动；
-17. 清缓存和保留缓存两种情况各测试一次；
-18. 提交审核或发布。
+14. 上传云函数（`UOS -> Func Stateless -> Open Panel`）并切换为远程调用模式；
+15. 构建微信或抖音小游戏；
+16. 如平台数据走 CDN，复制并上传 unityweb 数据文件；
+17. 使用平台开发者工具启动；
+18. 清缓存和保留缓存两种情况各测试一次；
+19. 提交审核或发布。
 
 ### 12.2 仅业务代码热更新
 
@@ -480,6 +483,7 @@ CDN/
 以下修改通常需要重新发布基础小游戏包：
 
 - `Assets/Scripts/Invariable`；
+- `Assets/Scripts/CloudService`（同时需重新上传云函数并确认远程调用模式）；
 - `Assets/ToolPackage/YooAsset`；
 - `Assets/Scenes/Start.scene`；
 - `Assets/Resources/LocalAssets`；

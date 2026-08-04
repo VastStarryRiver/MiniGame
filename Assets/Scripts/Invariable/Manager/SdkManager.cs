@@ -1,10 +1,9 @@
 ﻿using System;
-using UnityEngine;
-using TMPro;
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using System.Reflection;
+using System.Threading.Tasks;
+using UnityEngine;
 using YooAsset;
+using TMPro;
 
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
 using WeChatWASM;
@@ -37,6 +36,7 @@ namespace Invariable
 
 
 
+        #region 初始化
         public void InitSDK(Action callBack = null)
         {
 #if UNITY_EDITOR
@@ -59,6 +59,45 @@ namespace Invariable
             });
 #endif
         }
+        #endregion
+
+        #region 登录
+        public Task<string> PlatformLogin()
+        {
+#if UNITY_EDITOR
+            return Task.FromResult<string>(null);
+
+#elif MINIGAME_SUBPLATFORM_WEIXIN
+            var tcs = new TaskCompletionSource<string>();
+
+            WX.Login(new LoginOption
+            {
+                success = res => tcs.TrySetResult(res.code),
+                fail = err =>
+                {
+                    Debug.LogError($"微信登录失败: {err.errMsg}");
+                    tcs.TrySetResult(null);
+                }
+            });
+
+            return tcs.Task;
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+            var tcs = new TaskCompletionSource<string>();
+
+            TT.Login((code, anonymousCode, isLogin) =>
+            {
+                tcs.TrySetResult(code);
+            }, err =>
+            {
+                Debug.LogError($"抖音登录失败: {err}");
+                tcs.TrySetResult(null);
+            }, true);
+
+            return tcs.Task;
+#endif
+        }
+        #endregion
 
         #region 游戏生命周期事件监听
         private void AddOnShowListener()
@@ -157,9 +196,25 @@ namespace Invariable
                 data = defaultValue;
             }
 
-            SetLocalData(key, data);
-
             return data;
+        }
+
+        public void SetCloudData(string key, string data)
+        {
+#if UNITY_EDITOR
+            SetLocalData(key, data);
+#else
+            CloudManager.Instance.SetCloudCache(key, data);
+#endif
+        }
+
+        public string GetCloudData(string key, string defaultValue = "")
+        {
+#if UNITY_EDITOR
+            return GetLocalData(key, defaultValue);
+#else
+            return CloudManager.Instance.GetCloudCache(key, defaultValue);
+#endif
         }
         #endregion
 
