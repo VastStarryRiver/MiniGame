@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 
 
@@ -8,23 +7,29 @@ namespace Invariable
 {
     public class StateMachine
     {
-        private Dictionary<string, object> m_blackboard1 = new Dictionary<string, object>();
-        private Dictionary<string, Action> m_blackboard2 = new Dictionary<string, Action>();
+        private Dictionary<string, object> m_blackboardDic = new Dictionary<string, object>();
         private Dictionary<string, IStateNode> m_nodes = new Dictionary<string, IStateNode>();
-        private IStateNode m_curNode;
-        private IStateNode m_preNode;
+        private IStateNode m_curNode = null;
+        private IStateNode m_preNode = null;
 
         /// <summary>
         /// 状态机持有者
         /// </summary>
-        public object Owner { private set; get; }
+        public object Owner
+        {
+            private set;
+            get;
+        }
 
         /// <summary>
         /// 当前运行的节点名称
         /// </summary>
         public string CurrentNode
         {
-            get { return m_curNode != null ? m_curNode.GetType().FullName : string.Empty; }
+            get
+            {
+                return m_curNode != null ? m_curNode.GetType().FullName : "";
+            }
         }
 
         /// <summary>
@@ -32,15 +37,24 @@ namespace Invariable
         /// </summary>
         public string PreviousNode
         {
-            get { return m_preNode != null ? m_preNode.GetType().FullName : string.Empty; }
+            get
+            {
+                return m_preNode != null ? m_preNode.GetType().FullName : "";
+            }
         }
 
 
-        private StateMachine() { }
+
+        private StateMachine()
+        {
+        }
+
         public StateMachine(object owner)
         {
             Owner = owner;
         }
+
+
 
         /// <summary>
         /// 更新状态机
@@ -48,7 +62,9 @@ namespace Invariable
         public void Update()
         {
             if (m_curNode != null)
+            {
                 m_curNode.OnUpdate();
+            }
         }
 
         /// <summary>
@@ -56,22 +72,34 @@ namespace Invariable
         /// </summary>
         public void Play<TNode>() where TNode : IStateNode
         {
-            var nodeType = typeof(TNode);
-            var nodeName = nodeType.FullName;
+            Type nodeType = typeof(TNode);
+            string nodeName = nodeType.FullName;
             Play(nodeName);
         }
+
+        /// <summary>
+        /// 按类型启动状态机
+        /// </summary>
         public void Play(Type entryNode)
         {
-            var nodeName = entryNode.FullName;
+            string nodeName = entryNode.FullName;
             Play(nodeName);
         }
+
+        /// <summary>
+        /// 按节点名启动状态机
+        /// </summary>
         public void Play(string entryNode)
         {
             m_curNode = TryGetNode(entryNode);
             m_preNode = m_curNode;
 
             if (m_curNode == null)
-                Debug.LogError($"Not found entry node: {entryNode}");
+            {
+                GameLog.Error($"Not found entry node: {entryNode}");
+
+                return;
+            }
 
             m_curNode.OnEnter();
         }
@@ -81,17 +109,25 @@ namespace Invariable
         /// </summary>
         public void AddNode<TNode>() where TNode : IStateNode
         {
-            var nodeType = typeof(TNode);
-            var stateNode = Activator.CreateInstance(nodeType) as IStateNode;
+            Type nodeType = typeof(TNode);
+            IStateNode stateNode = Activator.CreateInstance(nodeType) as IStateNode;
             AddNode(stateNode);
         }
+
+        /// <summary>
+        /// 加入一个状态节点实例
+        /// </summary>
         public void AddNode(IStateNode stateNode)
         {
             if (stateNode == null)
-                throw new ArgumentNullException();
+            {
+                GameLog.Error("AddNode stateNode is null");
 
-            var nodeType = stateNode.GetType();
-            var nodeName = nodeType.FullName;
+                return;
+            }
+
+            Type nodeType = stateNode.GetType();
+            string nodeName = nodeType.FullName;
 
             if (!m_nodes.ContainsKey(nodeName))
             {
@@ -105,28 +141,48 @@ namespace Invariable
         /// </summary>
         public void ChangeState<TNode>() where TNode : IStateNode
         {
-            var nodeType = typeof(TNode);
-            var nodeName = nodeType.FullName;
+            Type nodeType = typeof(TNode);
+            string nodeName = nodeType.FullName;
             ChangeState(nodeName);
         }
+
+        /// <summary>
+        /// 按类型切换状态节点
+        /// </summary>
         public void ChangeState(Type nodeType)
         {
-            var nodeName = nodeType.FullName;
+            string nodeName = nodeType.FullName;
             ChangeState(nodeName);
         }
+
+        /// <summary>
+        /// 按节点名切换状态节点
+        /// </summary>
         public void ChangeState(string nodeName)
         {
             if (string.IsNullOrEmpty(nodeName))
-                throw new ArgumentNullException();
+            {
+                GameLog.Error("ChangeState nodeName is null or empty");
+
+                return;
+            }
 
             IStateNode node = TryGetNode(nodeName);
+
             if (node == null)
             {
+                GameLog.Error($"ChangeState node not found: {nodeName}");
+
                 return;
             }
 
             m_preNode = m_curNode;
-            m_curNode.OnExit();
+
+            if (m_curNode != null)
+            {
+                m_curNode.OnExit();
+            }
+
             m_curNode = node;
             m_curNode.OnEnter();
         }
@@ -134,46 +190,37 @@ namespace Invariable
         /// <summary>
         /// 设置黑板数据
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="key">黑板键</param>
+        /// <param name="value">黑板值</param>
         public void SetBlackboardValue(string key, object value)
         {
-            m_blackboard1[key] = value;
-        }
-        public void SetBlackboardValue(string key, Action value)
-        {
-            m_blackboard2[key] = value;
+            m_blackboardDic[key] = value;
         }
 
         /// <summary>
         /// 获取黑板数据
         /// </summary>
+        /// <param name="key">黑板键</param>
+        /// <returns>黑板值</returns>
         public object GetBlackboardValue(string key)
         {
-            if (m_blackboard1.ContainsKey(key))
+            if (m_blackboardDic.ContainsKey(key))
             {
-                return m_blackboard1[key];
+                return m_blackboardDic[key];
             }
 
             return null;
         }
 
         /// <summary>
-        /// 获取所有黑板数据
-        /// </summary>
-        public Dictionary<string, Action> GetAllBlackboardValue()
-        {
-            return m_blackboard2;
-        }
-
-        /// <summary>
         /// 尝试获取节点
         /// </summary>
-        /// <param name="nodeName"></param>
-        /// <returns></returns>
+        /// <param name="nodeName">节点名称</param>
+        /// <returns>状态节点</returns>
         private IStateNode TryGetNode(string nodeName)
         {
             m_nodes.TryGetValue(nodeName, out IStateNode result);
+
             return result;
         }
     }

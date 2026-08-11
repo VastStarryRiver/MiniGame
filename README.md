@@ -17,8 +17,27 @@
    - 微信/抖音平台差异
    - WebData、HybridCLR DLL、YooAsset、CDN 和小游戏构建顺序
    - 热更新发布边界（含云函数上传与远程调用）
+4. [NewProjectSetup.md](Doc/NewProjectSetup.md) `新项目准备`
+   - 复制工程后的环境恢复与版本控制注意
+   - UOS 后台、微信/抖音平台后台、服务器域名
+   - 工程内配置修改、云函数部署、首发构建与验证清单
 
-## 2. 项目一句话架构
+## 2. 框架亮点分析
+
+| 维度 | 质量 | 亮点 | 关键实现 |
+|---|---|---|---|
+| 架构与热更 | 优 | 单向依赖零反向引用，AOT↔热更仅 3 处反射触点；热更 DLL / 配置 bytes / UI Prefab 全走 YooAsset，可纯热更发布；HybridCLR AOT 元数据并行加载 | `HotUpdateOver` / `Utils` / `YooAssetManager` |
+| 平台适配 | 优 | 微信 / 抖音 / 编辑器三分支 `#if` 隔离；登录、键盘、安全区、广告、分享、侧边栏等能力统一入口封装 | `SdkManager`、`MINIGAME_SUBPLATFORM_*` |
+| 启动流程 | 优 | 状态机串行驱动启动链，各节点职责单一，失败可定位到具体节点 | `Launcher`、`StateMachine`、`InitializeYooAsset` → `HotUpdateOver` |
+| 事件与计时 | 优 | 泛型事件总线触发快照并逐 listener 隔离；双最小堆计时器配合 UniTask 延迟；事件 / 计时器 key 全常量化 | `GameManager`、`InvariableConst` / `HotUpdateConst` |
+| 配置表系统 | 优 | CFGT magic + schemaHash 三处同源；导表严格失败保证一致性；三层缓存与大表分帧物化；独立回读交叉验证 | `ConfigReader` / `ConfigManagerCore` / `ConfigValidator`、schemaHash |
+| UI 系统 | 优 | 打开页面单一入口且加载中去重；UIPanel / UIPopup 职责切分；FloatText 对象池复用与对称清理 | `Utils.OpenUIPrefabPanel`、`UIPanel` / `UIPopup`、`FloatTextPanel` |
+| 音频系统 | 优 | BGM 单通道串行化，SFX 每名一源；音量经平台层本地持久化，读写与平台解耦 | `AudioManager`、`SdkManager` |
+| 资源与性能 | 优 | 同地址在途去重；闲置句柄 180s / 30s 扫描逐出并白名单兜底；配置分帧物化、字符串缓存、对象池降峰值 | `YooAssetManager`、`ConfigManagerCore`、`TryUnloadUnusedAsset` |
+| 云服务 | 优 | 密钥走环境变量分层；写后 2s 防抖 + 串行上传 + dirty 重标记；排行榜按 rankKey 降序 Top100 并限流；命名空间服务端自拼 | `CloudHelper` / `CloudManager`、`GetAllCloudData` |
+| 编辑器工具链 | 优 | Excel→bytes→生成代码→运行时校验→独立回读闭环；菜单 priority 编码流水线顺序；生成代码 UTF-8 无 BOM + LF + 防注入 | `ConfigImporter` / `CodeGenerator` / `DllTool` / `AssetBundleTool` |
+
+## 3. 项目一句话架构
 
 这是一个基于团结引擎1.6.8的微信/抖音小游戏框架，使用：
 
@@ -42,15 +61,15 @@ Assets/Scenes/Start.scene
   -> CloudManager.InitCloudData
   -> YooAssetManager.PreLoadDll
   -> 反射 HotUpdate.StartGame.Play
-  -> HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0)
+  -> Utils.OpenUIPrefabPanel("MainPanel", 0)
 ```
 
-## 3. 最重要的目录边界
+## 4. 最重要的目录边界
 
 ```text
 Assets/
 ├─ Scripts/
-│  ├─ Invariable/          # 不可热更：启动、平台、资源、基础能力、云存档客户端
+│  ├─ Invariable/          # 不可热更：启动、平台、资源、基础能力、云存档客户端、配置底座
 │  ├─ HotUpdate/           # 可热更：业务、UI、生成配置
 │  └─ CloudService/        # 不可热更：UOS 云函数与云存档数据模型
 ├─ GameAssets/             # YooAsset 收集的动态资源
@@ -58,18 +77,35 @@ Assets/
 │  ├─ Prefabs/UI/          # UI 预制体
 │  ├─ Audios/              # 音频
 │  ├─ Atlas/               # 图集
+│  ├─ Animation/           # 动画
 │  ├─ Materials/           # 材质
 │  ├─ Png/                 # 独立图片
+│  ├─ Config/              # 导表 bytes（YooAsset Config 组）
 │  └─ Scenes/              # 动态场景
 ├─ Resources/LocalAssets/  # 首包本地资源：加载面板、WebData.bin
-├─ Editor/MyTools/         # 编辑器导表、DLL、资源包和平台构建工具
-├─ ToolPackage/YooAsset/   # 微信/抖音 YooAsset 自定义文件系统
+├─ Editor/MyTools/         # 编辑器工具（仅 Editor 平台）
+│  ├─ Config/              # Excel/WebData 导表与校验
+│  ├─ DllTool/             # HybridCLR DLL 生成与复制
+│  ├─ AssetBundle/         # YooAsset Bundle 构建
+│  ├─ CustomBuild/         # 微信/抖音打包与 CDN 复制
+│  ├─ AssetImporter/       # .bin 导入为 BinAsset
+│  └─ AtlasBuilder/        # TMP 表情包图集构建（ContextMenu BuildAtlas，输出在 Editor 目录）
+├─ ToolPackage/            # 本地第三方源码
+│  ├─ DOTween/
+│  ├─ TextMesh Pro/
+│  ├─ UniTask/
+│  └─ YooAsset/            # 微信/抖音 YooAsset 自定义文件系统
+├─ Plugins/                # 预编译库（ExcelDataReader.dll 等）
+├─ WX-WASM-SDK-V2/         # 微信运行时 SDK（Editor + Runtime）
+├─ UOSLauncherEncrypt/     # UOS Launcher 自带加密模块，勿改
+├─ HybridCLRGenerate/      # HybridCLR 生成物（link.xml、AOTGenericReferences.cs）
 └─ Settings/Build Profiles/# 微信和抖音 Build Profile
 
-Excel/                    # 配置源文件
+LocalPackages/             # 抖音 StarkSDK 本地包
+Excel/                     # 配置源文件（Player.xlsx、RoleRune.xlsx）
 ```
 
-## 4. 修改位置快速决策
+## 5. 修改位置快速决策
 
 | 需求 | 默认修改位置 | 是否可只发布热更新 |
 |---|---|---:|
@@ -78,7 +114,7 @@ Excel/                    # 配置源文件
 | 修改 Excel 数值 | `Excel`，然后重新导出配置 | 是 |
 | UI 基础控件、资源框架、启动链 | `Assets/Scripts/Invariable` | 否，通常需要重新发布小游戏基础包 |
 | 微信/抖音 SDK 能力、平台登录、本地/云读写入口 | `Invariable/Manager/SdkManager.cs` | 否 |
-| 云存档初始化、全量拉取、云缓存 | `Invariable/Manager/CloudManager.cs` | 否 |
+| 云存档初始化、排行榜拉取、云缓存 | `Invariable/Manager/CloudManager.cs` | 否 |
 | 云函数/平台密钥 | `Assets/Scripts/CloudService` | 否；改后需重新上传云函数并切远程调用 |
 | 云存档数据模型 DTO | `Assets/Scripts/CloudService/Model` | 否；改契约需同步重新上传云函数 |
 | YooAsset 小游戏文件系统 | `Assets/ToolPackage/YooAsset` | 否 |
@@ -92,10 +128,10 @@ Excel/                    # 配置源文件
 1. **业务需求优先写入 `HotUpdate`。**
 2. 只有“热更新 DLL 加载前必须执行”或“直接依赖平台 SDK”的代码才放入 `Invariable`。
 3. `Invariable` 不得直接编译引用 `HotUpdate`，当前通过反射跨越程序集边界。
-4. `HotUpdate/Config/Tab_*.cs` 是生成文件，数值修改应改 Excel 后重新导出。
+4. `HotUpdate/Config/Generated/Config_*.cs` 是生成文件，数值修改应改 Excel 后重新导出；底座在 `Invariable/Config`。
 5. 不要直接修改 `Assets/GameAssets/DLL/MiniGame/*.dll.bin`；它们由 DLL 工具生成。
 
-## 5. 后续需求建议
+## 6. 后续需求建议
 
 为了快速且安全地新增或修改脚本，最好想先清楚需求内容，具体包含：
 
@@ -122,7 +158,7 @@ BUG 出现前的操作、实际结果、预期结果、日志或截图
 是否需要兼容已有存档、旧资源清单或旧版本客户端？
 ```
 
-## 6. 后续修改代码时的流程
+## 7. 后续修改代码时的流程
 
 1. 读取本目录文档和相关源码；
 2. 判断修改应位于 `HotUpdate`、`Invariable` 还是编辑器工具层；
@@ -132,18 +168,20 @@ BUG 出现前的操作、实际结果、预期结果、日志或截图
 6. 尽可能进行静态检查或引擎编译验证；
 7. 汇报改动文件和内容、发布平台类型、仍需在编辑器/真机完成的验证。
 
-## 7. 当前框架状态摘要
+## 8. 当前框架状态摘要
 
 - 引擎：团结引擎 `1.6.8`，对应 Unity `2022.3.61t9`。
 - 唯一构建场景：`Assets/Scenes/Start.scene`。
 - YooAsset 包名：`MyPackage`。
 - HybridCLR 热更新程序集：`HotUpdate`。
-- 当前热更新入口：`HotUpdate.StartGame.Play()`。
-- 当前首个业务页面：`MainPanel`，UI 层级 `0`。
+- 热更新入口：`HotUpdate.StartGame.Play()`。
+- 首个业务页面：`MainPanel`，UI 层级 `0`。
 - UI 根节点依赖固定路径：`UI_Root/Canvas_{0..3}/Ts_Panel`。
+- 启动状态机：`Invariable.StateMachine`，节点为 `InitializeYooAsset` → `CheckCatalogUpdate` → `CheckResourceUpdates` → `HotUpdateOver`。
+- 配置表类型：`int` / `int[]` / `float` / `float[]` / `string` / `string[]`；源表位于 `Excel/`（仅 .xlsx/.xls），导表产物为 `GameAssets/Config/*.bytes` 与 `HotUpdate/Config/Generated/Config_*.cs`。
 - 微信/抖音平台通过条件宏切换：
   - `MINIGAME_SUBPLATFORM_WEIXIN`
   - `MINIGAME_SUBPLATFORM_DOUYIN`
-- 当前安全区是固定偏移，不是根据设备实时安全区计算。
-- UOS：Launcher / CloudSave / Func Stateless；云存档 namespace 为 `minigame_kv_{CloudManager.CLOUD_SAVE_GAME_ID}`，须与 `CloudHelper.Secrets.GameId` 一致。
+- 安全区为固定偏移，不是根据设备实时安全区计算。
+- UOS：Launcher / CloudSave / Func Stateless；云存档 namespace 为 `minigame_kv_{CloudManager.CloudSaveGameId}`，须与 `CloudHelper.Secrets.GameId` 一致。
 - 云读写业务入口：`SdkManager.SetCloudData` / `GetCloudData`；云初始化：`CloudManager.InitCloudData`。

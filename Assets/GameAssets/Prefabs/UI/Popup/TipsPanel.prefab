@@ -169,7 +169,7 @@ GameObject:
   - component: {fileID: 362471789142142637}
   m_Layer: 5
   m_HasEditorInfo: 1
-  m_Name: Ts_Parent
+  m_Name: Ts_Trans
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -947,7 +947,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8d2542fcf11b3a489eb7c2703acd259, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_trans: {fileID: 1136646028579045677}
+  m_tsTrans: {fileID: 1136646028579045677}
 --- !u!114 &773130652440036530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -962,8 +962,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_textTitle: {fileID: 1768056021848167171}
   m_textContent: {fileID: 3899918097735977230}
-  m_textBtn1: {fileID: 3454140796334377844}
-  m_textBtn2: {fileID: 7415619513953368269}
+  m_text1: {fileID: 3454140796334377844}
+  m_text2: {fileID: 7415619513953368269}
   m_btn1: {fileID: 6147773726947905673}
   m_btn2: {fileID: 6267090908741859147}
 --- !u!1 &7978467212456141160

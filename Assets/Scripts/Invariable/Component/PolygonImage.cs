@@ -8,13 +8,17 @@ namespace Invariable
     [RequireComponent(typeof(PolygonCollider2D))]
     public class PolygonImage : Image
     {
-        private PolygonCollider2D polyCollider;
+        private PolygonCollider2D m_polyCollider = null;
+
+
 
         protected override void Awake()
         {
             base.Awake();
-            polyCollider = gameObject.GetComponent<PolygonCollider2D>();
+            m_polyCollider = gameObject.GetComponent<PolygonCollider2D>();
         }
+
+
 
         public override bool IsRaycastLocationValid(Vector2 screenPoint, Camera eventCamera)
         {
@@ -26,7 +30,8 @@ namespace Invariable
             localPoint += pivotOffset;
 
             // 检测点是否在多边形碰撞体内
-            return polyCollider.OverlapPoint(localPoint);
+
+            return m_polyCollider.OverlapPoint(localPoint);
         }
     }
 }

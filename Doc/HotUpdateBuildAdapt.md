@@ -56,12 +56,12 @@ Assets/Scripts/Invariable/Manager/SdkManager.cs
 | 小游戏版本更新 | 无 | `WXUpdateManager` | `TTUpdateManager` |
 | 本地字符串存储 | PlayerPrefs | WX Storage | TT Save |
 | 云存档读写入口 | 走本地存储 | 转发 `CloudManager` 云缓存 | 转发 `CloudManager` 云缓存 |
-| 原生键盘 | 无平台调用 | WX Keyboard | TT Keyboard |
+| 原生键盘 | `ShowKeyboard` 会置位 `m_isKeyboardShowing`，但编辑器分支 `HideKeyboard` 无复位，后续调用全部直接返回 | WX Keyboard | TT Keyboard |
 | 方向变化 | 直接适配 | WX 监听 | TT 监听 |
 | 激励视频 | 直接回调成功 | 已有框架 | 已有框架 |
 | 侧边栏复访 | 无 | 无 | 有（跳转成功写入本地 IsGetReward=1） |
 | 游戏圈按钮 | 无 | 有 | 无 |
-| 分享 | 输出日志 | WX.ShareAppMessage | TT.ShareAppMessage（成功/失败/取消回调） |
+| 分享 | `GameLog.Info` | WX.ShareAppMessage | TT.ShareAppMessage（成功/失败/取消回调） |
 | 环境判断 | IsWeChat/IsDouYin 均返回 false | IsWeChat 返回 true | IsDouYin 返回 true |
 | YooAsset 文件系统 | 不走此接口 | 微信 FS | 抖音 FS |
 
@@ -170,18 +170,27 @@ Resources.Load("LocalAssets/WebData")
 VastStarryRiver/Config/导出Excel配置
 ```
 
+编排入口：`ConfigImporter.RebuildAll`（由 `ConfigTool` 菜单调用）。
+
 流程：
 
 ```text
-Excel/*.xls[x]
-  -> ExcelDataReader
-  -> ConfigTool
-  -> 删除 HotUpdate/Config
-  -> 生成 Tab_*.cs
-  -> 编译进入 HotUpdate.dll
+Excel/*（xlsx/xls）
+  -> ConfigImporter.RebuildAll（先清空旧 Config_*.cs / Preload / .bytes）
+  -> ExcelReader（InvariantCulture 读单元格；xlsx/xls 只读第一个 sheet）
+  -> FieldAnalyzer（表头 3 行解析，首列 Id；字段名合法标识符/非关键字/不重名校验）
+  -> ConfigBinaryWriter（写 GameAssets/Config/{表}.bytes；单元格解析失败带 表名+字段+行号）
+  -> CodeGenerator（写 HotUpdate/Config/Generated/Config_{表}.cs + ConfigManager.Preload.cs；GetByID 使用 TryGetValue）
+  -> 任一表失败：中断并再次清空全部产物 → 编译进入 HotUpdate.dll（成功时）
 ```
 
-必须先导表，再生成热更新 DLL。否则 DLL 中仍是旧数据。
+说明：
+
+- `.bytes` 进入 YooAsset Config 组，地址为 `Config_{表名}`，可随资源热更；
+- **严格失败模式**：任一张表失败即中断，并清空全部配置产物（要么全量正确，要么全空，避免带着问题表发布）；
+- 导表清理范围为旧 `Config_*.cs` / `ConfigManager.Preload.cs` / `.bytes`，不删除整个 `HotUpdate/Config` 目录；
+- **纯数值改动**：导表后只需构建 AssetBundle；
+- **表结构变更**：等待脚本重新编译后，再按完整 HybridCLR + YooAsset 流水线导出（见 §12.2）。
 
 ## 6. HybridCLR DLL 构建
 
@@ -207,6 +216,10 @@ PrebuildCommand.GenerateAll();
 HybridCLRData/
 ├─ HotUpdateDlls/{ActiveBuildTarget}/HotUpdate.dll
 └─ AssembliesPostIl2CppStrip/{ActiveBuildTarget}/*.dll
+
+Assets/HybridCLRGenerate/
+├─ link.xml
+└─ AOTGenericReferences.cs
 ```
 
 ### 6.2 复制热更新 DLL
@@ -225,7 +238,7 @@ Assets/GameAssets/DLL/{platform}/HotUpdate.dll.bin
 
 ### 6.3 复制 AOT 元数据 DLL
 
-固定列表：
+固定列表，单一事实源为 `InvariableConst.AotDllNames`（编辑器复制与运行时加载共用）：
 
 ```text
 mscorlib
@@ -264,6 +277,8 @@ MiniGame_System.dll
 
 若引擎升级后 BuildTarget 名变化，需同步修改运行时或生成路径。
 
+若重建或重命名 `HotUpdate.asmdef`，需在 HybridCLR 设置面板确认热更程序集引用仍然有效（静态检查可能出现设置内引用与当前 `.meta` 标识编码不一致，以编辑器面板为准）。
+
 ## 7. YooAsset 构建
 
 菜单：
@@ -287,11 +302,15 @@ AssetBundleTool.cs
 - 版本号：`yyyyMMddHHmmss` 风格的数字字符串
 - 共享打包：开启
 - 构建结果校验：开启
-- 资源/清单加密服务：读取 YooAsset Builder Settings
+- 压缩 / 文件名样式 / 加密服务：取自 YooAsset Builder Settings（EditorPrefs）；当前默认为 LZ4、HashName、不加密
 
-输出根目录由 YooAsset 默认 Builder 配置决定。
+输出路径：
 
-最新输出路径通过遍历版本目录并选择最大数字版本得到。
+```text
+<项目根>/Bundles/{构建目标}/MyPackage/{数字版本}
+```
+
+最新输出路径通过遍历版本目录并选择最大数字版本得到。内置资源根为 `Assets/StreamingAssets/yoo`，当前工程不存在该目录（首包不内置 Bundle）。
 
 ## 8. 复制资源到 CDN
 
@@ -349,6 +368,8 @@ Assets/Settings/Build Profiles/WeChat Profile.asset
 Build/WeChat
 ```
 
+打包前会整体删除已有的 `Build/WeChat` 目录再重建。
+
 Profile 中包含：
 
 - AppID；
@@ -389,6 +410,8 @@ new DouYinSubplatformInterface()
 Build/DouYin
 ```
 
+打包前会整体删除已有的 `Build/DouYin` 目录再重建。
+
 Profile/Stark 设置中包含：
 
 - AppID；
@@ -427,6 +450,8 @@ Build/DouYin/webgl
 ```text
 CDN/
 ```
+
+匹配到第一个符合条件的文件后即 `break`，因此同一目录存在多个候选文件时只复制首个。
 
 该步骤与 YooAsset 的 `CDN/yoo` 不同，属于平台 WebGL 数据文件发布。
 
@@ -497,6 +522,8 @@ CDN/
 
 Editor 工具本身不进入运行时，但其产物变化可能要求重新构建。
 
+`Invariable` / `HotUpdate` / `MyTools` 运行时与编辑器工具日志统一使用 `GameLog.Info` / `GameLog.Error`；`GameLog.Info` 仅编辑器可见，`GameLog.Error` 始终输出；`CloudService` 云函数体仍使用 `UnityEngine.Debug`。
+
 ## 14. 平台功能验证矩阵
 
 每次发布建议至少验证：
@@ -512,7 +539,7 @@ Editor 工具本身不进入运行时，但其产物变化可能要求重新构�
 | 前后台切换 | 有限 | 必测 | 必测 |
 | 小游戏版本更新 | 无 | 必测 | 必测 |
 | 激励视频完整/中断 | 直接回调成功 | 配置后必测 | 配置后必测 |
-| 分享成功/失败/取消 | 输出日志 | 必测 | 必测 |
+| 分享成功/失败/取消 | `GameLog.Info` | 必测 | 必测 |
 | 安全区/横竖屏 | 有限 | 多机型 | 多机型 |
 | CDN 异常/断网 | 可模拟 | 必测 | 必测 |
 

@@ -2,19 +2,20 @@
 
 ## 1. 技术栈
 
-| 类别 | 技术/版本 | 用途 |
-|---|---|---|
-| 引擎 | 团结引擎 1.6.8 / Unity 2022.3.61t9 | 游戏运行与小游戏构建 |
-| 热更新 | HybridCLR | 运行时加载 `HotUpdate.dll` |
-| 资源系统 | YooAsset 2.3.19 | Bundle、清单、下载、缓存和异步资源加载 |
-| 微信平台 | `com.qq.weixin.minigame` | 微信小游戏转换与运行时 API |
-| 抖音平台 | StarkSDK 6.7.6 | 抖音小游戏构建与运行时 API |
-| 异步 | UniTask 2.5.10 | 延迟和重复调用 |
-| UI | UGUI + TextMeshPro | 页面和文本 |
-| 动画 | DOTween | UI 补间 |
-| 配置 | ExcelDataReader + 自定义生成器 | Excel 转嵌入式 C# 配置 |
-| 其他 | Spine、UIParticle、UOS CDN | 动画、UI 粒子和 CDN |
-| UOS 服务 | UOS Launcher / CloudSave / Func Stateless | 账号登录、云存档与云函数 |
+| 类别 | 技术/版本 | 用途 | 依赖形态 |
+|---|---|---|---|
+| 引擎 | 团结引擎 1.6.8 / Unity 2022.3.61t9 | 游戏运行与小游戏构建 | 引擎本体 |
+| 热更新 | HybridCLR | 运行时加载 `HotUpdate.dll` | UPM 包；生成物在 `Assets/HybridCLRGenerate/` |
+| 资源系统 | YooAsset 2.3.19 | Bundle、清单、下载、缓存和异步资源加载 | UPM 包；小游戏文件系统在 `Assets/ToolPackage/YooAsset` |
+| 微信平台 | `com.qq.weixin.minigame` + `Assets/WX-WASM-SDK-V2` | 小游戏转换与运行时 API | UPM 转换工具 + Assets 内运行时 SDK |
+| 抖音平台 | StarkSDK 6.7.6 | 抖音小游戏构建与运行时 API | `LocalPackages/com.bytedance.starksdk@6.7.6` 本地包 |
+| 异步 | UniTask 2.5.10 | 延迟和重复调用 | `Assets/ToolPackage/UniTask` 本地源码 |
+| UI | UGUI + TextMeshPro | 页面和文本 | TextMeshPro 在 `Assets/ToolPackage/TextMesh Pro` |
+| 动画 | DOTween | UI 补间 | `Assets/ToolPackage/DOTween` 本地源码 |
+| 配置 | ExcelDataReader + 自定义生成器 | Excel 转 bytes 与生成代码 | `Assets/Plugins/ExcelDataReader.dll` 预编译库 |
+| JSON | Newtonsoft.Json | 云存档序列化等 | NuGetForUnity；亦为 AOT 元数据 DLL 之一 |
+| 其他 | Spine、UIParticle、UOS CDN | 动画、UI 粒子和 CDN | UPM |
+| UOS 服务 | UOS Launcher / CloudSave / Func Stateless | 账号登录、云存档与云函数 | UPM；另有 `Assets/UOSLauncherEncrypt`（Launcher 自带加密模块，勿改） |
 
 ## 2. 程序集架构
 
@@ -30,7 +31,8 @@
 - UI 基础控件和通用工具；
 - 微信/抖音统一接口（含平台登录）；
 - 云存档读写入口（`SetCloudData` / `GetCloudData`）；
-- 云存档初始化与全量拉取（`CloudManager`）。
+- 云存档初始化与排行榜拉取（`CloudManager`）；
+- 配置表运行时底座（`ConfigManagerCore` / `ConfigReader` / `BinReader` / `DictionaryForConfig`，首包不随导表变化）。
 
 特点：
 
@@ -141,7 +143,7 @@ UI_Root/
    └─ Ts_Panel
 ```
 
-代码大量通过 `GameObject.Find` 使用这些固定路径，重命名节点时必须同步检查：
+代码通过 `Utils.UICamera` / `Utils.UIRoot` 等属性访问这些固定路径，重命名节点时必须同步检查：
 
 - `Launcher.cs`
 - `Utils.cs`
@@ -175,7 +177,7 @@ Manager 创建依赖：
 
 ```csharp
 Utils.CreateManagerInstance("GameManager");
-Utils.CreateManagerInstance("AudioManager", new[] { "AudioListener" });
+Utils.CreateManagerInstance("AudioManager", new string[] { "AudioListener" });
 ```
 
 因此 Manager 类名、GameObject 名和反射查找名存在强约定。
@@ -186,9 +188,9 @@ Utils.CreateManagerInstance("AudioManager", new[] { "AudioListener" });
 
 | 事件名 | 参数 | 监听用途 |
 |---|---|---|
-| `Launcher_ShowTips` | `string` | 更新加载描述 |
-| `Launcher_ShowProgress` | `List<long>`，元素为当前/总字节数 | 更新下载进度 |
-| `Launcher_StartGame` | 无 | 销毁加载面板和 `Launcher` |
+| `Launcher_ShowTips` | `string` | 显示加载描述 |
+| `Launcher_ShowProgress` | `DownloadProgressInfo`（`CurrentBytes` / `TotalBytes`） | 显示下载进度 |
+| `Launcher_StartGame` | `object`（传 `null`） | 销毁加载面板和 `Launcher`；由 HotUpdate 层 `MainPanel.Awake` 触发（Invariable 层只订阅不发布） |
 
 ### 4.3 `Launcher.Start`
 
@@ -211,12 +213,15 @@ HotUpdateOver
 
 ### 4.4 `InitializeYooAsset`
 
+文件：`Assets/Scripts/Invariable/Workflow/InitializeYooAsset.cs`  
+远程服务实现：`Assets/Scripts/Invariable/Workflow/RemoteServices.cs`
+
 职责：
 
 1. 若 `YooAssets.Initialized` 已为 true，直接跳到 `HotUpdateOver`（跳过清单检查与资源下载）；
 2. 否则读取 `Resources/LocalAssets/WebData.bin`；
 3. 解密并解析 CDN 等 Web 配置；
-4. 初始化 YooAsset；
+4. 初始化 YooAsset，并设置 `YooAssets.SetOperationSystemMaxTimeSlice(1000)`；
 5. 创建或获取包 `MyPackage`；
 6. 设置为默认包；
 7. 按模式初始化文件系统。
@@ -231,12 +236,16 @@ EditorSimulateModeHelper.SimulateBuild("MyPackage")
 
 ```text
 CDN 根地址 = ConfigUtils.CDNPath + "/yoo"
+defaultHostServer = fallbackHostServer（主备同址，备线未单独配置）
 WebPlayModeParameters
   -> SdkManager.InitializeYooAsset
+  -> RemoteServices
   -> 微信或抖音自定义文件系统
 ```
 
-注意：编辑器域重载或二次进入启动流程时，若 YooAsset 已初始化，会走短路进入 `HotUpdateOver`，排查“未重新拉清单/未下载”时需先确认此分支。
+失败时仅提示「资源加载失败，请检查网络后重启游戏」，无重试，状态机停在本节点。
+
+注意：编辑器域重载或二次进入启动流程时，若 YooAsset 已初始化，会走短路进入 `HotUpdateOver`，并再次执行清缓存、`InitSDK`、`InitCloudData` 全套流程；排查「未重新拉清单/未下载」时需先确认此分支。
 
 ### 4.5 `CheckCatalogUpdate`
 
@@ -297,7 +306,7 @@ method.Invoke(null, null);
 当前行为：
 
 ```csharp
-HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0);
+Utils.OpenUIPrefabPanel("MainPanel", 0);
 ```
 
 进入前由 `HotUpdateOver` 提示“即将进入游戏...”。`MainPanel.Awake` 触发 `Launcher_StartGame`，销毁加载面板和 Launcher。
@@ -319,7 +328,7 @@ AppDomain.CurrentDomain.GetAssemblies()
 
 ### 5.2 真机小游戏
 
-运行时硬编码资源平台前缀为 `MiniGame`，并行加载：
+运行时硬编码资源平台前缀为 `MiniGame`，AOT 程序集列表单一事实源为 `InvariableConst.AotDllNames`（与编辑器 `DllTool` 复制元数据 DLL 共用），并行加载：
 
 ```text
 MiniGame_mscorlib.dll
@@ -359,6 +368,8 @@ Assets/GameAssets/DLL/MiniGame/
 
 这些文件不是普通 DLL 原文，而是经 `ConfigUtils.SaveSafeFile` 序列化、GZip 压缩并 AES 加密后的 `.bin`。
 
+任一 AOT / HotUpdate DLL 异步加载失败时，`GameLog.Error` 输出具体 DLL 名；失败路径不再继续加载 `HotUpdate.dll`，启动停在当前阶段。
+
 ## 6. YooAsset 资源架构
 
 包名固定为：
@@ -378,12 +389,13 @@ Assets/AssetBundleCollectorSetting.asset
 | 组 | 目录 | 地址规则 | 打包规则 |
 |---|---|---|---|
 | Animation | `GameAssets/Animation` | Group + FileName | PackGroup |
-| Atlas | `GameAssets/Atlas/*` | Group + FileName | PackCollector |
+| Atlas | `GameAssets/Atlas/Atlas01`、`Atlas02`、`Atlas03`（逐目录注册，非通配；新图集目录需手动加收集器） | Group + FileName | PackCollector |
 | Audios | `GameAssets/Audios` | Group + FileName | PackGroup |
 | Materials | `GameAssets/Materials` | Group + FileName | PackGroup |
 | Png | `GameAssets/Png` | Group + FileName | PackGroup |
 | Prefabs | `GameAssets/Prefabs/UI` | Group + FileName | PackCollector |
 | Scenes | `GameAssets/Scenes` | Group + FileName | PackGroup |
+| Config | `GameAssets/Config` | Group + FileName | PackGroup |
 | DLL | `GameAssets/DLL` | Folder + FileName | PackGroup |
 
 当前代码中的地址示例：
@@ -398,24 +410,44 @@ Assets/AssetBundleCollectorSetting.asset
 | 遮罩灰度材质 | `Materials_UIMaskGrayscaleMaterial` |
 | 独立图片 | `Png_{文件名}` |
 | 图集 | `Atlas_{图集名}` |
+| 配置表 bytes | `Config_{表名}`（如 `Config_Player`） |
 | 热更新 DLL | `MiniGame_HotUpdate.dll` |
+
+图集构建工具：
+
+- 位置：`Assets/Editor/MyTools/AtlasBuilder/`（`AtlasBuilder.cs` + `AtlasBuilder.asset`）；
+- 用途：**TMP 表情包图集**专用（TextMesh Pro Sprite Asset 流水线），不是 YooAsset UI 图集构建器；
+- 无顶部菜单；在 `AtlasBuilder.asset` 的 Inspector 中配置 `m_atlasName`、`m_directorys` 后，通过 ContextMenu `BuildAtlas` 触发；
+- 输出到 `Assets/Editor/MyTools/AtlasBuilder/{图集名}/`（Editor 目录）；按 TMP 表情包工作流接入，与 `GameAssets/Atlas` 的 YooAsset 收集路径相互独立。
 
 ### 6.1 资源句柄
 
-`YooAssetManager` 使用两个字典缓存：
+`YooAssetManager` 缓存：
 
 - `Dictionary<string, AssetHandle> m_assetHandles`
+- `Dictionary<string, List<Action<object>>> m_pendingCallbacks`（同地址在途去重）
+- `Dictionary<string, float> m_lastAccessTimes`（最近访问时间，供闲置逐出）
 - `Dictionary<string, SceneHandle> m_sceneHandles`
 
 `AsyncLoadAsset<T>`：
 
-- 首次异步加载并缓存句柄；
-- 已缓存时直接回调 `AssetObject`；
-- 失败只写错误日志，没有失败回调。
+- 已缓存时刷新访问时间并直接回调 `AssetObject`；
+- 同地址加载中时追加回调，完成后一并通知；
+- 首次异步加载并缓存句柄，成功后刷新访问时间；
+- 失败写 `GameLog.Error`，并对全部等待回调传入 `null`。
 
-`UnLoadAsset()` 会释放**当前缓存中的全部普通资源**，不是释放单个地址。
+闲置逐出（与配置表 `ConfigFormat` 节奏对齐）：
 
-`UnLoadScene(address)` 会先调用 `UnLoadAsset()`，再卸载目标场景。因此卸载任意场景会同时释放所有普通资源句柄，新增场景逻辑时必须注意。
+- 闲置阈值 `180s`，清扫周期 `30s`（计时器 key `InvariableConst.Timer_YooAsset_TickEvict`）；
+- 白名单前缀不释放：`Audios_`、`Config_`、`MiniGame_`（音频/配置秒回/程序集无释放价值）；
+- 其余地址闲置超时后调用 `ReleaseAsset`；已实例化的 Prefab 实例不受句柄释放影响（YooAsset 引用计数）。
+
+资源释放：
+
+- `ReleaseAsset(address)`：按地址释放句柄，并清理对应图集 Sprite 缓存；
+- `UnLoadAsset()`：释放当前缓存中的全部普通资源，并清空 Sprite 缓存；
+- `UnloadUnusedAssets(callBack)`：调用 YooAsset 卸载未使用资源；
+- `UnLoadScene(address)`：仅释放对应场景句柄，不连带释放普通资源。
 
 ## 7. 全局管理器
 
@@ -423,19 +455,19 @@ Assets/AssetBundleCollectorSetting.asset
 
 | Manager | 创建方式 | 用途 |
 |---|---|---|
-| `GameManager` | `Launcher.Awake` 创建常驻对象 | 事件、协程、UniTask 计时 |
-| `AudioManager` | `Launcher.Awake` 创建常驻对象 | 音频加载、播放、暂停和停止 |
+| `GameManager` | `Launcher.Awake` 创建常驻对象 | 事件、延迟计时（UniTask）、循环计时（秒/帧最小堆）；`OnApplicationPause` / `OnApplicationQuit` / `OnDestroy` 调用 `CloudManager.FlushCloudData` |
+| `AudioManager` | `Launcher.Awake` 创建常驻对象 | BGM/SFX 通道、音量/静音（本地持久化）、加载排队、同名 SFX 打断重播 |
 
-二者使用公开静态字段 `Instance`，在 `Awake` 赋值。
+二者使用私有静态字段 `m_instance`，在 `Awake` 赋值；对外暴露 `Instance`（为空时打 Error）与 `HasInstance`（判空不打日志）。
 
 ### 7.2 普通 C# Singleton
 
 | Manager | 用途 |
 |---|---|
 | `YooAssetManager` | 包、资源、场景、DLL |
-| `UIManager` | 已打开页面字典 |
+| `UIManager` | 已打开页面字典；提供 `CloseUIPanel` / `CloseAllUIPanel`；`TipsPanel` 关闭时隐藏复用（`FloatTextPanel` 自管理复用） |
 | `SdkManager` | 平台 SDK、平台登录、本地/云读写入口、键盘、广告、分享、适配 |
-| `CloudManager` | 云存档初始化、云缓存、全量拉取、云函数代理 |
+| `CloudManager` | 云存档初始化、云缓存、排行榜拉取（GetAllCloudData 按 rankKey 降序 Top100）、云函数代理；写后防抖上传（2s），`FlushCloudData` 立即上传脏数据 |
 
 基类：
 
@@ -452,24 +484,29 @@ Singleton<T> where T : new()
 数据结构：
 
 ```csharp
-Dictionary<string, List<Action<object>>>
+Dictionary<string, List<Delegate>>
 ```
 
-API：
+API（仅泛型）：
 
 ```csharp
-AddEventListener(key, callback);
-RemoveEventListener(key, callback);
-InvokeEventCallBack(key, arg);
+AddEventListener<T>(key, callback);
+RemoveEventListener<T>(key, callback);
+InvokeEventCallBack<T>(key, arg);
+```
+
+无参通知：
+
+```csharp
+InvokeEventCallBack<object>(key, null);
 ```
 
 使用规则：
 
-1. 事件名当前使用字符串，没有编译期校验；
+1. 事件/延迟调用 key 必须使用常量：跨层契约进 `InvariableConst`，HotUpdate 业务进 `HotUpdateConst`（均用 `#region` 分区）；
 2. 注册通常放 `OnEnable`，移除放 `OnDisable`；
-3. 参数由 `object` 传递，监听方必须正确转换；
-4. 新事件应在文档或常量类集中登记，避免拼写不一致；
-5. 回调中修改同一事件监听列表存在遍历风险，应谨慎。
+3. 监听与触发的泛型参数类型必须一致；
+4. `InvokeEventCallBack` 使用快照遍历 + 单回调异常隔离，回调内增删监听或抛异常不会打断其他监听者。
 
 ## 9. 计时与重复调用
 
@@ -480,17 +517,20 @@ API：
 ```csharp
 DelayCallFrames(key, callback, frame);
 DelayCallSeconds(key, callback, time);
-RepeatingCallFrames(key, callback, frame);
-RepeatingCallSeconds(key, callback, time);
+RepeatingCallFrames(key, callback, frame = 1, immediately = true);
+RepeatingCallSeconds(key, callback, time = 1f, immediately = true);
 CancelInvokeByKey(key);
 ```
 
 约束：
 
 - `key` 全局唯一；
-- 字典已有相同 key 时，新调用直接返回；
+- 延迟键与循环键任一已存在时，新调用直接返回；
 - 调用方销毁或禁用时应主动取消；
-- 当前一次性延迟完成后不会自动移除 key，复用前需要取消清理；
+- 一次性延迟完成后会移除对应 key；
+- 循环计时由 `Update` 驱动最小堆；`immediately` 为 true 时注册后立即执行一次；
+- `DelayCallSeconds` 与 `RepeatingCallSeconds` 均受 `Time.timeScale` 影响；
+- `CancelInvokeByKey` 仅当 key 存在时输出 `GameLog.Info(key + "取消调用")`，key 不存在直接返回。
 
 现有使用示例：`FloatTextPanel`。
 
@@ -498,27 +538,24 @@ CancelInvokeByKey(key);
 
 ### 10.1 页面打开
 
-热更新层应使用：
+打开页面应使用：
 
 ```csharp
-HotUpdateUtils.OpenUIPrefabPanel(prefabName, layer, callback);
+Utils.OpenUIPrefabPanel(prefabName, layer, callback);
 ```
+
+Tips/FloatText 业务封装走 `HotUpdateUtils.OpenTipsPanel` / `ShowFloatText`（内部仍调用 `Utils.OpenUIPrefabPanel`）。
 
 执行过程：
 
 1. 根据文件名得到页面名；
-2. 检查 `UIManager.AllPanel`；
-3. 加载地址 `Prefabs_{页面名}`；
-4. 实例化到 `UI_Root/Canvas_{layer}/Ts_Panel`；
-5. 通过类型名查找或动态添加 `HotUpdate.{页面名}`；
-6. 将其作为 `UIPanel` 注册；
-7. 调用回调。
-
-为什么热更新页面必须优先使用 `HotUpdateUtils`：
-
-- `Invariable.Utils.AddComponent` 优先查找 `Invariable.{类型名}`；
-- `HotUpdateUtils.AddComponent` 能查找 `HotUpdate.{类型名}`；
-- 新热更新 UI 脚本位于动态程序集，使用错误工具可能找不到类型。
+2. 若 `UIManager.AllPanel` 已有该页面则重新激活并回调；
+3. 若同名页面正在加载中则忽略本次打开；
+4. 加载地址 `Prefabs_{页面名}`；
+5. 实例化到 `UI_Root/Canvas_{layer}/Ts_Panel`；
+6. 通过类型名查找或动态添加组件（解析顺序覆盖 `Invariable` / `HotUpdate` / 热更程序集）；
+7. 将其作为 `UIPanel` 注册；
+8. 调用回调。
 
 ### 10.2 页面关闭
 
@@ -530,8 +567,9 @@ public class UIPanel : MonoBehaviour
 
 调用 `Close()`：
 
-- 普通页面：从 UIManager 移除并 `Destroy`；
-- 带 `UIPopup`：先播放关闭动画，再销毁。
+- 带 `UIPopup`：先播放关闭动画，再走关闭流程；
+- `TipsPanel`（`UIManager` 池化名单）：隐藏复用，不从字典移除；
+- 其余普通页面（含 `FloatTextPanel`）：从 UIManager 移除并 `Destroy`。
 
 ### 10.3 当前页面
 
@@ -552,15 +590,15 @@ HotUpdateUtils.ShowFloatText(...);
 
 | 组件 | 用途 |
 |---|---|
-| `UIButton` | 单击、双击、按下、抬起、长按、缩放反馈 |
+| `UIButton` | 单击、双击、按下、抬起、长按、缩放反馈；每类监听覆盖赋值（非追加）；双击判定窗口 0.15s；长按阈值 0.2s；注册双击后单击会延迟 0.15s 且可能被双击吞掉 |
 | `UIPanel` | 页面基类 |
-| `UIPopup` | 弹窗开关动画 |
-| `LoopScrollList` | 横向/纵向循环列表 |
+| `UIPopup` | 弹窗开关动画；入场动画在 `OnEnable`（每次激活重播并重置缩放）；`m_tsTrans` 所在物体须同时挂 `CanvasGroup`；DOTween 使用 `SetTarget` / `DOKill` |
+| `LoopScrollList` | 横向/纵向循环列表；列表项缓存索引 |
 | `MiniInputField` | 调起小游戏原生键盘 |
-| `ScreenAdapter` | 注册安全区适配；实际偏移由 `SdkManager.GetSafeAnchor` 写死为 Left/Bottom=30/130、Right/Top=30/90，非设备 SafeArea |
-| `BgAdapter` | 背景等比铺满 |
-| `UIDrag` | UI 拖拽及 ScrollRect 事件转发 |
-| `Rocker` | 虚拟摇杆 |
+| `ScreenAdapter` | `[ExecuteInEditMode]`；注册安全区适配；实际偏移由 `SdkManager.GetSafeAnchor` 写死为 Left/Bottom=30/130、Right/Top=30/90，非设备 SafeArea；编辑期 `OnEnable` 即改节点偏移 |
+| `BgAdapter` | `[ExecuteInEditMode]`；背景等比铺满；编辑期同样生效 |
+| `UIDrag` | UI 拖拽及 ScrollRect 事件转发；拖拽回调阶段 1=开始/2=拖拽中/3=结束 |
+| `Rocker` | 虚拟摇杆（`SetMoveFunc(Action<Vector2>)` 输出方向归一化 × 力度 0~1，手柄跟随并松开回中） |
 | `CircleImage` | 圆形 Sprite UI 网格 |
 | `CircleRawImage` | 圆形 RawImage UI 网格 |
 | `PolygonImage` | 基于 PolygonCollider2D 的非矩形射线检测 |
@@ -570,9 +608,16 @@ HotUpdateUtils.ShowFloatText(...);
 接口：
 
 ```csharp
-AudioManager.Instance.PlayAudio("bgm", true);
+AudioManager.Instance.PlayBGM("bgm");
+AudioManager.Instance.PlaySFX("click");
 AudioManager.Instance.PauseAudio("bgm");
 AudioManager.Instance.StopAudio("bgm");
+AudioManager.Instance.PauseAudio(); // 空名或省略参数：暂停全部
+AudioManager.Instance.StopAudio();  // 空名或省略参数：停止全部
+AudioManager.Instance.SetMasterVolume(1f);
+AudioManager.Instance.SetBGMVolume(1f);
+AudioManager.Instance.SetSFXVolume(1f);
+AudioManager.Instance.SetMute(false); // 音量设置经 SdkManager 本地存储持久化
 ```
 
 资源地址固定拼接为：
@@ -581,63 +626,114 @@ AudioManager.Instance.StopAudio("bgm");
 Audios_{name}
 ```
 
-每个音频名对应一个 `AudioSource` 子对象并长期保存在字典。当前没有音量分组、淡入淡出、销毁或句柄级释放。
+BGM 为单通道循环（子物体 `BGM`）；SFX 按名各自维护独立 `AudioSource`，同名打断重播；音量/静音经 `SdkManager` 本地存储持久化；BGM 加载中切歌会排队到加载完成后播放。
 
 ## 12. 配置系统
 
 配置源：
 
 ```text
-Excel/*.xls 或 *.xlsx
+Excel/*（.xlsx/.xls）
 ```
 
-生成目录：
+`.xlsx/.xls` 只读第一个 sheet。
+
+目录：
 
 ```text
-Assets/Scripts/HotUpdate/Config/Tab_*.cs
+Assets/Scripts/Invariable/Config/          # 运行时底座（首包）
+Assets/Scripts/HotUpdate/Config/           # ConfigManager 转发层
+Assets/Scripts/HotUpdate/Config/Generated/ # Config_*.cs + ConfigManager.Preload.cs
 ```
 
 菜单：
 
 ```text
+VastStarryRiver/Config/导出Web配置
 VastStarryRiver/Config/导出Excel配置
+VastStarryRiver/Config/校验配置数据
 ```
 
-生成器会先删除整个 `HotUpdate/Config` 目录，再重新生成。
+「校验配置数据」回读 `GameAssets/Config/*.bytes` 与 Excel 源表逐字段比对（float 容差 `1e-4`），结果以 `[OK]` / `[ERROR]` / `[MISSING]` 输出到 Console；不依赖 HotUpdate 程序集。
 
-生成类结构：
+导表产物：
+
+- `Assets/GameAssets/Config/{Table}.bytes`（YooAsset Config 组，可热更；单文件含 magic(CFGT)+schemaHash+count+ids+rowSize+数据区+字符串区；运行时以 `TextAsset` 加载，地址 `Config_{表名}`；加载时校验 schemaHash，不匹配即报错需重新导表）
+- `Assets/Scripts/HotUpdate/Config/Generated/Config_{Table}.cs`（行类型 + `ConfigManager` partial API，含 `SchemaHash`）
+- `Assets/Scripts/HotUpdate/Config/Generated/ConfigManager.Preload.cs`（`PreloadAll` / `ClearAll`）
+
+运行时 API（回调式）。每表由生成代码提供 `Get{表}ByID` / `Get{表}ByIDs` / `Get{表}` / `GetAll{表}` / `Clear{表}`；`PreloadAll` / `ClearAll` 由 `ConfigManager.Preload.cs` 提供：
 
 ```csharp
-public static class Tab_TableName
-{
-    public class Row { ... }
-
-    public static void Init(Action onComplete = null);
-    public static Row GetConfigByIndex(int index);
-    public static Row GetConfigByIndex(string index);
-    public static List<Row> GetAllConfigs();
-    public static int Count { get; }
-}
+ConfigManager.GetPlayerByID(1, row => { ... }); // Config_Player
+ConfigManager.GetPlayerByIDs(new[] { 1, 2 }, list => { ... });
+ConfigManager.GetRoleRune(dic => { ... });
+ConfigManager.GetAllRoleRune(
+    list => { ... },                    // 完成才交付完整列表
+    (loaded, total) => { ... });        // 可选进度；>500 行分帧物化
+ConfigManager.ClearRoleRune();
+ConfigManager.PreloadAll(() => { ... });
+ConfigManager.ClearAll();
 ```
 
-数据直接生成到 `BuildConfigs()` 的 C# 代码中，因此：
+缓存与逐出：闲置超过 180s 的表会逐出解析层（Reader/行对象/字符串缓存），YooAsset handle 与 bytes 常驻，再次访问同帧秒回。不要跨帧长期缓存 `DictionaryForConfig`；逐出后继续用会报错，需重新调用 `ConfigManager.Get{表}`。
 
-- 不需要运行时读取配置；
-- 配置会进入 `HotUpdate.dll`；
-- 修改 Excel 后必须重新导出 DLL 和 YooAsset；
-- 不应手工修改 `Tab_*.cs` 中的数值，因为下次导出会覆盖。
+### 12.1 Excel 源表格式
+
+表头固定 3 行，第 4 行起为数据（全表至少 4 行）：
+
+| 行 | 含义 |
+|---:|---|
+| 1 | 字段名；首列强制视为 `Id` |
+| 2 | 类型：`int` / `float` / `string`（不区分大小写） |
+| 3 | 注释（可空） |
+| 4+ | 数据行 |
+
+约束：
+
+- 文件名须为合法 C# 标识符；
+- `Id` 必须是标量 `int`，不能是数组；
+- 字段按 baseName 字典序、同前缀按数字后缀排序后写入 bytes 与生成代码，`Id` 强制首位；布局顺序不等于 Excel 列序；
+- 定长数组：列名使用 `字段名+序号`（如 `Reward1`/`Reward2`），同前缀连续列且类型一致，生成 `字段名` 数组；
+- 空单元格：`int`/`float` 按 0，`string` 按空串。
 
 支持类型：
 
 ```text
-int, float, bool, string,
-int[], float[], string[]
+int, float, string,
+定长 int[] / float[] / string[]
 ```
+
+标量示例：
+
+| Id | StartLv | Speed | Name |
+|---|---|---|---|
+| int | int | float | string |
+| 编号 | 开启等级 | 速度 | 名称 |
+| 1 | 10 | 3.5 | 新手 |
+
+定长数组示例：
+
+| Id | Reward1 | Reward2 | Pos1 | Pos2 | Tag1 | Tag2 |
+|---|---|---|---|---|---|---|
+| int | int | int | float | float | string | string |
+| 编号 | 奖励1 | 奖励2 | X | Y | 标签1 | 标签2 |
+| 1 | 100 | 200 | 1.5 | 2.5 | 近战 | 物理 |
+
+生成字段：`int[] Reward`、`float[] Pos`、`string[] Tag`。
+
+### 12.2 设计要点
+
+- Excel 为唯一事实源；
+- 底座在 `Invariable.ConfigManagerCore`，HotUpdate `ConfigManager` 转发；
+- 整表 bytes 可驻留，行对象按 ID 惰性反序列化；
+- 纯数值改动只需导表 + 构建 AssetBundle；表结构变更才需重导 HybridCLR DLL；改底座需重发基础包；
+- 不应手工修改生成文件。
 
 当前生成表：
 
-- `Tab_Player`
-- `Tab_RoleRune`
+- `Config_Player`
+- `Config_RoleRune`
 
 ## 13. WebData 与本地二进制
 
@@ -674,21 +770,34 @@ Assets/Resources/LocalAssets/WebData.bin
 
 ## 14. 工具类
 
-`Utils` 包含：
+`Utils` 按 `#region` 分区（共 9 个）：UI 查找与对象操作 / 面板开关 / 文本与灰态 / Sprite 缓存 / 按钮监听 / 动画 / 面板加载 / 组件与类型解析 / 管理器与杂项。
 
-- 固定 UI Camera、UI Root 和主场景 Camera 查找；
+主要能力：
+
+- 固定 UI Camera、UI Root 查找（`Utils.UICamera` / `Utils.UIRoot`，路径常量来自 `InvariableConst`）；
 - GameObject/Transform 获取和克隆；
-- 显隐、文本、图片、灰度材质；
+- 显隐（`SetActive` 默认 `isActive = false`，省略参数即隐藏）、`HideAllChildren`；
+- 文本、图片、灰度材质；
 - UIButton 事件包装；
 - Animation 播放；
-- UI 页面打开/关闭；
-- 按字符串添加组件；
+- 按字符串查找/添加组件（`GetComponent` / `AddComponent`，含 `HotUpdate` 程序集类型解析）；
+- UI 页面打开/关闭（`OpenUIPrefabPanel` / `CloseUIPrefabPanel`）；面板父节点按 layer 选择 `InvariableConst.UIPanelPath_0..3`；
+- 图集 Sprite 缓存与清理（`ClearSpriteCache`）；
 - Manager GameObject 创建；
+- 文件大小格式化（`FormatFileByteSize`，与 `ConfigUtils.FormatFileByteSize` 重复实现）；
 - HTML 颜色解析。
 
-这类 API 依赖字符串路径和资源地址，新增功能时应优先检查空对象与地址有效性。
+这类 API 依赖字符串路径和资源地址，使用前应优先检查空对象与地址有效性。
 
-## 15. UOS 服务与云存档
+## 15. 日志输出
+
+- `Invariable` / `HotUpdate` / `MyTools` 业务日志使用 `GameLog.Info` / `GameLog.Error`，禁止直接调用 `UnityEngine.Debug.Log` / `LogWarning` / `LogError`；
+- `GameLog.Info` 仅编辑器环境输出（包内剔除）；`GameLog.Error` 始终输出；
+- 映射：`Debug.Log` / `Debug.LogWarning` → `GameLog.Info`；`Debug.LogError` → `GameLog.Error`；
+- `CloudService` 云函数体仍使用 `UnityEngine.Debug`（云函数约束，且避免与 `Invariable` 循环引用）；
+- 例外：`GameLog.cs` 自身实现；第三方库 `ToolPackage` 不在此约束。
+
+## 16. UOS 服务与云存档
 
 `Assets/Resources/UOSSettings.asset` 经 UOS Launcher 关联 UOS App（所有游戏共享同一 App）。
 
@@ -703,16 +812,16 @@ Assets/Resources/LocalAssets/WebData.bin
 数据隔离规则：
 
 - `externalUserID = wx-` / `dy-` + openid（openid 按平台小游戏隔离）；
-- `namespace = minigame_kv_{游戏标识}`（`CloudManager.CLOUD_SAVE_GAME_ID`，每个游戏项目必须唯一）；
+- `namespace = minigame_kv_{游戏标识}`（`CloudManager.CloudSaveGameId`，每个游戏项目必须唯一）；
 - 同游戏同账号才同数据。
 
-客户端入口：`CloudManager` 负责 `InitCloudData` / `GetAllCloudData`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）。`GetAllCloudData`：客户端传入游戏标识，云函数校验与 `CloudHelper.Secrets.GameId` 一致后自行拼 `minigame_kv_{gameId}`，再调 CloudSave 服务端 API 拉取该游戏全部玩家云数据，供排行榜等全量场景使用；客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。
+客户端入口：`CloudManager` 负责 `InitCloudData` / `GetAllCloudData`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）。`GetAllCloudData(rankKey, callBack)`：客户端传入排名字段名（如 `"Score"`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后自行拼 `minigame_kv_{gameId}`，分页拉取全部存档元数据，再并发（上限 10）下载存档内容，按 `rankKey` 数值降序截取前 `CloudGetAllMaxCount = 100` 名返回，供排行榜场景使用；客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。
 
 编辑器环境 `SdkManager.SetCloudData` / `GetCloudData` 走本地存储；真机转发 `CloudManager` 云缓存；云初始化失败后 Set 静默丢弃、Get 返回默认值。
 
 云函数部署：
 
-1. 在 `CloudHelper.Secrets` 填入当前游戏的 `GameId` 与平台 AppID/AppSecret；`CloudManager.CLOUD_SAVE_GAME_ID` 必须与其一致；
+1. 在 `CloudHelper.Secrets` 填入当前游戏的 `GameId` 与平台 AppID/AppSecret；`CloudManager.CloudSaveGameId` 必须与其一致；
 2. 菜单 `UOS -> Func Stateless -> Open Panel` 上传；
 3. 切换为远程调用模式。
 

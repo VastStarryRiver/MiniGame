@@ -1,11 +1,11 @@
-﻿using System;
+using HybridCLR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
 using YooAsset;
-using HybridCLR;
-using System.Reflection;
-using System.Linq;
 
 
 
@@ -13,7 +13,16 @@ namespace Invariable
 {
     public class YooAssetManager : Singleton<YooAssetManager>
     {
-        private ResourcePackage m_package;
+        private const float EvictIdleSeconds = 180f;
+        private const float EvictScanIntervalSeconds = 30f;
+        private ResourcePackage m_package = null;
+        private Dictionary<string, AssetHandle> m_assetHandles = null;
+        private Dictionary<string, List<Action<object>>> m_pendingCallbacks = null;
+        private Dictionary<string, float> m_lastAccessTimes = null;
+        private Dictionary<string, SceneHandle> m_sceneHandles = null;
+        private Assembly m_hotUpdateAssembly = null;
+        private bool m_isEvictTimerStarted = false;
+
         public ResourcePackage Package
         {
             get
@@ -38,39 +47,48 @@ namespace Invariable
         {
             get
             {
-                return "MyPackage";
+                return InvariableConst.YooAssetPackageName;
             }
         }
 
-        private Dictionary<string, AssetHandle> m_assetHandles;
-        private Dictionary<string, SceneHandle> m_sceneHandles;
-        private Assembly m_hotUpdateAssembly;
+        public Assembly HotUpdateAssembly
+        {
+            get
+            {
+                return m_hotUpdateAssembly;
+            }
+        }
 
 
 
+        /// <summary>
+        /// 从本地资源读取并设置 Web 配置信息
+        /// </summary>
         public void SetWebInfo()
         {
             BinAsset data = Resources.Load<BinAsset>("LocalAssets/WebData");
-            string[] webData = ConfigUtils.ReadSafeFile<string>(data.bytes).Split('\n');
+            string[] webData = ConfigUtils.ReadSafeFile<string>(data.m_bytes).Split('\n');
             ConfigUtils.SetWebData(webData);
         }
 
         /// <summary>
         /// 预加载Dll
         /// </summary>
-        /// <param name="callBack"></param>
+        /// <param name="callBack">预加载完成回调</param>
         public void PreLoadDll(Action<Assembly> callBack)
         {
             if (m_hotUpdateAssembly != null)
             {
                 callBack?.Invoke(m_hotUpdateAssembly);
+
                 return;
             }
 
 #if UNITY_EDITOR
-            Assembly hotUpdateAss = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "HotUpdate");
+            Assembly hotUpdateAss = AppDomain.CurrentDomain.GetAssemblies().First((a) => a.GetName().Name == "HotUpdate");
             m_hotUpdateAssembly = hotUpdateAss;
             callBack?.Invoke(hotUpdateAss);
+
             return;
 #endif
 
@@ -78,80 +96,123 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 补充元数据
+        /// 补充元数据（AOT DLL 并行加载，全部完成后加载 HotUpdate）
         /// </summary>
+        /// <param name="platform">平台标识</param>
+        /// <param name="callBack">加载完成回调</param>
         private void LoadMetadataForAOTAssemblies(string platform, Action<Assembly> callBack)
         {
-            List<string> aotDllList = new List<string>
-            {
-                "mscorlib",
-                "System",
-                "System.Core",
-                "Newtonsoft.Json",
-            };
+            string[] aotDllList = InvariableConst.AotDllNames;
+            int remaining = aotDllList.Length;
 
-            int index = 0;
-
-            foreach (string aotDllName in aotDllList)
+            for (int i = 0; i < aotDllList.Length; i++)
             {
+                string aotDllName = aotDllList[i];
+
                 AsyncLoadAsset<BinAsset>($"{platform}_{aotDllName}.dll", (data) =>
                 {
-                    byte[] bytes = ConfigUtils.ReadSafeFile<byte[]>(data.bytes);
+                    if (data == null)
+                    {
+                        GameLog.Error($"AOT DLL 加载失败: {platform}_{aotDllName}.dll");
+
+                        return;
+                    }
+
+                    byte[] bytes = ConfigUtils.ReadSafeFile<byte[]>(data.m_bytes);
                     RuntimeApi.LoadMetadataForAOTAssembly(bytes, HomologousImageMode.SuperSet);
 
-                    index++;
+                    remaining--;
 
-                    if (index >= aotDllList.Count)
+                    if (remaining > 0)
                     {
-                        AsyncLoadAsset<BinAsset>($"{platform}_HotUpdate.dll", (data) =>
-                        {
-                            byte[] bytes = ConfigUtils.ReadSafeFile<byte[]>(data.bytes);
-                            Assembly hotUpdateAss = Assembly.Load(bytes);
-                            m_hotUpdateAssembly = hotUpdateAss;
-                            callBack?.Invoke(hotUpdateAss);
-                        });
+                        return;
                     }
+
+                    AsyncLoadAsset<BinAsset>($"{platform}_HotUpdate.dll", (hotUpdateData) =>
+                    {
+                        if (hotUpdateData == null)
+                        {
+                            GameLog.Error($"HotUpdate DLL 加载失败: {platform}_HotUpdate.dll");
+
+                            return;
+                        }
+
+                        byte[] hotUpdateBytes = ConfigUtils.ReadSafeFile<byte[]>(hotUpdateData.m_bytes);
+                        Assembly hotUpdateAss = Assembly.Load(hotUpdateBytes);
+                        m_hotUpdateAssembly = hotUpdateAss;
+                        callBack?.Invoke(hotUpdateAss);
+                    });
                 });
             }
         }
 
         /// <summary>
-        /// 异步加载资源
+        /// 异步加载资源（同地址在途去重，完成后通知全部回调）
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="callBack"></param>
+        /// <param name="address">资源地址</param>
+        /// <param name="callBack">加载完成回调</param>
         public void AsyncLoadAsset<T>(string address, Action<T> callBack) where T : UnityEngine.Object
         {
             m_assetHandles ??= new Dictionary<string, AssetHandle>();
+            m_pendingCallbacks ??= new Dictionary<string, List<Action<object>>>();
+            m_lastAccessTimes ??= new Dictionary<string, float>();
+            EnsureEvictTimer();
 
-            if (m_assetHandles.ContainsKey(address))
+            if (m_assetHandles.TryGetValue(address, out AssetHandle cachedHandle))
             {
-                callBack((T)m_assetHandles[address].AssetObject);
-            }
-            else
-            {
-                AssetHandle handle = Package.LoadAssetAsync<T>(address);
+                Touch(address);
+                callBack?.Invoke((T)cachedHandle.AssetObject);
 
-                handle.Completed += (operation) => {
-                    if (operation.Status == EOperationStatus.Succeed)
-                    {
-                        m_assetHandles[address] = operation;
-                        callBack((T)operation.AssetObject);
-                    }
-                    else
-                    {
-                        Debug.LogError($"异步加载资源失败！address:{address}");
-                    }
-                };
+                return;
             }
+
+            if (m_pendingCallbacks.TryGetValue(address, out List<Action<object>> pending))
+            {
+                pending.Add((asset) => callBack?.Invoke((T)asset));
+
+                return;
+            }
+
+            List<Action<object>> callbacks = new List<Action<object>>
+            {
+                (asset) => callBack?.Invoke((T)asset)
+            };
+            m_pendingCallbacks.Add(address, callbacks);
+
+            AssetHandle handle = Package.LoadAssetAsync<T>(address);
+
+            handle.Completed += (operation) =>
+            {
+                m_pendingCallbacks.Remove(address);
+
+                if (operation.Status == EOperationStatus.Succeed)
+                {
+                    m_assetHandles[address] = operation;
+                    Touch(address);
+
+                    for (int i = 0; i < callbacks.Count; i++)
+                    {
+                        callbacks[i]?.Invoke(operation.AssetObject);
+                    }
+                }
+                else
+                {
+                    GameLog.Error($"异步加载资源失败！address:{address}");
+
+                    for (int i = 0; i < callbacks.Count; i++)
+                    {
+                        callbacks[i]?.Invoke(null);
+                    }
+                }
+            };
         }
 
         /// <summary>
         /// 异步加载场景
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="loadSceneMode"></param>
-        /// <param name="callBack"></param>
+        /// <param name="address">场景地址</param>
+        /// <param name="loadSceneMode">场景加载模式</param>
+        /// <param name="callBack">加载完成回调</param>
         public void AsyncLoadScene(string address, LoadSceneMode loadSceneMode, Action<Scene> callBack)
         {
             m_sceneHandles ??= new Dictionary<string, SceneHandle>();
@@ -165,7 +226,8 @@ namespace Invariable
             {
                 SceneHandle handle = Package.LoadSceneAsync(address, loadSceneMode);
 
-                handle.Completed += (operation) => {
+                handle.Completed += (operation) =>
+                {
                     if (operation.Status == EOperationStatus.Succeed)
                     {
                         m_sceneHandles[address] = operation;
@@ -173,41 +235,75 @@ namespace Invariable
                     }
                     else
                     {
-                        Debug.LogError($"异步加载场景失败！address:{address}");
+                        GameLog.Error($"异步加载场景失败！address:{address}");
                     }
                 };
             }
         }
 
         /// <summary>
-        /// 卸载资源
+        /// 按地址精细释放已缓存资源
+        /// </summary>
+        /// <param name="address">资源地址</param>
+        public void ReleaseAsset(string address)
+        {
+            if (m_assetHandles == null || !m_assetHandles.TryGetValue(address, out AssetHandle handle))
+            {
+                return;
+            }
+
+            handle.Release();
+            m_assetHandles.Remove(address);
+            m_lastAccessTimes?.Remove(address);
+            Utils.ClearSpriteCache(address);
+            Package.TryUnloadUnusedAsset(address);
+        }
+
+        /// <summary>
+        /// 卸载全部已缓存资源
         /// </summary>
         public void UnLoadAsset()
         {
             if (m_assetHandles != null && m_assetHandles.Count > 0)
             {
-                foreach (var item in m_assetHandles)
+                foreach (KeyValuePair<string, AssetHandle> item in m_assetHandles)
                 {
                     item.Value.Release();
                 }
 
                 m_assetHandles.Clear();
             }
+
+            m_lastAccessTimes?.Clear();
+            Utils.ClearSpriteCache();
         }
 
         /// <summary>
-        /// 卸载场景
+        /// 卸载未使用资源（需业务在切场景等时机手动调用）
         /// </summary>
+        /// <param name="callBack">卸载完成回调</param>
+        public void UnloadUnusedAssets(Action callBack = null)
+        {
+            UnloadUnusedAssetsOperation operation = Package.UnloadUnusedAssetsAsync();
+
+            operation.Completed += (_) =>
+            {
+                callBack?.Invoke();
+            };
+        }
+
+        /// <summary>
+        /// 卸载场景（仅释放场景句柄，不连带释放全部资源）
+        /// </summary>
+        /// <param name="address">场景地址</param>
         public void UnLoadScene(string address)
         {
-            UnLoadAsset();
-
             if (m_sceneHandles == null || m_sceneHandles.Count <= 0 || !m_sceneHandles.ContainsKey(address))
             {
                 return;
             }
 
-            var handle1 = SceneManager.UnloadSceneAsync(m_sceneHandles[address].SceneObject);
+            AsyncOperation handle1 = SceneManager.UnloadSceneAsync(m_sceneHandles[address].SceneObject);
 
             handle1.completed += (operation) =>
             {
@@ -216,11 +312,11 @@ namespace Invariable
                     return;
                 }
 
-                var handle2 = m_sceneHandles[address].UnloadAsync();
+                UnloadSceneOperation handle2 = m_sceneHandles[address].UnloadAsync();
 
-                handle2.Completed += (operation) =>
+                handle2.Completed += (unloadOperation) =>
                 {
-                    if (operation.Status != EOperationStatus.Succeed)
+                    if (unloadOperation.Status != EOperationStatus.Succeed)
                     {
                         return;
                     }
@@ -229,6 +325,78 @@ namespace Invariable
                     m_sceneHandles.Remove(address);
                 };
             };
+        }
+
+        /// <summary>
+        /// 刷新资源最近访问时间
+        /// </summary>
+        private void Touch(string address)
+        {
+            m_lastAccessTimes ??= new Dictionary<string, float>();
+            m_lastAccessTimes[address] = Time.realtimeSinceStartup;
+        }
+
+        /// <summary>
+        /// 注册闲置句柄清扫计时器
+        /// </summary>
+        private void EnsureEvictTimer()
+        {
+            if (m_isEvictTimerStarted || !GameManager.HasInstance)
+            {
+                return;
+            }
+
+            m_isEvictTimerStarted = true;
+            GameManager.Instance.RepeatingCallSeconds(InvariableConst.Timer_YooAsset_TickEvict, TickEvict, EvictScanIntervalSeconds, false);
+        }
+
+        /// <summary>
+        /// 逐出闲置超过阈值且不在白名单内的资源句柄
+        /// </summary>
+        private void TickEvict()
+        {
+            if (m_assetHandles == null || m_assetHandles.Count <= 0 || m_lastAccessTimes == null)
+            {
+                return;
+            }
+
+            float now = Time.realtimeSinceStartup;
+            List<string> expireAddresses = new List<string>();
+
+            foreach (KeyValuePair<string, AssetHandle> item in m_assetHandles)
+            {
+                string address = item.Key;
+
+                if (IsEvictExempt(address))
+                {
+                    continue;
+                }
+
+                if (!m_lastAccessTimes.TryGetValue(address, out float lastAccessTime))
+                {
+                    continue;
+                }
+
+                if ((now - lastAccessTime) >= EvictIdleSeconds)
+                {
+                    expireAddresses.Add(address);
+                }
+            }
+
+            for (int i = 0; i < expireAddresses.Count; i++)
+            {
+                ReleaseAsset(expireAddresses[i]);
+            }
+        }
+
+        /// <summary>
+        /// 判断地址是否免于闲置释放
+        /// </summary>
+        private static bool IsEvictExempt(string address)
+        {
+            return address.StartsWith("Audios_", StringComparison.Ordinal)
+                || address.StartsWith("Config_", StringComparison.Ordinal)
+                || address.StartsWith("MiniGame_", StringComparison.Ordinal);
         }
     }
 }

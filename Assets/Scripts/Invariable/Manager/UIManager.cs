@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,31 +7,52 @@ namespace Invariable
 {
     public class UIManager : Singleton<UIManager>
     {
+        private static readonly HashSet<string> m_pooledPanelNames = new HashSet<string>
+        {
+            "TipsPanel",
+        };
+
         private Dictionary<string, UIPanel> m_allPanel = null;
+
         public Dictionary<string, UIPanel> AllPanel
         {
             get
             {
                 m_allPanel ??= new Dictionary<string, UIPanel>();
+
                 return m_allPanel;
             }
         }
 
+
+
+        /// <summary>
+        /// 注册已打开的 UI 面板
+        /// </summary>
         public void AddUIPanel(string name, UIPanel uiPanel)
         {
-            m_allPanel ??= new Dictionary<string, UIPanel>();
-
-            if (!m_allPanel.ContainsKey(name))
+            if (!AllPanel.ContainsKey(name))
             {
-                m_allPanel.Add(name, uiPanel);
+                AllPanel.Add(name, uiPanel);
             }
         }
 
+        /// <summary>
+        /// 判断面板是否启用池化复用
+        /// </summary>
+        public bool IsPooledPanel(string name)
+        {
+            return m_pooledPanelNames.Contains(name);
+        }
+
+        /// <summary>
+        /// 关闭并清空全部 UI 面板
+        /// </summary>
         public void CloseAllUIPanel()
         {
             List<string> names = new List<string>();
 
-            foreach (var item in m_allPanel)
+            foreach (KeyValuePair<string, UIPanel> item in AllPanel)
             {
                 names.Add(item.Key);
             }
@@ -41,17 +61,27 @@ namespace Invariable
             {
                 CloseUIPanel(names[i]);
             }
-
-            m_allPanel.Clear();
         }
 
+        /// <summary>
+        /// 关闭指定名称的 UI 面板（池化名单内为隐藏复用）
+        /// </summary>
         public void CloseUIPanel(string name)
         {
-            if (m_allPanel.ContainsKey(name))
+            if (!AllPanel.TryGetValue(name, out UIPanel panel))
             {
-                GameObject.Destroy(m_allPanel[name].gameObject);
-                m_allPanel.Remove(name);
+                return;
             }
+
+            if (m_pooledPanelNames.Contains(name))
+            {
+                panel.gameObject.SetActive(false);
+
+                return;
+            }
+
+            GameObject.Destroy(panel.gameObject);
+            AllPanel.Remove(name);
         }
     }
 }

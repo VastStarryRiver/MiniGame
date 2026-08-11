@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +13,9 @@ namespace Invariable
 
 
 
+        /// <summary>
+        /// 按组件名解析对应 Type
+        /// </summary>
         public static Type GetComponentType(string componentName)
         {
             if (m_nameDictionary == null)
@@ -23,34 +26,38 @@ namespace Invariable
             if (m_nameDictionary.ContainsKey(componentName))
             {
                 string className = m_nameDictionary[componentName];
+
                 return Type.GetType(className);
             }
 
             return null;
         }
 
+        /// <summary>
+        /// 初始化组件名到类型的映射表
+        /// </summary>
         private static void InitNameDictionary()
         {
             m_nameDictionary = new Dictionary<string, string>
-        {
-            { "RawImage", typeof(RawImage).AssemblyQualifiedName },
-            { "Image", typeof(Image).AssemblyQualifiedName },
-            { "Text", typeof(Text).AssemblyQualifiedName },
-            { "Button", typeof(Button).AssemblyQualifiedName },
-            { "ScrollRect", typeof(ScrollRect).AssemblyQualifiedName },
-            { "Dropdown", typeof(Dropdown).AssemblyQualifiedName },
-            { "Toggle", typeof(Toggle).AssemblyQualifiedName },
-            { "Slider", typeof(Slider).AssemblyQualifiedName },
-            { "Scrollbar", typeof(Scrollbar).AssemblyQualifiedName },
-            { "InputField", typeof(InputField).AssemblyQualifiedName },
-            { "GridLayoutGroup", typeof(GridLayoutGroup).AssemblyQualifiedName },
-            { "HorizontalLayoutGroup", typeof(HorizontalLayoutGroup).AssemblyQualifiedName },
-            { "VerticalLayoutGroup", typeof(VerticalLayoutGroup).AssemblyQualifiedName },
-            { "Mask", typeof(Mask).AssemblyQualifiedName },
-            { "RectMask2D", typeof(RectMask2D).AssemblyQualifiedName },
-            { "AudioSource", typeof(AudioSource).AssemblyQualifiedName },
-            { "AudioListener", typeof(AudioListener).AssemblyQualifiedName }
-        };
+            {
+                { "RawImage", typeof(RawImage).AssemblyQualifiedName },
+                { "Image", typeof(Image).AssemblyQualifiedName },
+                { "Text", typeof(Text).AssemblyQualifiedName },
+                { "Button", typeof(Button).AssemblyQualifiedName },
+                { "ScrollRect", typeof(ScrollRect).AssemblyQualifiedName },
+                { "Dropdown", typeof(Dropdown).AssemblyQualifiedName },
+                { "Toggle", typeof(Toggle).AssemblyQualifiedName },
+                { "Slider", typeof(Slider).AssemblyQualifiedName },
+                { "Scrollbar", typeof(Scrollbar).AssemblyQualifiedName },
+                { "InputField", typeof(InputField).AssemblyQualifiedName },
+                { "GridLayoutGroup", typeof(GridLayoutGroup).AssemblyQualifiedName },
+                { "HorizontalLayoutGroup", typeof(HorizontalLayoutGroup).AssemblyQualifiedName },
+                { "VerticalLayoutGroup", typeof(VerticalLayoutGroup).AssemblyQualifiedName },
+                { "Mask", typeof(Mask).AssemblyQualifiedName },
+                { "RectMask2D", typeof(RectMask2D).AssemblyQualifiedName },
+                { "AudioSource", typeof(AudioSource).AssemblyQualifiedName },
+                { "AudioListener", typeof(AudioListener).AssemblyQualifiedName }
+            };
         }
     }
 }

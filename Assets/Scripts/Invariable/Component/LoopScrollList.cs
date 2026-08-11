@@ -1,6 +1,6 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
 using System;
+using UnityEngine;
+using UnityEngine.UI;
 
 
 
@@ -8,16 +8,18 @@ namespace Invariable
 {
     public class LoopScrollList : ScrollRect
     {
-        private int m_type = 0;
-        private int m_totalCount = 0;
-        private Action<int, RectTransform> m_updateFunc;
-        private Action<Vector2> m_onValueChangedFunc;
+        private int m_type;
+        private int m_totalCount;
+        private Action<int, RectTransform> m_updateFunc = null;
+        private Action<Vector2> m_onValueChangedFunc = null;
         private float m_lastOffset;
 
 
 
         protected override void Start()
         {
+            base.Start();
+
             onValueChanged.AddListener((pos) =>
             {
                 if (m_type == 1)
@@ -49,9 +51,12 @@ namespace Invariable
 
 
 
-        public void AddOnValueChangedListener(Action<Vector2> Action)
+        /// <summary>
+        /// 添加滚动值变化回调
+        /// </summary>
+        public void AddOnValueChangedListener(Action<Vector2> callBack)
         {
-            m_onValueChangedFunc = Action;
+            m_onValueChangedFunc = callBack;
         }
 
         /// <summary>
@@ -83,7 +88,7 @@ namespace Invariable
                     tsItem = content.GetChild(i) as RectTransform;
                 }
 
-                tsItem.name = "Ts_Item" + i;
+                SetItemIndex(tsItem, i);
 
                 if (m_type == 1)
                 {
@@ -113,6 +118,28 @@ namespace Invariable
             callBack?.Invoke();
         }
 
+        /// <summary>
+        /// 刷新当前可见的全部列表项
+        /// </summary>
+        public void RefreshAllItem()
+        {
+            for (int i = 0; i < content.childCount; i++)
+            {
+                RectTransform tsItem = content.GetChild(i) as RectTransform;
+                LoopScrollItem item = tsItem.GetComponent<LoopScrollItem>();
+
+                if (item == null)
+                {
+                    continue;
+                }
+
+                m_updateFunc.Invoke(item.m_index, tsItem);
+            }
+        }
+
+        /// <summary>
+        /// 横向滚动时回收并复用列表项
+        /// </summary>
         private void UpdateHorizonalItem(Vector2 pos)
         {
             RectTransform tsCell = null;
@@ -125,7 +152,7 @@ namespace Invariable
             {
                 if (content.anchoredPosition.x + tsCell1.anchoredPosition.x + tsCell1.sizeDelta.x + 0.1f <= 0)
                 {
-                    id = int.Parse(tsCell2.name.Replace("Ts_Item", "")) + 1;
+                    id = GetItemIndex(tsCell2) + 1;
 
                     if (id >= 0 && id < m_totalCount)
                     {
@@ -139,7 +166,7 @@ namespace Invariable
             {
                 if (tsCell2.anchoredPosition.x - 0.1f >= -content.anchoredPosition.x + viewport.rect.width)
                 {
-                    id = int.Parse(tsCell1.name.Replace("Ts_Item", "")) - 1;
+                    id = GetItemIndex(tsCell1) - 1;
 
                     if (id >= 0 && id < m_totalCount)
                     {
@@ -152,13 +179,16 @@ namespace Invariable
 
             if (tsCell != null)
             {
-                tsCell.name = "Ts_Item" + id;
+                SetItemIndex(tsCell, id);
                 m_updateFunc.Invoke(id, tsCell);
             }
 
             m_lastOffset = pos.x;
         }
 
+        /// <summary>
+        /// 纵向滚动时回收并复用列表项
+        /// </summary>
         private void UpdateVerticalItem(Vector2 pos)
         {
             RectTransform tsCell = null;
@@ -171,7 +201,7 @@ namespace Invariable
             {
                 if (-tsCell1.anchoredPosition.y + tsCell1.sizeDelta.y + 0.1f <= content.anchoredPosition.y)
                 {
-                    id = int.Parse(tsCell2.name.Replace("Ts_Item", "")) + 1;
+                    id = GetItemIndex(tsCell2) + 1;
 
                     if (id >= 0 && id < m_totalCount)
                     {
@@ -185,7 +215,7 @@ namespace Invariable
             {
                 if (-tsCell2.anchoredPosition.y - 0.1f >= viewport.rect.height + content.anchoredPosition.y)
                 {
-                    id = int.Parse(tsCell1.name.Replace("Ts_Item", "")) - 1;
+                    id = GetItemIndex(tsCell1) - 1;
 
                     if (id >= 0 && id < m_totalCount)
                     {
@@ -198,28 +228,42 @@ namespace Invariable
 
             if (tsCell != null)
             {
-                tsCell.name = "Ts_Item" + id;
+                SetItemIndex(tsCell, id);
                 m_updateFunc.Invoke(id, tsCell);
             }
 
             m_lastOffset = pos.y;
         }
 
-        public void RefreshAllItem()
+        /// <summary>
+        /// 读取列表项索引
+        /// </summary>
+        private int GetItemIndex(RectTransform tsItem)
         {
-            for (int i = 0; i < content.childCount; i++)
+            LoopScrollItem item = tsItem.GetComponent<LoopScrollItem>();
+
+            if (item == null)
             {
-                RectTransform tsItem = content.GetChild(i) as RectTransform;
-
-                if (tsItem.name.Length < 7)
-                {
-                    continue;
-                }
-
-                int index = int.Parse(tsItem.name.Replace("Ts_Item", ""));
-
-                m_updateFunc.Invoke(index, tsItem);
+                return -1;
             }
+
+            return item.m_index;
+        }
+
+        /// <summary>
+        /// 写入列表项索引（无组件时自动挂载）
+        /// </summary>
+        private void SetItemIndex(RectTransform tsItem, int index)
+        {
+            LoopScrollItem item = tsItem.GetComponent<LoopScrollItem>();
+
+            if (item == null)
+            {
+                item = tsItem.gameObject.AddComponent<LoopScrollItem>();
+            }
+
+            item.m_index = index;
+            tsItem.name = "Ts_Item" + index;
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using YooAsset;
-using System.Collections;
 using System;
+using System.Collections;
 using System.Reflection;
+using YooAsset;
 
 
 
@@ -9,7 +9,9 @@ namespace Invariable
 {
     public class HotUpdateOver : IStateNode
     {
-        private StateMachine m_machine;
+        private StateMachine m_machine = null;
+
+
 
         public void OnCreate(StateMachine machine)
         {
@@ -21,27 +23,27 @@ namespace Invariable
             GameManager.Instance.StartCoroutine(ClearUnusedFiles());
         }
 
-        public void OnExit()
-        {
-
-        }
-
         public void OnUpdate()
         {
-
         }
+
+        public void OnExit()
+        {
+        }
+
+
 
         /// <summary>
         /// 清理旧缓存
         /// </summary>
         private IEnumerator ClearUnusedFiles()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "清理缓存中...");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "清理缓存中...");
 
-            var operation1 = YooAssetManager.Instance.Package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
+            ClearCacheFilesOperation operation1 = YooAssetManager.Instance.Package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedManifestFiles);
             yield return operation1;
 
-            var operation2 = YooAssetManager.Instance.Package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
+            ClearCacheFilesOperation operation2 = YooAssetManager.Instance.Package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
             yield return operation2;
 
             InitializeOperationSystem();
@@ -52,15 +54,15 @@ namespace Invariable
         /// </summary>
         private void InitializeOperationSystem()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "初始化游戏中...");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "初始化游戏中...");
             SdkManager.Instance.InitSDK(() =>
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "同步数据中...");
+                GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "同步数据中...");
                 CloudManager.Instance.InitCloudData(() =>
                 {
                     YooAssetManager.Instance.PreLoadDll((hotUpdateAss) =>
                     {
-                        GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "即将进入游戏...");
+                        GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "即将进入游戏...");
                         Type type = hotUpdateAss.GetType("HotUpdate.StartGame");
                         MethodInfo methodInfo = type.GetMethod("Play", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
                         methodInfo.Invoke(null, null);

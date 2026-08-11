@@ -1,6 +1,6 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 
 
@@ -13,11 +13,17 @@ namespace Invariable
 
 
 
+        /// <summary>
+        /// 设置加载进度条
+        /// </summary>
         public void SetProgress(float nowDownloadNum, float needDownloadNum)
         {
             m_sliProgress.value = nowDownloadNum / needDownloadNum;
         }
 
+        /// <summary>
+        /// 设置加载提示文本
+        /// </summary>
         public void SetDes(string text)
         {
             m_textDes.text = text;

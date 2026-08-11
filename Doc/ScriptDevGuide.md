@@ -21,13 +21,8 @@ Assets/Scripts/HotUpdate/
 ├─ Config/       # 生成文件
 ├─ UI/           # UI 页面
 ├─ Utils/        # 热更新通用工具
-├─ Workflow/     # 热更新业务入口/流程
-├─ Manager/      # 可新增业务 Manager
-├─ Model/        # 可新增数据模型
-└─ Gameplay/     # 可新增玩法
+└─ Workflow/     # 热更新业务入口/流程
 ```
-
-后四个目录目前不一定存在，可按需求创建。
 
 ### 1.2 应放入 `Invariable` 的代码
 
@@ -61,8 +56,9 @@ Editor 代码不能被运行时程序集引用。
 |---|---|
 | 不可热更命名空间 | `Invariable` |
 | 热更新命名空间 | `HotUpdate` |
-| 私有字段 | `m_` 前缀 |
-| 静态缓存字段 | 生成配置使用 `s_` 前缀 |
+| 可写字段（私有/受保护/public 实例，含 static） | `m_` 前缀；例外见 §3.3 |
+| `const` / `readonly` 字段 | PascalCase，禁止 `m_` |
+| 生成配置表缓存字段 | `m_config{表名}`（由 CodeGenerator 生成，可写 static） |
 | UI 页面类名 | 与 Prefab 文件名一致 |
 | UI Prefab 地址 | `Prefabs_{Prefab名}` |
 | 音频地址 | `Audios_{音频名}` |
@@ -83,28 +79,44 @@ Editor 代码不能被运行时程序集引用。
 
 ## 3. 代码书写规范
 
-以下规范适用于 `HotUpdate`、`Invariable` 和 Editor 工具代码；自动生成的 `Tab_*.cs` 以生成器输出格式为准。
+以下规范适用于 `HotUpdate`、`Invariable`、`CloudService` 和 Editor 工具代码。自动生成的 `Config_*.cs` 以生成器输出格式为准（生成器模板本身遵循本章）。
 
-### 3.1 文件整体结构
+脚本分两类：
+
+- **非预制体挂载**：工具类、Manager、配置底座、云函数、Editor 管线等；
+- **预制体挂载**：`Invariable/Component/*`、`Launcher`、`GameLoadingPanel`、`HotUpdate/UI/*` 等挂在 Prefab/场景上的 MonoBehaviour。两类共享本章通用规则；预制体脚本另见 **§3.14**。
+
+基准参考：`ConfigUtils`、`YooAssetManager`、`CloudHelper`、`ConfigBinaryWriter`。
+
+### 3.1 文件整体结构与成员顺序
 
 脚本内容按以下顺序组织：
 
 1. `using` 引用；
-2. 命名空间；
+2. 命名空间（传统 `namespace X { }`，禁止 file-scoped）；
 3. 类型声明；
-4. 字段；
-5. Unity 生命周期函数；
-6. 业务方法；
-7. 事件回调。
+4. 嵌套类型；
+5. 字段（全部集中顶部）；
+6. 属性；
+7. 构造函数；
+8. Unity 生命周期函数；
+9. Unity 事件接口方法（`OnPointerClick` 等）；
+10. 业务方法；
+11. 自定义事件回调。
+
+访问修饰符一律显式声明（含 `private`）；接口成员隐式 `public`，不写访问修饰符。特性（`[MenuItem]`、`[CloudFunc]` 等）独占一行。
 
 ### 3.2 `using` 引用
 
 - 每个命名空间单独占一行；
 - 只保留脚本实际使用的引用；
-- Unity、项目程序集和第三方库可按功能相邻排列；
+- **所有 using（含 System）统一按字母序排列**；
 - `using` 区域结束后，与 `namespace` 之间保留 **3 个空行**；
 - 不在文件中间声明 `using`；
-- 除非类型重名或能明显提高可读性，否则不要使用完整限定类型名代替 `using`。
+- 除非类型重名或能明显提高可读性，否则不要使用完整限定类型名代替 `using`；
+- 已 `using` 的命名空间禁止再写完全限定名；仅真实类型重名（如 `Object`）才保留限定名或别名；
+- 条件编译块（`#if`）内的平台 using 保持块内原位，不参与块外字母序重排；
+- 生成文件（`Config_*.cs` / `ConfigManager.Preload.cs`）由 `CodeGenerator` 按字母序输出。
 
 ### 3.3 命名规范
 
@@ -114,10 +126,15 @@ Editor 代码不能被运行时程序集引用。
 | 类、结构体、枚举 | PascalCase | `MainPanel` |
 | 方法 | PascalCase | `PlayBtnAnim` |
 | Unity 生命周期函数 | 使用 Unity 原始名称 | `Awake`、`Start`、`OnEnable` |
-| 成员字段 | `m_` + camelCase | `m_btnPlay`、`m_tsPlay` |
+| 可写字段（含 public 实例、static） | `m_` + camelCase；MonoBehaviour 单例字段私有，对外用 `Instance`/`HasInstance` | `m_position`、`m_package`、`GameManager.Instance` |
+| `const` / `readonly` 字段 | PascalCase，禁止 `m_`；与公共属性同名时加 `Value` 后缀；字段与类型同名不算冲突，已 `using` 即写短名 | `Key`、`ConfigExcelPath`、`ConfigNameValue`、`MemoryStream MemoryStream` |
+| Inspector 绑定 public 字段 | `m_` + 类型语义前缀 + 业务名 | `m_btnPlay`、`m_tsPlay`、`m_objItem`、`m_tsTrans`、`m_tsHandle` |
+| 纯数据/DTO public 字段 | PascalCase，不加 `m_` | `Id`、`GameId`；`Config_*` 行字段（Excel 列契约）、JSON Model（服务器字段契约）保持原名 |
+| 序列化字段改名 | 仅当存在已落盘且需保留的序列化数据（.asset/场景/Prefab）时，加 `[FormerlySerializedAs("旧名")]`；导入期代码赋值生成的对象（如 `BinAsset`）不需要 | `[FormerlySerializedAs("oldName")] public string m_name;` |
 | 局部变量、参数 | camelCase | `itemIndex`、`callBack` |
-| 常量 | PascalCase | `MaxItemCount` |
+| 回调参数 | 统一 `callBack` | `Action callBack` |
 | 布尔字段 | `m_is`、`m_has`、`m_can` 等语义前缀 | `m_isPlaying` |
+| `catch` 异常变量 | 统一 `error` | `catch (Exception error)` |
 | 事件处理方法 | `On` + 对象/行为 + 事件 | `OnPlayGameClick` |
 
 常用 Unity/UI 字段缩写沿用现有工程风格：
@@ -137,11 +154,15 @@ Editor 代码不能被运行时程序集引用。
 
 ### 3.4 字段声明与分组
 
-- 字段统一声明在类的顶部、方法之前；
-- Inspector 绑定字段沿用当前项目的 `public` + `m_` 风格；
-- 同一用途的字段连续排列；
-- 不同用途的字段较多时，可使用一个空行分组；
-- 字段区域结束后，与第一个方法之间保留 **3 个空行**；
+- 字段统一声明在类的顶部、方法之前；不允许 backing field 与属性穿插；
+- 字段区内按用途分组；非预制体脚本不强制 public/private 排序；预制体脚本见 §3.14（public 绑定字段在前）；
+- 字段区与属性区之间保留 **1 个空行**；属性区与方法区之间保留 **3 个空行**；
+- 构造函数作为独立分组，前后各保留 **3 个空行**；
+- 可写私有引用类型字段显式初始化为 `= null`；Inspector 绑定的 public 字段**不写** `= null`；
+- public 可写实例字段同样 `m_` + camelCase（如 `BinReader.m_position`）；DTO/JSON/`Config_*` 行字段例外见 §3.3；
+- 运行期只读字段加 `readonly`，编译期常量用 `const`；二者命名均为 **PascalCase、不加 `m_`**；
+- `readonly` 字段在构造函数中赋值时，声明处**不写** `= null`；
+- 修饰符顺序：`public static readonly`（不用 `readonly static`）；
 - 字段声明时仅设置明确且安全的默认值，不在字段初始化器中执行复杂逻辑。
 
 ### 3.5 组件引用与预制体绑定
@@ -205,7 +226,8 @@ private void Awake()
 2. 目标对象来自运行时加载的场景或 Prefab，编译时不存在引用关系；
 3. 框架级全局根节点需要跨场景定位，例如现有的 `UI_Root`；
 4. 第三方 SDK 或框架 API 只能通过名称、路径或类型获取对象；
-5. 为兼容旧资源临时补偿缺失引用，并且需求明确要求兼容。
+5. 为兼容旧资源临时补偿缺失引用，并且需求明确要求兼容；
+6. 既有例外：`UIPopup.OnEnable` 对同物体 `CanvasGroup` 使用 `GetComponent`（`m_tsTrans` 所在物体必须同时挂 `CanvasGroup`）。
 
 确需运行时查找时，必须同时满足：
 
@@ -235,34 +257,51 @@ private RectTransform CreateItem()
 
 类中的方法按以下顺序排列：
 
-1. Unity 生命周期函数：`Awake`、`OnEnable`、`Start`、`Update`、`OnDisable`、`OnDestroy`；
-2. 公共业务方法；
-3. 私有业务方法；
-4. 按钮、事件和异步回调方法。
+1. Unity 生命周期函数（按执行顺序）：`Awake` → `OnEnable` → `Start` → `Update` → `OnDisable` → `OnDestroy`（未列出的 Unity 消息按官方执行序插入）；
+2. Unity 事件接口方法（如 `OnPointerClick`，紧跟生命周期之后）；
+3. 公共业务方法；
+4. 私有业务方法；
+5. 自定义按钮/事件/异步回调方法。
 
-同一组内按照实际调用流程排列。入口方法调用的业务方法应尽量放在其后方，便于自上而下阅读。
+同一组内按照实际调用流程排列。入口方法调用的业务方法应尽量放在其后方。
 
-生命周期方法组与业务方法组之间保留 **3 个空行**；同组方法之间保留 **1 个空行**。
+空行规则：
+
+- **同组同级别方法之间保留 1 个空行**（生命周期组内、业务方法组内、菜单函数组内、私有辅助方法组内均适用）；
+- 连续的一行式成员（如一组 `=>` 方法）之间可紧凑不留空行；
+- **3 个空行仅用于大组边界**：
+  - `using` 区 → `namespace`；
+  - 字段/属性区 → 方法区；
+  - 构造函数前后；
+  - 生命周期/Unity 事件接口组 → 业务方法组；
+  - 入口方法组（菜单函数/`[ContextMenu]` 等）→ 私有辅助方法组；
+- 多行方法体的 `return` 前空 **1 行**；方法体内逻辑块之间允许 1 空行，不出现连续空行；
+- **文件末尾不保留空行**：以最后一个 `}` 结束，不写末尾换行符；生成文件由 `CodeGenerator` 输出，以换行符结尾，属生成器例外。
 
 ### 3.7 缩进、花括号与空格
 
 - 使用 **4 个空格**缩进，不使用 Tab；
-- 命名空间、类、方法、条件和循环的左花括号独占下一行；
-- 左右花括号必须成对保留，即使代码块当前只有一行；
-- 二元运算符、赋值符号和逗号后保留一个空格；
-- 方法调用的左括号前不加空格；
+- 命名空间、类、方法、条件和循环的左花括号独占下一行（Allman）；
+- `if` / `for` / `foreach` / `while` / `using` / `switch` **一律带花括号并换行**，即使只有一行；
+- 空方法用单行空括号：`private StateMachine() { }`；
+- `switch` 的 `case` 之间空 1 行；`default` 不强制；`case` 内不加额外花括号（需局部作用域时例外）；
+- 简单 get 属性多行展开，不允许 `get { return xxx; }` 单行；
+- 方法参数列表保持一行，不换行；短泛型约束同行：`where T : new()`；
+- 二元运算符、赋值符号和逗号后保留一个空格；方法调用的左括号前不加空格；
 - `if`、`for`、`while`、`switch` 等关键字与左括号之间保留一个空格；
-- 不在行尾保留多余空格；
-- 连续空行数量按照本章分组规则执行，不随意增减。
+- 不在行尾保留多余空格；连续空行数量按照本章分组规则执行。
 
 ### 3.8 注释规范
 
-- 业务方法使用中文 XML `<summary>` 注释，说明“做什么”，不逐行复述代码；
-- Unity 生命周期函数名称已经明确时，可以不写 XML 注释；
-- 公共方法存在参数或返回值时，补充 `<param>`、`<returns>`；
+- public/业务入口方法使用中文 XML `<summary>`，说明“做什么”；
+- 私有辅助方法自解释时可省略 XML 注释；
+- Unity 生命周期与 Unity 事件接口方法名称自解释时，可不写 XML 注释；
+- 类与 public 成员注释可选；
+- 补充 `<param>`、`<returns>` 时**必须填写内容**，不允许空标签；
+- `//` 后空一格；行尾注释与代码之间空一格：`代码; // 注释`；
 - 行尾注释仅用于解释当前语句中不直观的目的；
-- 注释与代码保持同步，逻辑修改后必须同时更新注释；
-- 不保留被注释掉的废弃代码，历史实现交由 Git 管理。
+- 注释不使用全角句号，句尾不加标点，句中用 `，`；
+- 注释与代码保持同步；不保留被注释掉的废弃代码。
 
 示例：
 
@@ -279,7 +318,7 @@ private void PlayBtnAnim()
 允许的简短行尾注释：
 
 ```csharp
-GameManager.Instance.InvokeEventCallBack("Launcher_StartGame"); // 销毁热更新面板
+GameManager.Instance.InvokeEventCallBack<object>(InvariableConst.Event_Launcher_StartGame, null); // 销毁热更新面板
 ```
 
 ### 3.9 方法体与职责
@@ -307,8 +346,9 @@ private void Start()
 ### 3.10 链式调用与 Lambda
 
 - 简短且语义连续的链式调用可以写在同一行；
-- 链式调用包含 Lambda 时，Lambda 代码块另起一行并按层级缩进；
-- 单行过长或调用步骤需要分别解释时，应合理换行；
+- `=>` 表达式成员仅限简单一行属性/方法；复杂逻辑改回传统方法体；
+- Lambda 参数一律带括号：`(operation) =>`、`() =>`；
+- Lambda 花括号换行：`=>` 后 `{` 独占一行；
 - Lambda 内逻辑超过少量语句时，提取为命名方法；
 - 不在复杂 Lambda 中混合资源加载、状态修改和 UI 刷新等多个职责。
 
@@ -324,26 +364,57 @@ m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetEase(Ease.InSine).OnComplete(() =>
 ### 3.11 字面量与类型使用
 
 - `float` 字面量使用 `f` 后缀，例如 `1f`、`0.2f`；
-- 优先使用明确类型和项目已有类型，不为了缩短代码滥用 `var`；
-- 当右侧类型清晰且不会降低可读性时可以使用 `var`；
+- 空字符串统一 `""`，不用 `string.Empty`；
+- 含多个变量的字符串优先插值 `$""`；单变量前/后缀的简单拼接可保留 `+`；
+- 优先使用明确类型；`var` 仅当右侧类型明显时使用（`new`、`as`、强制转换）；
+- 不使用目标类型推断 `new()`，显式写类型；
+- 短集合初始化可单行，长初始化每元素一行；
+- `#region` 允许保留；
 - 字符串事件名、资源地址等应沿用项目既有格式；
-- 同一业务字符串重复使用时，应提取为常量，避免多处拼写不一致；
-- 不直接在业务代码中写入密码、正式广告位 ID 或其他敏感配置。
-- 文档只规定书写格式，不代表每个页面都必须包含 `Awake`、动画或按钮。没有实际用途的字段、生命周期方法和空方法不得保留。
+- 同一业务字符串重复使用时，应提取为常量；
+- 不直接在业务代码中写入密码、正式广告位 ID 或其他敏感配置；
+- 文档只规定书写格式；没有实际用途的字段、生命周期方法和空方法不得保留。
 
-### 3.12 代码提交前检查
+### 3.12 错误处理
 
-- [ ] `using` 无冗余，且与 `namespace` 之间保留 3 个空行；
-- [ ] 字段位于方法之前，并使用正确的 `m_` 及类型语义前缀；
-- [ ] 固定组件引用均声明为 `public` 字段，并已在场景或 Prefab 中拖拽赋值；
-- [ ] 没有使用 `Find` 或 `GetComponent` 查找本可通过 Inspector 绑定的固定组件；
-- [ ] 必要的运行时查找已说明原因，并具有缓存、空值检查和错误日志；
-- [ ] 生命周期函数、业务方法、事件回调顺序清晰；
-- [ ] 字段区与方法区、生命周期区与业务区之间保留 3 个空行；
-- [ ] 业务方法具有准确的中文 XML 注释；
-- [ ] 使用 4 空格缩进和换行花括号；
-- [ ] 方法职责单一，没有不必要的深层嵌套；
-- [ ] 链式调用和 Lambda 排版与现有脚本一致；
+- 项目代码（`Assets/Scripts`、`Assets/Editor`）禁止 `throw new`；统一 `GameLog.Error(具体信息)` + 安全返回（fail-soft：返回 null/默认值/空数组，调用方判空）；
+- 第三方库 `Assets/ToolPackage` 不改、不受此约束。
+
+### 3.13 日志输出
+
+- `Invariable` / `HotUpdate` / `MyTools` 禁止直接调用 `UnityEngine.Debug.Log` / `LogWarning` / `LogError` 输出业务日志；
+- 必须使用 `GameLog.Info`（仅编辑器环境输出）或 `GameLog.Error`（始终输出）；
+- 映射：`Debug.Log` / `Debug.LogWarning` → `GameLog.Info`；`Debug.LogError` → `GameLog.Error`；
+- 排除 `CloudService`：云函数约束要求只能用 `UnityEngine.Debug`，且与 `Invariable` 存在循环引用；
+- `GameLog` 命名空间为 `Invariable`：同程序集直接用；跨程序集（`MyTools`）需 `using Invariable;`；
+- 例外：`GameLog.cs` 自身实现；第三方库 `ToolPackage` 不在此约束。
+
+### 3.14 预制体挂载脚本附加规范
+
+适用于挂在 Prefab/场景上的脚本（如 `Invariable/Component/*`、`Launcher`、`GameLoadingPanel`、`HotUpdate/UI/*`）。运行时 `AddComponent` 创建的 Manager（如 `GameManager`、`AudioManager`）按非预制体规则。
+
+- 所有预制体节点引用：分类型、对应具体节点、全部声明为 `public` 字段，并在 Inspector 拖拽赋值（细则见 §3.5）；
+- 字段区 **public 绑定字段在前**，private 状态字段在后；
+- Inspector 绑定字段**不补** `= null`；
+- 生命周期函数必须按执行顺序排列；生命周期作为一组：组前/组后 **3 空行**，组内 **1 空行**；
+- Unity 事件接口方法紧跟生命周期之后，注释可选；
+- 事件注册/注销对称：`OnEnable` 注册 ↔ `OnDisable` 注销；`OnDestroy` 释放监听与资源；
+- 不用 `Find`/`GetComponent` 查找固定组件（例外见 §3.5）。
+
+### 3.15 代码提交前检查
+
+- [ ] `using` 字母序、无冗余，且与 `namespace` 之间保留 3 个空行；已 `using` 无冗余完全限定名；
+- [ ] 成员顺序：嵌套类型 → 字段 → 属性 → 构造 → 生命周期 → Unity 事件接口 → 业务 → 回调；
+- [ ] 可写实例字段（含 public）`m_`；`const`/`readonly` PascalCase 无 `m_`；序列化改名且存在落盘数据时带 `FormerlySerializedAs`；回调参数 `callBack`；`catch` 变量 `error`；
+- [ ] 可写私有引用字段显式 `= null`；Inspector 绑定字段无 `= null`；
+- [ ] 无 `throw new`（统一 `GameLog.Error` + 安全返回）；
+- [ ] 业务日志走 `GameLog.Info` / `GameLog.Error`；未直接使用 `UnityEngine.Debug`（`GameLog.cs` 与 `CloudService` 除外）；
+- [ ] 方法参数列表保持一行，不换行；
+- [ ] `if`/`for`/`switch` 等一律花括号；`return` 前空行；`//` 前后空格；
+- [ ] Lambda 参数带括号且花括号换行；空字符串 `""`；`public static readonly` 顺序；
+- [ ] 同组同级别方法之间 1 空行，3 空行仅用于大组边界；文件末尾无空行（不以换行符结束；生成文件例外）；
+- [ ] 固定组件引用均为 `public` 并已拖拽赋值（预制体脚本）；
+- [ ] 生命周期按执行序；预制体脚本 public 绑定字段在前；
 - [ ] 事件、按钮监听、计时器和 SDK 回调已对称清理；
 - [ ] 没有废弃注释代码、调试残留或敏感信息。
 
@@ -366,8 +437,9 @@ namespace HotUpdate
     {
         public void Start()
         {
-            GameManager.Instance.InvokeEventCallBack(
-                "ExampleFeature_Started"
+            GameManager.Instance.InvokeEventCallBack<object>(
+                "ExampleFeature_Started",
+                null
             );
         }
     }
@@ -444,13 +516,13 @@ Assets/GameAssets/Prefabs/UI/InventoryPanel/InventoryPanel.prefab
 - 命名空间必须为 `HotUpdate`；
 - 类必须继承 `UIPanel`；
 - Inspector 字段必须完整绑定；
-- 若需要弹窗动画，根对象附加 `UIPopup` 并绑定 `m_trans`；
+- 若需要弹窗动画，根对象附加 `UIPopup` 并绑定 `m_tsTrans`（对应节点 `Ts_Trans`）；`m_tsTrans` 所在物体须同时挂 `CanvasGroup`；
 - Prefab 必须位于 YooAsset `Prefabs` 收集目录下。
 
 ### 5.3 打开页面
 
 ```csharp
-HotUpdateUtils.OpenUIPrefabPanel(
+Utils.OpenUIPrefabPanel(
     "InventoryPanel",
     0,
     panelObject =>
@@ -478,7 +550,7 @@ UIManager.Instance.CloseUIPanel("InventoryPanel");
 ### 5.5 UI 页面检查清单
 
 - [ ] 脚本名、类名、Prefab 名一致；
-- [ ] 使用 `HotUpdateUtils`，不是 `Invariable.Utils.OpenUIPrefabPanel`；
+- [ ] 使用 `Utils.OpenUIPrefabPanel` 打开页面；Tips/FloatText 可用 `HotUpdateUtils` 业务封装；
 - [ ] layer 对应节点存在；
 - [ ] Inspector 引用完整，所有固定组件均通过 `public` 字段拖拽赋值；
 - [ ] 没有使用 `Find` 查找本可直接绑定的 UI 组件；
@@ -519,28 +591,35 @@ HotUpdateUtils.ShowFloatText("操作成功");
 
 推荐生命周期对称：
 
-```csharp
-private const string EventDataChanged = "Inventory_DataChanged";
+常量定义在 `HotUpdateConst` 的 `#region 事件`：
 
+```csharp
+// HotUpdateConst.cs
+#region 事件
+public const string Event_Inventory_DataChanged = "Inventory_DataChanged";
+#endregion
+```
+
+```csharp
 private void OnEnable()
 {
-    GameManager.Instance.AddEventListener(
-        EventDataChanged,
+    GameManager.Instance.AddEventListener<int>(
+        HotUpdateConst.Event_Inventory_DataChanged,
         OnDataChanged
     );
 }
 
 private void OnDisable()
 {
-    GameManager.Instance.RemoveEventListener(
-        EventDataChanged,
+    GameManager.Instance.RemoveEventListener<int>(
+        HotUpdateConst.Event_Inventory_DataChanged,
         OnDataChanged
     );
 }
 
-private void OnDataChanged(object arg)
+private void OnDataChanged(int itemId)
 {
-    var itemId = (int)arg;
+    // 使用强类型参数
 }
 ```
 
@@ -548,37 +627,45 @@ private void OnDataChanged(object arg)
 
 ```csharp
 GameManager.Instance.InvokeEventCallBack(
-    EventDataChanged,
+    HotUpdateConst.Event_Inventory_DataChanged,
     itemId
 );
 ```
 
+无参纯通知：
+
+```csharp
+GameManager.Instance.InvokeEventCallBack<object>("ExampleFeature_Started", null);
+```
+
 ### 7.2 使用注意
 
+- 事件 API 仅保留泛型：`AddEventListener<T>` / `RemoveEventListener<T>` / `InvokeEventCallBack<T>`；
 - 参数类型不匹配会在运行时失败；
 - 不要用含义相近但拼写不同的事件名；
 - 不要在匿名 lambda 注册后尝试用另一个 lambda 移除；
 - 页面销毁前必须移除监听；
 - 回调中避免直接增删同一个事件的监听集合；
-- 高频数据同步不宜全部经过 `object` 事件，可考虑明确接口。
+- 高频数据同步不宜全部经过事件总线，可考虑明确接口。
 
-如事件数量增长，建议后续新增：
+事件与延迟调用 key 已集中到常量类（用 `#region` 分区管理）：
 
 ```text
-HotUpdate/Constants/GameEventNames.cs
+Assets/Scripts/Invariable/Utils/InvariableConst.cs   # 跨层契约（事件/计时器/UI 路径/AOT 列表/广告与分享/音频本地 key 等）
+Assets/Scripts/HotUpdate/Utils/HotUpdateConst.cs     # HotUpdate 业务 key（业务计时器前缀等）
 ```
 
-集中定义常量。
+禁止在调用处散落魔法字符串。
 
 ## 8. 使用计时器
 
 ### 8.1 一次性延迟
 
-```csharp
-private const string DelayKey = "InventoryPanel_RefreshDelay";
+常量定义在 `HotUpdateConst` 的 `#region 计时器`：
 
+```csharp
 GameManager.Instance.DelayCallSeconds(
-    DelayKey,
+    HotUpdateConst.Timer_InventoryPanel_RefreshDelay,
     RefreshView,
     0.5f
 );
@@ -589,17 +676,15 @@ GameManager.Instance.DelayCallSeconds(
 ```csharp
 private void OnDisable()
 {
-    GameManager.Instance.CancelInvokeByKey(DelayKey);
+    GameManager.Instance.CancelInvokeByKey(HotUpdateConst.Timer_InventoryPanel_RefreshDelay);
 }
 ```
 
 ### 8.2 重复调用
 
 ```csharp
-private const string TimerKey = "Battle_Countdown";
-
 GameManager.Instance.RepeatingCallSeconds(
-    TimerKey,
+    HotUpdateConst.Timer_Battle_Countdown,
     TickCountdown,
     1f
 );
@@ -608,16 +693,18 @@ GameManager.Instance.RepeatingCallSeconds(
 停止：
 
 ```csharp
-GameManager.Instance.CancelInvokeByKey(TimerKey);
+GameManager.Instance.CancelInvokeByKey(HotUpdateConst.Timer_Battle_Countdown);
 ```
 
 ### 8.3 必须注意的当前行为
 
 - 相同 key 已存在时不会启动新计时；
-- 一次性调用完成后 key 仍保留；
+- 一次性延迟完成后会移除对应 key；
 - 页面禁用/销毁必须主动调用取消；
-- 当前接口为 `async void`；
-- 计时使用 `Time.deltaTime` 的重复秒调用受 TimeScale 影响；
+- 延迟接口为 `async void`；循环计时由 `Update` 驱动最小堆；
+- `DelayCallSeconds` 与 `RepeatingCallSeconds` 均受 `Time.timeScale` 影响；
+- `CancelInvokeByKey` 仅当 key 存在时输出 `GameLog.Info(key + "取消调用")`，key 不存在直接返回；
+- 循环调用支持 `immediately`（默认 true）：注册后是否立即执行一次；
 - 不要把短生命周期对象直接永久捕获在回调中。
 
 ## 9. 加载资源
@@ -690,7 +777,7 @@ YooAssetManager.Instance.AsyncLoadScene(
 YooAssetManager.Instance.UnLoadScene("Scenes_Battle");
 ```
 
-注意：当前卸载场景会先释放所有普通资源句柄。若新功能依赖跨场景常驻资源，应先改进资源管理策略。
+注意：`UnLoadScene` 仅释放对应场景句柄，不连带释放普通资源。按地址释放资源使用 `ReleaseAsset`；批量卸载未使用资源使用 `UnloadUnusedAssets`。
 
 ### 9.5 资源加载检查清单
 
@@ -707,19 +794,21 @@ YooAssetManager.Instance.UnLoadScene("Scenes_Battle");
 播放：
 
 ```csharp
-AudioManager.Instance.PlayAudio("bgm", true);
+AudioManager.Instance.PlayBGM("bgm");
 ```
 
 停止：
 
 ```csharp
 AudioManager.Instance.StopAudio("bgm");
+AudioManager.Instance.StopAudio(); // 空名或省略参数：停止全部
 ```
 
 暂停：
 
 ```csharp
 AudioManager.Instance.PauseAudio("bgm");
+AudioManager.Instance.PauseAudio(); // 空名或省略参数：暂停全部
 ```
 
 文件应位于：
@@ -734,56 +823,137 @@ Assets/GameAssets/Audios/bgm.*
 Audios_bgm
 ```
 
-当前没有 Resume API；再次调用 `PlayAudio` 会在 clip 已加载且未播放时执行 `Play()`。
+BGM 用 `PlayBGM`，音效用 `PlaySFX`（同名打断重播）；另有 `SetMasterVolume` / `SetBGMVolume` / `SetSFXVolume` / `SetMute`，经 `SdkManager` 本地存储持久化。
 
 ## 11. 新增或修改 Excel 配置
 
-### 11.1 修改数据
+### 11.1 Excel 源表格式
 
-1. 修改 `Excel` 目录中的源表；
-2. 不要直接修改 `Tab_*.cs`；
-3. 执行菜单：
-   `VastStarryRiver/Config/导出Excel配置`；
-4. 等待脚本重新编译；
-5. 检查生成类字段、类型和数据；
-6. 重新导出 HybridCLR DLL；
-7. 重新构建 YooAsset。
+源表位于项目根目录 `Excel/`，仅支持 `.xlsx` / `.xls`。
 
-### 11.2 使用配置
+- `.xlsx` / `.xls` 只读第一个 sheet；
+- 文件名须为合法 C# 标识符。
 
-```csharp
-var row = Tab_Player.GetConfigByIndex("1_1");
-if (row != null)
-{
-    int level = row.StartLv;
-}
+表头固定 3 行，第 4 行起为数据（全表至少 4 行）：
 
-foreach (var rune in Tab_RoleRune.GetAllConfigs())
-{
-    // 使用 rune
-}
-```
+| 行 | 含义 |
+|---:|---|
+| 1 | 字段名；首列强制视为 `Id` |
+| 2 | 类型：`int` / `float` / `string`（不区分大小写） |
+| 3 | 注释（可空） |
+| 4+ | 数据行 |
 
-配置类会在首次读取时懒构建，无需预先调用 `Init()`。
+约束：
 
-### 11.3 修改导表规则
+- `Id` 必须是标量 `int`，不能是数组；
+- 字段按字段名字典序重排后写入 bytes 与生成代码，布局顺序不等于 Excel 列序；
+- 定长数组：列名使用 `字段名+序号`（如 `Reward1`/`Reward2`/`Reward3`），同前缀连续列且类型一致，生成 `字段名` 数组；
+- 空单元格：`int`/`float` 按 0，`string` 按空串。
 
-如果需求是支持新字段类型、客户端列筛选或新代码结构，应修改：
+支持类型：
 
 ```text
-Assets/Editor/MyTools/Tools/ConfigTool.cs
+int, float, string,
+定长 int[] / float[] / string[]
+```
+
+标量示例：
+
+| Id | StartLv | Speed | Name |
+|---|---|---|---|
+| int | int | float | string |
+| 编号 | 开启等级 | 速度 | 名称 |
+| 1 | 10 | 3.5 | 新手 |
+
+定长数组示例：
+
+| Id | Reward1 | Reward2 | Pos1 | Pos2 | Tag1 | Tag2 |
+|---|---|---|---|---|---|---|
+| int | int | int | float | float | string | string |
+| 编号 | 奖励1 | 奖励2 | X | Y | 标签1 | 标签2 |
+| 1 | 100 | 200 | 1.5 | 2.5 | 近战 | 物理 |
+
+生成字段：`int[] Reward`、`float[] Pos`、`string[] Tag`。
+
+### 11.2 修改数据
+
+1. 按 §11.1 修改 `Excel` 目录中的源表；
+2. 不要直接修改 `HotUpdate/Config/Generated/Config_*.cs` 或 `GameAssets/Config/*.bytes`；
+3. 执行菜单：`VastStarryRiver/Config/导出Excel配置`；导表同时产出 `GameAssets/Config/{表}.bytes`（YooAsset Config 组，地址 `Config_{表名}`，可热更）与 `Generated/Config_{表}.cs`；
+4. 可选：`VastStarryRiver/Config/校验配置数据`；
+5. **纯数值改动**：只需再构建 AssetBundle（bytes 已在 YooAsset，无需重导 DLL）；
+6. **表结构变更**：等待脚本重新编译后，按完整 HybridCLR + YooAsset 流水线导出。
+
+### 11.3 使用配置
+
+每表由生成代码提供 `Get{表}ByID` / `Get{表}ByIDs` / `Get{表}` / `GetAll{表}` / `Clear{表}`；`PreloadAll` / `ClearAll` 由 `ConfigManager.Preload.cs` 提供：
+
+```csharp
+ConfigManager.GetPlayerByID(1, row =>
+{
+    if (row != null)
+    {
+        int level = row.StartLv;
+    }
+});
+
+ConfigManager.GetPlayerByIDs(new[] { 1, 2 }, list =>
+{
+    // 任一 id 无效则整体回调 null 并 GameLog.Error
+});
+
+ConfigManager.GetRoleRune(dic =>
+{
+    if (dic == null) return;
+    foreach (var id in dic.Keys)
+    {
+        if (dic.TryGetValue(id, out var rune))
+        {
+            // 按需惰性反序列化
+        }
+    }
+});
+
+ConfigManager.GetAllRoleRune(
+    list =>
+    {
+        // 完成才交付完整 IReadOnlyList；小表同帧完成，>500 行分帧物化
+    },
+    (loaded, total) =>
+    {
+        // 可选进度回调
+    });
+
+ConfigManager.ClearRoleRune(); // 单表清理
+ConfigManager.PreloadAll(() => { });
+ConfigManager.ClearAll();
+```
+
+每表首次访问异步加载 bytes（YooAsset 地址 `Config_{表名}`，`TextAsset`）；行对象按 ID 惰性创建。可选 `ConfigManager.PreloadAll` 预热，`ConfigManager.ClearAll` 清理全部表缓存。
+
+补充约定：
+
+- bytes 头部含 magic(CFGT)+schemaHash；加载时与生成代码中的 `SchemaHash` 校验，不匹配即报错，需重新导表；
+- 闲置超过 180s 会逐出解析层（Reader/行对象/字符串缓存），YooAsset handle 与 bytes 常驻，再次访问同帧秒回；
+- 不要长期缓存 `DictionaryForConfig`：逐出后字典失效，继续访问会 `GameLog.Error`，应重新走 `ConfigManager.Get{表}`；
+- `PreloadAll` 单表加载失败会 `GameLog.Error` 提示具体表名并继续，不阻塞整体完成回调。
+
+### 11.4 修改导表规则
+
+如果需求是支持新字段类型或新代码结构，应修改：
+
+```text
+Assets/Editor/MyTools/Config/
 ```
 
 这是 Editor 工具修改，不属于热更新业务脚本。修改后应使用小型测试表验证：
 
-- 字符串转义；
-- 小数点区域设置；
 - 空值；
-- 数组分隔符；
-- C# 关键字字段；
-- 重复 Index；
-- 多 Sheet；
-- 中文表名/字段名。
+- 中文 string；
+- 定长数组（Name1/Name2）；
+- 重复 Id；
+- 非法文件名；
+- int / int[] / float / float[] / string / string[]。
 
 ## 12. 使用平台存储
 
@@ -825,7 +995,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 | Editor | 转发 `SetLocalData` / `GetLocalData` |
 | 微信/抖音 | 转发 `CloudManager` 云缓存；写后异步上传 |
 
-云初始化失败后 Set 静默丢弃、Get 返回默认值。全量拉取用 `CloudManager.Instance.GetAllCloudData`。云函数/密钥约束见 `cloud-service` 规则。
+云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜拉取用 `CloudManager.Instance.GetAllCloudData(rankKey, callBack)`（按存档字段 `rankKey` 数值降序取前 100）。云函数/密钥约束见 `cloud-service` 规则。
 
 存档修改应考虑：
 
@@ -850,10 +1020,10 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 示例结构：
 
 ```csharp
-public void DoPlatformAction(Action<bool> callback)
+public void DoPlatformAction(Action<bool> callBack)
 {
 #if UNITY_EDITOR
-    callback?.Invoke(true);
+    callBack?.Invoke(true);
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
     // 微信实现

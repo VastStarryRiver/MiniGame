@@ -1,6 +1,6 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using TMPro;
 
 
 
@@ -8,11 +8,11 @@ namespace Invariable
 {
     public class MiniInputField : MonoBehaviour, IPointerClickHandler
     {
-        private TMP_InputField m_inputField;
+        private TMP_InputField m_inputField = null;
 
 
 
-        void Awake()
+        private void Awake()
         {
             m_inputField = GetComponent<TMP_InputField>();
         }

@@ -1,9 +1,6 @@
-using System;
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
-using UnityEngine.U2D;
 using Invariable;
+using System;
+using TMPro;
 
 
 
@@ -13,13 +10,16 @@ namespace HotUpdate
     {
         public TextMeshProUGUI m_textTitle;
         public TextMeshProUGUI m_textContent;
-        public TextMeshProUGUI m_textBtn1;
-        public TextMeshProUGUI m_textBtn2;
+        public TextMeshProUGUI m_text1;
+        public TextMeshProUGUI m_text2;
         public UIButton m_btn1;
         public UIButton m_btn2;
 
 
 
+        /// <summary>
+        /// 显示提示弹窗内容与按钮回调
+        /// </summary>
         public void ShowInfo(string content = "", string text1 = "", string text2 = "", Action callBack1 = null, Action callBack2 = null, string title = "")
         {
             if (string.IsNullOrEmpty(title))
@@ -37,7 +37,7 @@ namespace HotUpdate
             {
                 m_btn2.gameObject.SetActive(true);
 
-                m_textBtn2.text = text2;
+                m_text2.text = text2;
 
                 m_btn2.AddClickListener(() =>
                 {
@@ -50,7 +50,7 @@ namespace HotUpdate
                 m_btn2.gameObject.SetActive(false);
             }
 
-            m_textBtn1.text = text1;
+            m_text1.text = text1;
 
             m_btn1.AddClickListener(() =>
             {

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using YooAsset;
-using TMPro;
 
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
 using WeChatWASM;
@@ -22,7 +22,7 @@ namespace Invariable
     {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
         private WXRewardedVideoAd m_rewardedVideoAd = null;
-        private WXGameClubButton wXGameClubButton = null;
+        private WXGameClubButton m_wXGameClubButton = null;
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
         private TTRewardedVideoAd m_rewardedVideoAd = null;
@@ -37,6 +37,9 @@ namespace Invariable
 
 
         #region 初始化
+        /// <summary>
+        /// 初始化平台 SDK
+        /// </summary>
         public void InitSDK(Action callBack = null)
         {
 #if UNITY_EDITOR
@@ -62,6 +65,9 @@ namespace Invariable
         #endregion
 
         #region 登录
+        /// <summary>
+        /// 平台登录并返回授权 code
+        /// </summary>
         public Task<string> PlatformLogin()
         {
 #if UNITY_EDITOR
@@ -75,7 +81,7 @@ namespace Invariable
                 success = res => tcs.TrySetResult(res.code),
                 fail = err =>
                 {
-                    Debug.LogError($"微信登录失败: {err.errMsg}");
+                    GameLog.Error($"微信登录失败: {err.errMsg}");
                     tcs.TrySetResult(null);
                 }
             });
@@ -90,7 +96,7 @@ namespace Invariable
                 tcs.TrySetResult(code);
             }, err =>
             {
-                Debug.LogError($"抖音登录失败: {err}");
+                GameLog.Error($"抖音登录失败: {err}");
                 tcs.TrySetResult(null);
             }, true);
 
@@ -100,6 +106,9 @@ namespace Invariable
         #endregion
 
         #region 游戏生命周期事件监听
+        /// <summary>
+        /// 注册应用回到前台监听
+        /// </summary>
         private void AddOnShowListener()
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
@@ -118,12 +127,15 @@ namespace Invariable
 
                 if (launchFrom == "homepage" && location == "sidebar_card")
                 {
-                    Debug.Log("侧边栏复访");
+                    GameLog.Info("侧边栏复访");
                 }
             };
 #endif
         }
 
+        /// <summary>
+        /// 注册小游戏热更新检查监听
+        /// </summary>
         private void AddGameUpdateListener()
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
@@ -133,13 +145,13 @@ namespace Invariable
             {
                 if (result.hasUpdate)
                 {
-                    Debug.Log("有新版本发布了！");
+                    GameLog.Info("有新版本发布了！");
                 }
             });
 
             wXUpdateManager.OnUpdateReady((result) =>
             {
-                Debug.Log("重启游戏应用新版本！");
+                GameLog.Info("重启游戏应用新版本！");
                 wXUpdateManager.ApplyUpdate();
             });
 
@@ -150,13 +162,13 @@ namespace Invariable
             {
                 if (result.HasUpdate)
                 {
-                    Debug.Log("有新版本发布了！");
+                    GameLog.Info("有新版本发布了！");
                 }
             });
 
             tTUpdateManager.OnUpdateReady(() =>
             {
-                Debug.Log("重启游戏应用新版本！");
+                GameLog.Info("重启游戏应用新版本！");
                 tTUpdateManager.ApplyUpdate(new ApplyUpdateParams());
             });
 #endif
@@ -164,6 +176,9 @@ namespace Invariable
         #endregion
 
         #region 数据存储
+        /// <summary>
+        /// 写入本地存储
+        /// </summary>
         public void SetLocalData(string key, string data)
         {
 #if UNITY_EDITOR
@@ -177,6 +192,9 @@ namespace Invariable
 #endif
         }
 
+        /// <summary>
+        /// 读取本地存储
+        /// </summary>
         public string GetLocalData(string key, string defaultValue = "")
         {
             string data = "";
@@ -199,6 +217,9 @@ namespace Invariable
             return data;
         }
 
+        /// <summary>
+        /// 写入云端缓存（编辑器回退本地存储）
+        /// </summary>
         public void SetCloudData(string key, string data)
         {
 #if UNITY_EDITOR
@@ -208,6 +229,9 @@ namespace Invariable
 #endif
         }
 
+        /// <summary>
+        /// 读取云端缓存（编辑器回退本地存储）
+        /// </summary>
         public string GetCloudData(string key, string defaultValue = "")
         {
 #if UNITY_EDITOR
@@ -219,14 +243,17 @@ namespace Invariable
         #endregion
 
         #region 输入框
-        public void ShowKeyboard(TMP_InputField InputField)
+        /// <summary>
+        /// 显示平台原生键盘并绑定输入框
+        /// </summary>
+        public void ShowKeyboard(TMP_InputField inputField)
         {
             if (m_isKeyboardShowing)
             {
                 return;
             }
 
-            m_inputField = InputField;
+            m_inputField = inputField;
 
             m_isKeyboardShowing = true;
 
@@ -256,6 +283,9 @@ namespace Invariable
 #endif
         }
 
+        /// <summary>
+        /// 隐藏平台原生键盘并移除监听
+        /// </summary>
         private void HideKeyboard()
         {
             if (!m_isKeyboardShowing)
@@ -267,45 +297,72 @@ namespace Invariable
             WX.OffKeyboardInput(KeyboardInput);
             WX.OffKeyboardConfirm(KeyboardConfirm);
             WX.OffKeyboardComplete(KeyboardComplete);
-            WX.HideKeyboard(new HideKeyboardOption() { success = (data) => { m_isKeyboardShowing = false; } });
+            WX.HideKeyboard(new HideKeyboardOption()
+            {
+                success = (data) =>
+                {
+                    m_isKeyboardShowing = false;
+                }
+            });
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
             TT.OnKeyboardInput -= KeyboardInput;
             TT.OnKeyboardConfirm -= KeyboardConfirm;
             TT.OnKeyboardComplete -= KeyboardComplete;
-            TT.HideKeyboard(() => { m_isKeyboardShowing = false; });
+            TT.HideKeyboard(() =>
+            {
+                m_isKeyboardShowing = false;
+            });
 #endif
         }
 
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+        /// <summary>
+        /// 微信键盘输入回调
+        /// </summary>
         private void KeyboardInput(OnKeyboardInputListenerResult result)
         {
             m_inputField.text = result.value;
         }
 
+        /// <summary>
+        /// 微信键盘确认回调
+        /// </summary>
         private void KeyboardConfirm(OnKeyboardInputListenerResult result)
         {
             m_inputField.text = result.value;
             HideKeyboard();
         }
 
+        /// <summary>
+        /// 微信键盘完成回调
+        /// </summary>
         private void KeyboardComplete(OnKeyboardInputListenerResult result)
         {
             HideKeyboard();
         }
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+        /// <summary>
+        /// 抖音键盘输入回调
+        /// </summary>
         private void KeyboardInput(string result)
         {
             m_inputField.text = result;
         }
 
+        /// <summary>
+        /// 抖音键盘确认回调
+        /// </summary>
         private void KeyboardConfirm(string result)
         {
             m_inputField.text = result;
             HideKeyboard();
         }
 
+        /// <summary>
+        /// 抖音键盘完成回调
+        /// </summary>
         private void KeyboardComplete(string result)
         {
             HideKeyboard();
@@ -314,6 +371,9 @@ namespace Invariable
         #endregion
 
         #region 屏幕适配
+        /// <summary>
+        /// 注册屏幕适配器并开启方向变化监听
+        /// </summary>
         public void AddScreenAdapter(ScreenAdapter screenAdapter)
         {
             m_screenAdapters ??= new List<ScreenAdapter>();
@@ -336,6 +396,9 @@ namespace Invariable
             DeviceOrientationChange(screenAdapter);
         }
 
+        /// <summary>
+        /// 移除屏幕适配器，无剩余时关闭方向变化监听
+        /// </summary>
         public void RemoveScreenAdapter(ScreenAdapter screenAdapter)
         {
             if (m_screenAdapters.Contains(screenAdapter))
@@ -354,6 +417,9 @@ namespace Invariable
             }
         }
 
+        /// <summary>
+        /// 按安全区刷新屏幕适配器锚点
+        /// </summary>
         public void DeviceOrientationChange(ScreenAdapter screenAdapter = null)
         {
             if (screenAdapter != null)
@@ -387,12 +453,18 @@ namespace Invariable
         }
 
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+        /// <summary>
+        /// 微信设备方向变化回调
+        /// </summary>
         private void DeviceOrientationChange(OnDeviceOrientationChangeListenerResult result)
         {
             DeviceOrientationChange();
         }
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+        /// <summary>
+        /// 抖音设备方向变化回调
+        /// </summary>
         private void DeviceOrientationChange(OnDeviceOrientationChangeResult result)
         {
             DeviceOrientationChange();
@@ -401,6 +473,9 @@ namespace Invariable
         #endregion
 
         #region 广告
+        /// <summary>
+        /// 展示激励视频广告
+        /// </summary>
         public void ShowRewardedVideoAd(Action<bool> callBack = null)
         {
             m_rewardedVideoAdCallBack = callBack;
@@ -409,8 +484,6 @@ namespace Invariable
             m_rewardedVideoAdCallBack?.Invoke(true);
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-            string adUnitId = "";
-
             if (m_rewardedVideoAd != null)
             {
                 m_rewardedVideoAd.Show();
@@ -419,11 +492,12 @@ namespace Invariable
 
             m_rewardedVideoAd = WX.CreateRewardedVideoAd(new WXCreateRewardedVideoAdParam
             {
-                adUnitId = adUnitId
+                adUnitId = InvariableConst.RewardedVideoAdUnitId
             });
 
             m_isShowRewardedVideoAd = true;
-            m_rewardedVideoAd.OnLoad((res) => {
+            m_rewardedVideoAd.OnLoad((res) =>
+            {
                 if (m_isShowRewardedVideoAd)
                 {
                     m_isShowRewardedVideoAd = false;
@@ -431,17 +505,17 @@ namespace Invariable
                 }
             });
 
-            m_rewardedVideoAd.OnError((res) => {
-                Debug.LogError($"激励视频广告错误: {res.errMsg}");
+            m_rewardedVideoAd.OnError((res) =>
+            {
+                GameLog.Error($"激励视频广告错误: {res.errMsg}");
             });
 
-            m_rewardedVideoAd.OnClose((res) => {
+            m_rewardedVideoAd.OnClose((res) =>
+            {
                 m_rewardedVideoAdCallBack?.Invoke(res != null && res.isEnded);
             });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
-            string adUnitId = "";
-
             if (m_rewardedVideoAd != null)
             {
                 m_rewardedVideoAd.Show();
@@ -450,11 +524,12 @@ namespace Invariable
 
             m_rewardedVideoAd = TT.CreateRewardedVideoAd(new CreateRewardedVideoAdParam
             {
-                AdUnitId = adUnitId
+                AdUnitId = InvariableConst.RewardedVideoAdUnitId
             });
 
             m_isShowRewardedVideoAd = true;
-            m_rewardedVideoAd.OnLoad += () => {
+            m_rewardedVideoAd.OnLoad += () =>
+            {
                 if (m_isShowRewardedVideoAd)
                 {
                     m_isShowRewardedVideoAd = false;
@@ -462,11 +537,13 @@ namespace Invariable
                 }
             };
 
-            m_rewardedVideoAd.OnError += (code, message) => {
-                Debug.LogError($"激励视频广告错误: {message}");
+            m_rewardedVideoAd.OnError += (code, message) =>
+            {
+                GameLog.Error($"激励视频广告错误: {message}");
             };
 
-            m_rewardedVideoAd.OnClose += (isEnded, count) => {
+            m_rewardedVideoAd.OnClose += (isEnded, count) =>
+            {
                 m_rewardedVideoAdCallBack?.Invoke(isEnded);
             };
 #endif
@@ -474,13 +551,16 @@ namespace Invariable
         #endregion
 
         #region 侧边栏复访
+        /// <summary>
+        /// 打开平台侧边栏复访入口
+        /// </summary>
         public void ShowSidebar()
         {
 #if UNITY_EDITOR
-            Debug.Log("展示侧边栏");
+            GameLog.Info("展示侧边栏");
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-            Debug.Log("展示侧边栏");
+            GameLog.Info("展示侧边栏");
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
             TT.CheckScene(TTSideBar.SceneEnum.SideBar, (isJump) =>
@@ -503,18 +583,21 @@ namespace Invariable
         #endregion
 
         #region 游戏圈
+        /// <summary>
+        /// 展示微信游戏圈按钮
+        /// </summary>
         public void ShowGameClubButton(Rect rect = default, float fontSize = 0)
         {
 #if UNITY_EDITOR
-            Debug.Log("展示游戏圈按钮");
+            GameLog.Info("展示游戏圈按钮");
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-            if (wXGameClubButton == null)
+            if (m_wXGameClubButton == null)
             {
                 var info = WX.GetWindowInfo();
                 double pixelRatio = info.pixelRatio;
 
-                wXGameClubButton = WX.CreateGameClubButton(new WXCreateGameClubButtonParam()
+                m_wXGameClubButton = WX.CreateGameClubButton(new WXCreateGameClubButtonParam()
                 {
                     type = GameClubButtonType.text,
                     text = "",
@@ -544,38 +627,44 @@ namespace Invariable
             }
             else
             {
-                wXGameClubButton.Show();
+                m_wXGameClubButton.Show();
             }
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
-            Debug.Log("展示游戏圈按钮");
+            GameLog.Info("展示游戏圈按钮");
 #endif
         }
 
+        /// <summary>
+        /// 隐藏微信游戏圈按钮
+        /// </summary>
         public void HideGameClubButton()
         {
 #if UNITY_EDITOR
-            Debug.Log("隐藏游戏圈按钮");
+            GameLog.Info("隐藏游戏圈按钮");
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-            if (wXGameClubButton == null)
+            if (m_wXGameClubButton == null)
             {
                 return;
             }
 
-            wXGameClubButton.Hide();
+            m_wXGameClubButton.Hide();
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
-            Debug.Log("隐藏游戏圈按钮");
+            GameLog.Info("隐藏游戏圈按钮");
 #endif
         }
         #endregion
 
         #region 分享
+        /// <summary>
+        /// 调用平台分享
+        /// </summary>
         public void Share(string desc)
         {
 #if UNITY_EDITOR
-            Debug.Log("分享");
+            GameLog.Info("分享");
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
             WX.ShareAppMessage(new ShareAppMessageOption
@@ -588,7 +677,7 @@ namespace Invariable
 #elif MINIGAME_SUBPLATFORM_DOUYIN
             var data = new JsonData
             {
-                ["title"] = "游戏名称", // 小游戏名称固定写上去
+                ["title"] = InvariableConst.ShareGameTitle, // 小游戏名称固定写上去
                 ["desc"] = desc, // 自定义文本
                 ["imageUrl"] = "",
                 ["query"] = ""
@@ -596,19 +685,22 @@ namespace Invariable
 
             TT.ShareAppMessage(data, () =>
             {
-                Debug.Log("分享成功");
+                GameLog.Info("分享成功");
             }, (errMsg) =>
             {
-                Debug.LogError($"分享失败: {errMsg}");
+                GameLog.Error($"分享失败: {errMsg}");
             }, () =>
             {
-                Debug.Log("分享取消");
+                GameLog.Info("分享取消");
             });
 #endif
         }
         #endregion
 
         #region 环境
+        /// <summary>
+        /// 当前是否微信小游戏运行时
+        /// </summary>
         public bool IsWeChat()
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
@@ -618,6 +710,9 @@ namespace Invariable
 #endif
         }
 
+        /// <summary>
+        /// 当前是否抖音小游戏运行时
+        /// </summary>
         public bool IsDouYin()
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
@@ -629,6 +724,9 @@ namespace Invariable
         #endregion
 
         #region YooAsset
+        /// <summary>
+        /// 按平台配置 YooAsset WebPlayMode 文件系统参数
+        /// </summary>
         public void InitializeYooAsset(ref WebPlayModeParameters createParameters, RemoteServices remoteServices)
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN

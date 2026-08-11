@@ -7,33 +7,40 @@ namespace Invariable
 {
     public class Rocker : MonoBehaviour
     {
-        public RectTransform parent = null;
-        public RectTransform handle = null;
+        private RectTransform m_tsParent;
+        public RectTransform m_tsHandle;
 
-        private bool isSetCurrPos = false;
-
-        private Action m_upFunc = null;
-        private Action m_downFunc = null;
-        private Action m_leftFunc = null;
-        private Action m_rightFunc = null;
-        private Action m_moveFunc = null;
+        private bool m_isSetCurrPos;
+        private Action<Vector2> m_moveFunc = null;
         private Action m_stayFunc = null;
+        private float m_radius = 0f;
+
+
 
         private void Awake()
         {
-            parent = GetComponent<RectTransform>();
+            m_tsParent = GetComponent<RectTransform>();
+            m_radius = m_tsParent.rect.width * 0.5f;
+
+            if (m_radius <= 0f)
+            {
+                m_radius = 100f;
+            }
         }
 
         private void Update()
         {
-            if (handle == null || handle.parent != transform)
+            if (m_tsHandle == null || m_tsHandle.parent != transform)
             {
                 return;
             }
             else if (!Input.GetMouseButton(0) && Input.touchCount <= 0)
             {
+                ResetHandle();
+                m_moveFunc?.Invoke(Vector2.zero);
                 gameObject.SetActive(false);
-                isSetCurrPos = false;
+                m_isSetCurrPos = false;
+
                 return;
             }
 
@@ -50,73 +57,62 @@ namespace Invariable
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(Utils.UIRoot, point, Utils.UICamera[0], out point);
 
-            if (!isSetCurrPos)
+            if (!m_isSetCurrPos)
             {
-                isSetCurrPos = true;
-                parent.anchoredPosition = point;
+                m_isSetCurrPos = true;
+                m_tsParent.anchoredPosition = point;
                 gameObject.SetActive(true);
             }
 
-            Vector2 moveDir = point - parent.anchoredPosition;
+            Vector2 moveDir = point - m_tsParent.anchoredPosition;
+            Vector2 clamped = Vector2.ClampMagnitude(moveDir, m_radius);
+            m_tsHandle.anchoredPosition = clamped;
 
-            if (moveDir.x > 0)
-            {
-                m_rightFunc?.Invoke();
-            }
-
-            if (moveDir.x < 0)
-            {
-                m_leftFunc?.Invoke();
-            }
-
-            if (moveDir.y > 0)
-            {
-                m_upFunc?.Invoke();
-            }
-
-            if (moveDir.y < 0)
-            {
-                m_downFunc?.Invoke();
-            }
-
-            if (moveDir == Vector2.zero)
+            if (clamped == Vector2.zero)
             {
                 m_stayFunc?.Invoke();
+                m_moveFunc?.Invoke(Vector2.zero);
             }
             else
             {
-                m_moveFunc?.Invoke();
+                float strength = clamped.magnitude / m_radius;
+                m_moveFunc?.Invoke(clamped.normalized * strength);
             }
         }
 
-        public void SetUpMoveFunc(Action func)
+        private void OnDisable()
         {
-            m_upFunc = func;
+            ResetHandle();
+            m_isSetCurrPos = false;
         }
 
-        public void SetDownMoveFunc(Action func)
+
+
+        /// <summary>
+        /// 设置摇杆移动回调（方向归一化 × 力度 0~1）
+        /// </summary>
+        public void SetMoveFunc(Action<Vector2> callBack)
         {
-            m_downFunc = func;
+            m_moveFunc = callBack;
         }
 
-        public void SetLeftMoveFunc(Action func)
+        /// <summary>
+        /// 设置摇杆静止回调
+        /// </summary>
+        public void SetStayFunc(Action callBack)
         {
-            m_leftFunc = func;
+            m_stayFunc = callBack;
         }
 
-        public void SetRightMoveFunc(Action func)
+        /// <summary>
+        /// 手柄视觉回中（不触发移动回调）
+        /// </summary>
+        private void ResetHandle()
         {
-            m_rightFunc = func;
-        }
-
-        public void SetMoveFunc(Action func)
-        {
-            m_moveFunc = func;
-        }
-
-        public void SetStayFunc(Action func)
-        {
-            m_stayFunc = func;
+            if (m_tsHandle != null)
+            {
+                m_tsHandle.anchoredPosition = Vector2.zero;
+            }
         }
     }
 }

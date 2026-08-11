@@ -1,9 +1,9 @@
-﻿using System;
+using Invariable;
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Profile;
 using UnityEngine;
-using Invariable;
 
 #if MINIGAME_SUBPLATFORM_WEIXIN
 using WeChatWASM;
@@ -18,10 +18,13 @@ namespace MyTools
 {
     public class CustomBuildScript
     {
+        /// <summary>
+        /// 打包微信小游戏
+        /// </summary>
         [MenuItem("VastStarryRiver/打包/打包微信小游戏", false, 30)]
         public static void PackageProject_WeiXin()
         {
-            string path = $"{ConfigUtils.m_miniBuildPath}/WeChat";
+            string path = $"{ConfigUtils.MiniBuildPath}/WeChat";
 
             if (Directory.Exists(path))
             {
@@ -37,17 +40,20 @@ namespace MyTools
                 {
                     if (!string.IsNullOrEmpty(WXConvertCore.FirstBundlePath) && File.Exists(WXConvertCore.FirstBundlePath))
                     {
-                        Debug.Log("微信小游戏构建完成！");
+                        GameLog.Info("微信小游戏构建完成！");
                     }
                     else
                     {
-                        Debug.LogError("微信小游戏构建失败");
+                        GameLog.Error("微信小游戏构建失败");
                     }
                 }
             }
 #endif
         }
 
+        /// <summary>
+        /// 微信小游戏菜单是否可用
+        /// </summary>
         [MenuItem("VastStarryRiver/打包/打包微信小游戏", true, 30)]
         public static bool PackageProject_WeiXin_Enable()
         {
@@ -58,10 +64,13 @@ namespace MyTools
 #endif
         }
 
+        /// <summary>
+        /// 打包抖音小游戏
+        /// </summary>
         [MenuItem("VastStarryRiver/打包/打包抖音小游戏", false, 31)]
         public static void PackageProject_DouYin()
         {
-            string path = $"{ConfigUtils.m_miniBuildPath}/DouYin";
+            string path = $"{ConfigUtils.MiniBuildPath}/DouYin";
 
             if (Directory.Exists(path))
             {
@@ -77,6 +86,9 @@ namespace MyTools
 #endif
         }
 
+        /// <summary>
+        /// 抖音小游戏菜单是否可用
+        /// </summary>
         [MenuItem("VastStarryRiver/打包/打包抖音小游戏", true, 31)]
         public static bool PackageProject_DouYin_Enable()
         {
@@ -87,10 +99,13 @@ namespace MyTools
 #endif
         }
 
+        /// <summary>
+        /// 复制最新 bundle 到 CDN 目录
+        /// </summary>
         [MenuItem("VastStarryRiver/打包/复制bundle到CDN目录", false, 32)]
-        public static void MoveBundleFileToCND()
+        public static void MoveBundleFileToCDN()
         {
-            string path2 = ConfigUtils.m_cdnPath + "/yoo";
+            string path2 = ConfigUtils.CdnPath + "/yoo";
 
             if (Directory.Exists(path2))
             {
@@ -110,24 +125,27 @@ namespace MyTools
 
             FileInfo[] fileInfos = directoryInfo.GetFiles();
 
-            foreach (var item in fileInfos)
+            foreach (FileInfo item in fileInfos)
             {
                 string sourceFilePath = item.FullName.Replace("\\", "/");
-                string targetFilePath = path2 + "/" + Path.GetFileName(sourceFilePath);
+                string targetFilePath = $"{path2}/{Path.GetFileName(sourceFilePath)}";
                 File.Copy(sourceFilePath, targetFilePath);
             }
         }
 
+        /// <summary>
+        /// 复制 unityweb.bin 到 CDN 目录
+        /// </summary>
         [MenuItem("VastStarryRiver/打包/复制unityweb.bin到CDN目录", false, 33)]
-        public static void MoveCodeFileToCND()
+        public static void MoveCodeFileToCDN()
         {
             string path = "";
 
 #if MINIGAME_SUBPLATFORM_WEIXIN
-            path = $"{ConfigUtils.m_miniBuildPath}/WeChat/webgl";
+            path = $"{ConfigUtils.MiniBuildPath}/WeChat/webgl";
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
-            path = $"{ConfigUtils.m_miniBuildPath}/DouYin/webgl";
+            path = $"{ConfigUtils.MiniBuildPath}/DouYin/webgl";
 #endif
 
             if (!Directory.Exists(path))
@@ -139,7 +157,7 @@ namespace MyTools
 
             FileInfo[] fileInfos = directoryInfo.GetFiles();
 
-            foreach (var item in fileInfos)
+            foreach (FileInfo item in fileInfos)
             {
                 if (!item.FullName.Contains(".webgl.data.unityweb.bin.br") && !item.FullName.Contains(".webgl.data.unityweb.bin.txt"))
                 {
@@ -147,7 +165,7 @@ namespace MyTools
                 }
 
                 string sourceFilePath = item.FullName.Replace("\\", "/");
-                string targetFilePath = ConfigUtils.m_cdnPath + "/" + Path.GetFileName(sourceFilePath);
+                string targetFilePath = $"{ConfigUtils.CdnPath}/{Path.GetFileName(sourceFilePath)}";
                 File.Copy(sourceFilePath, targetFilePath);
 
                 break;

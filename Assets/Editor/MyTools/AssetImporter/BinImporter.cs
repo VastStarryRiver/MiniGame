@@ -1,7 +1,7 @@
+using Invariable;
 using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEngine;
-using Invariable;
 
 
 
@@ -14,7 +14,7 @@ namespace MyTools
         {
             byte[] bytes = File.ReadAllBytes(ctx.assetPath);
             BinAsset asset = ScriptableObject.CreateInstance<BinAsset>();
-            asset.bytes = bytes;
+            asset.m_bytes = bytes;
             ctx.AddObjectToAsset("main obj", asset);
             ctx.SetMainObject(asset);
         }

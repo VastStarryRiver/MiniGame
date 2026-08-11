@@ -1,8 +1,9 @@
-﻿using System.IO;
-using System.Text;
+using System;
+using System.IO;
 using System.IO.Compression;
-using System.Security.Cryptography;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
 
 
@@ -12,21 +13,23 @@ namespace Invariable
     public class ConfigUtils
     {
 #if UNITY_EDITOR
-        public static string m_localRootPath = Application.streamingAssetsPath.Replace("Assets/StreamingAssets", "");//本地数据根目录
+        public static string m_localRootPath = Application.streamingAssetsPath.Replace("Assets/StreamingAssets", ""); // 本地数据根目录
 #else
         public static string m_localRootPath = Application.persistentDataPath + "/";
 #endif
 
         private static string[] m_webData = null;
-        private const string m_key = "95gbt368426hyb13";
-        private const string m_iv = "i8g3451h5cxmj6rf";
-        public readonly static string m_configExcelPath = m_localRootPath + "Excel";
-        public readonly static string m_configCsPath = m_localRootPath + "Assets/Scripts/HotUpdate/Config";
-        public readonly static string m_localResourcePath = m_localRootPath + "Assets/Resources/LocalAssets";
-        public readonly static string m_keystorePath = m_localRootPath + "SpectraAbyss.keystore";
-        public readonly static string m_hotUpdateDllPath = m_localRootPath + "Assets/GameAssets/DLL";
-        public readonly static string m_cdnPath = m_localRootPath + "CDN";
-        public readonly static string m_miniBuildPath = m_localRootPath + "Build";
+        private const string Key = "95gbt368426hyb13";
+        private const string Iv = "i8g3451h5cxmj6rf";
+        private static readonly byte[] KeyBytes = Encoding.UTF8.GetBytes(Key);
+        private static readonly byte[] IvBytes = Encoding.UTF8.GetBytes(Iv);
+        private static readonly byte[] SafeFileV2Magic = { (byte)'S', (byte)'F', (byte)'V', (byte)'2' };
+
+        public static readonly string ConfigExcelPath = m_localRootPath + "Excel";
+        public static readonly string LocalResourcePath = m_localRootPath + "Assets/Resources/LocalAssets";
+        public static readonly string HotUpdateDllPath = m_localRootPath + "Assets/GameAssets/DLL";
+        public static readonly string CdnPath = m_localRootPath + "CDN";
+        public static readonly string MiniBuildPath = m_localRootPath + "Build";
 
         /// <summary>
         /// CDN地址
@@ -54,6 +57,7 @@ namespace Invariable
                 }
 
                 string[] list = data.Split(":");
+
                 return list[0];
             }
         }
@@ -73,6 +77,7 @@ namespace Invariable
                 }
 
                 string[] list = data.Split(":");
+
                 return int.Parse(list[1]);
             }
         }
@@ -101,6 +106,9 @@ namespace Invariable
 
 
 
+        /// <summary>
+        /// 读取文件全部字节
+        /// </summary>
         public static byte[] ReadFileByteData(string path)
         {
             byte[] byteData = null;
@@ -117,6 +125,9 @@ namespace Invariable
             return byteData;
         }
 
+        /// <summary>
+        /// 按字节数组创建文件
+        /// </summary>
         public static void CreateFileByBytes(string path, byte[] inputBytes)
         {
             InitDirectory(path);
@@ -130,6 +141,9 @@ namespace Invariable
             }
         }
 
+        /// <summary>
+        /// 将对象序列化为字节数组
+        /// </summary>
         public static byte[] SerializeData(object data)
         {
             byte[] serializeBytes = null;
@@ -146,6 +160,9 @@ namespace Invariable
             return serializeBytes;
         }
 
+        /// <summary>
+        /// 将字节数组反序列化为对象
+        /// </summary>
         public static T Deserialize<T>(byte[] inputBytes)
         {
             T result = default(T);
@@ -160,6 +177,9 @@ namespace Invariable
             return result;
         }
 
+        /// <summary>
+        /// GZip 压缩字节数组
+        /// </summary>
         public static byte[] CompressByteData(byte[] inputBytes)
         {
             byte[] compressBytes = null;
@@ -177,6 +197,9 @@ namespace Invariable
             return compressBytes;
         }
 
+        /// <summary>
+        /// GZip 解压字节数组
+        /// </summary>
         public static byte[] DecompressByteData(byte[] inputBytes)
         {
             byte[] decompressedBytes = null;
@@ -196,6 +219,9 @@ namespace Invariable
             return decompressedBytes;
         }
 
+        /// <summary>
+        /// AES 加密字节数组
+        /// </summary>
         public static byte[] EncryptByteData(byte[] inputBytes, byte[] key, byte[] iv)
         {
             byte[] encryptBytes = null;
@@ -212,7 +238,7 @@ namespace Invariable
                         using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
                         {
                             cryptoStream.Write(inputBytes, 0, inputBytes.Length);
-                            cryptoStream.FlushFinalBlock();//加密会将最后一个数据块填充为满块(需要)，解密会删除填充的数据块(不需要)
+                            cryptoStream.FlushFinalBlock(); // 加密会将最后一个数据块填充为满块(需要)，解密会删除填充的数据块(不需要)
                         }
 
                         encryptBytes = memoryStream.ToArray();
@@ -223,6 +249,9 @@ namespace Invariable
             return encryptBytes;
         }
 
+        /// <summary>
+        /// AES 解密字节数组
+        /// </summary>
         public static byte[] DecryptByteData(byte[] inputBytes, byte[] key, byte[] iv)
         {
             byte[] decryptBytes = null;
@@ -252,6 +281,9 @@ namespace Invariable
             return decryptBytes;
         }
 
+        /// <summary>
+        /// 序列化、压缩、加密后保存安全文件（byte[] 走 v2 直存，其他类型走旧 BinaryFormatter）
+        /// </summary>
         public static void SaveSafeFile(object data, string filePath)
         {
             if (data == null)
@@ -259,34 +291,79 @@ namespace Invariable
                 return;
             }
 
-            byte[] inputBytes = SerializeData(data);
-            byte[] compressBytes = CompressByteData(inputBytes);
-            byte[] encryptBytes = EncryptByteData(compressBytes, Encoding.UTF8.GetBytes(m_key), Encoding.UTF8.GetBytes(m_iv));
+            byte[] payload;
+
+            if (data is byte[] rawBytes)
+            {
+                payload = new byte[SafeFileV2Magic.Length + rawBytes.Length];
+                Buffer.BlockCopy(SafeFileV2Magic, 0, payload, 0, SafeFileV2Magic.Length);
+                Buffer.BlockCopy(rawBytes, 0, payload, SafeFileV2Magic.Length, rawBytes.Length);
+            }
+            else
+            {
+                payload = SerializeData(data);
+            }
+
+            byte[] compressBytes = CompressByteData(payload);
+            byte[] encryptBytes = EncryptByteData(compressBytes, KeyBytes, IvBytes);
 
             CreateFileByBytes(filePath, encryptBytes);
         }
 
+        /// <summary>
+        /// 从路径读取并解密安全文件
+        /// </summary>
         public static T ReadSafeFile<T>(string path)
         {
             byte[] inputBytes = ReadFileByteData(path);
-            byte[] decryptBytes = DecryptByteData(inputBytes, Encoding.UTF8.GetBytes(m_key), Encoding.UTF8.GetBytes(m_iv));
-            byte[] decompressedBytes = DecompressByteData(decryptBytes);
 
-            T result = Deserialize<T>(decompressedBytes);
-
-            return result;
+            return ReadSafeFile<T>(inputBytes);
         }
 
+        /// <summary>
+        /// 从字节数组解密并反序列化安全文件（自动探测 v2 / 旧格式）
+        /// </summary>
         public static T ReadSafeFile<T>(byte[] inputBytes)
         {
-            byte[] decryptBytes = DecryptByteData(inputBytes, Encoding.UTF8.GetBytes(m_key), Encoding.UTF8.GetBytes(m_iv));
+            byte[] decryptBytes = DecryptByteData(inputBytes, KeyBytes, IvBytes);
             byte[] decompressedBytes = DecompressByteData(decryptBytes);
 
-            T result = Deserialize<T>(decompressedBytes);
+            if (typeof(T) == typeof(byte[]) && IsSafeFileV2(decompressedBytes))
+            {
+                int magicLength = SafeFileV2Magic.Length;
+                byte[] resultBytes = new byte[decompressedBytes.Length - magicLength];
+                Buffer.BlockCopy(decompressedBytes, magicLength, resultBytes, 0, resultBytes.Length);
 
-            return result;
+                return (T)(object)resultBytes;
+            }
+
+            return Deserialize<T>(decompressedBytes);
         }
 
+        /// <summary>
+        /// 判断解压后载荷是否为安全文件 v2
+        /// </summary>
+        private static bool IsSafeFileV2(byte[] data)
+        {
+            if (data == null || data.Length < SafeFileV2Magic.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < SafeFileV2Magic.Length; i++)
+            {
+                if (data[i] != SafeFileV2Magic[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 将字节大小格式化为可读字符串
+        /// </summary>
         public static string FormatFileByteSize(long bytes)
         {
             string[] units = { "B", "KB", "MB", "G", "T" };
@@ -302,6 +379,9 @@ namespace Invariable
             return $"{size:0.##} {units[unitIndex]}";
         }
 
+        /// <summary>
+        /// 确保路径对应目录存在
+        /// </summary>
         public static void InitDirectory(string path)
         {
             path = path.Replace("\\", "/");
@@ -321,11 +401,24 @@ namespace Invariable
 
             if (!Directory.Exists(directoryPath))
             {
-                //确保路径中的所有文件夹都存在
+                // 确保路径中的所有文件夹都存在
                 Directory.CreateDirectory(directoryPath);
             }
         }
 
+        /// <summary>
+        /// 设置 Web 配置数据
+        /// </summary>
+        public static void SetWebData(string[] webData)
+        {
+            m_webData = webData;
+        }
+
+
+
+        /// <summary>
+        /// 按索引读取 Web 配置项
+        /// </summary>
         private static string GetWebData(int index)
         {
             if (m_webData == null || index >= m_webData.Length)
@@ -334,12 +427,8 @@ namespace Invariable
             }
 
             string text = m_webData[index].Replace("\r", "");
-            return text;
-        }
 
-        public static void SetWebData(string[] webData)
-        {
-            m_webData = webData;
+            return text;
         }
     }
 }

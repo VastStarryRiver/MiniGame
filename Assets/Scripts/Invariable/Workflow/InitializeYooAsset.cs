@@ -1,5 +1,5 @@
-using YooAsset;
 using System.Collections;
+using YooAsset;
 
 
 
@@ -7,7 +7,9 @@ namespace Invariable
 {
     public class InitializeYooAsset : IStateNode
     {
-        private StateMachine m_machine;
+        private StateMachine m_machine = null;
+
+
 
         public void OnCreate(StateMachine machine)
         {
@@ -19,15 +21,15 @@ namespace Invariable
             InitializeSystem();
         }
 
-        public void OnExit()
-        {
-
-        }
-
         public void OnUpdate()
         {
-
         }
+
+        public void OnExit()
+        {
+        }
+
+
 
         /// <summary>
         /// 初始化YooAsset资源管理系统
@@ -37,18 +39,19 @@ namespace Invariable
             if (YooAssets.Initialized)
             {
                 m_machine.ChangeState<HotUpdateOver>();
+
                 return;
             }
 
             YooAssetManager.Instance.SetWebInfo();
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "游戏加载中...");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "游戏加载中...");
 
             YooAssets.Initialize();
 
             YooAssets.SetOperationSystemMaxTimeSlice(1000);
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "游戏加载完成");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "游戏加载完成");
 
             ResourcePackage package = YooAssetManager.Instance.Package;
 
@@ -58,9 +61,10 @@ namespace Invariable
         /// <summary>
         /// 初始化Package
         /// </summary>
+        /// <param name="package">资源包</param>
         private IEnumerator InitializePackage(ResourcePackage package)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "资源加载中...");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "资源加载中...");
 
             EPlayMode playMode = (EPlayMode)m_machine.GetBlackboardValue("EPlayMode");
 
@@ -68,9 +72,9 @@ namespace Invariable
 
             if (playMode == EPlayMode.EditorSimulateMode)
             {
-                var buildResult = EditorSimulateModeHelper.SimulateBuild(YooAssetManager.Instance.PackageName);
-                var packageRoot = buildResult.PackageRootDirectory;
-                var fileSystemParams = FileSystemParameters.CreateDefaultEditorFileSystemParameters(packageRoot);
+                PackageInvokeBuildResult buildResult = EditorSimulateModeHelper.SimulateBuild(YooAssetManager.Instance.PackageName);
+                string packageRoot = buildResult.PackageRootDirectory;
+                FileSystemParameters fileSystemParams = FileSystemParameters.CreateDefaultEditorFileSystemParameters(packageRoot);
 
                 EditorSimulateModeParameters createParameters = new EditorSimulateModeParameters();
                 createParameters.EditorFileSystemParameters = fileSystemParams;
@@ -94,12 +98,12 @@ namespace Invariable
 
             if (initOperation.Status == EOperationStatus.Succeed)
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "资源加载完成");
+                GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "资源加载完成");
                 m_machine.ChangeState<CheckCatalogUpdate>();
             }
             else
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "资源加载失败，请检查网络后重启游戏");
+                GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "资源加载失败，请检查网络后重启游戏");
             }
         }
     }

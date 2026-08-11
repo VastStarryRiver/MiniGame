@@ -1,6 +1,6 @@
-using UnityEngine;
-using Invariable;
 using DG.Tweening;
+using Invariable;
+using UnityEngine;
 
 
 
@@ -15,7 +15,7 @@ namespace HotUpdate
 
         private void Awake()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_StartGame"); // 销毁热更新面板
+            GameManager.Instance.InvokeEventCallBack<object>(InvariableConst.Event_Launcher_StartGame, null); // 销毁热更新面板
         }
 
         private void Start()
@@ -32,7 +32,7 @@ namespace HotUpdate
         /// </summary>
         private void PlayBGM()
         {
-            AudioManager.Instance.PlayAudio("bgm", true);
+            AudioManager.Instance.PlayBGM("bgm");
         }
 
         /// <summary>
@@ -40,9 +40,9 @@ namespace HotUpdate
         /// </summary>
         private void PlayBtnAnim()
         {
-            m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetEase(Ease.InSine).OnComplete(() =>
+            m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetTarget(m_tsPlay).SetEase(Ease.InSine).OnComplete(() =>
             {
-                m_tsPlay.DOAnchorPos(new Vector2(0, -500), 1f).SetEase(Ease.OutSine);
+                m_tsPlay.DOAnchorPos(new Vector2(0, -500), 1f).SetTarget(m_tsPlay).SetEase(Ease.OutSine);
             });
         }
 
@@ -51,7 +51,10 @@ namespace HotUpdate
         /// </summary>
         private void OnPlayGameClick()
         {
-            Debug.Log("开始游戏");
+            ConfigManager.GetRoleRuneByID(11, (config) =>
+            {
+                GameLog.Info(config.Param);
+            });
         }
     }
 }

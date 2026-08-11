@@ -11,7 +11,7 @@ namespace HotUpdate
         /// </summary>
         public static void Play()
         {
-            HotUpdateUtils.OpenUIPrefabPanel("MainPanel", 0);
+            Utils.OpenUIPrefabPanel("MainPanel", 0);
         }
     }
 }

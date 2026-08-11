@@ -1,6 +1,5 @@
-using YooAsset;
 using System.Collections;
-using System.Collections.Generic;
+using YooAsset;
 
 
 
@@ -8,7 +7,10 @@ namespace Invariable
 {
     public class CheckResourceUpdates : IStateNode
     {
-        private StateMachine m_machine;
+        private StateMachine m_machine = null;
+        private DownloadProgressInfo m_progressInfo = new DownloadProgressInfo();
+
+
 
         public void OnCreate(StateMachine machine)
         {
@@ -20,14 +22,12 @@ namespace Invariable
             GameManager.Instance.StartCoroutine(CheckForResourceUpdates());
         }
 
-        public void OnExit()
-        {
-
-        }
-
         public void OnUpdate()
         {
+        }
 
+        public void OnExit()
+        {
         }
 
 
@@ -37,13 +37,13 @@ namespace Invariable
         /// </summary>
         private IEnumerator CheckForResourceUpdates()
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "检查更新中...");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "检查更新中...");
 
             int downloadingMaxNum = 10;
             int failedTryAgain = 3;
             ResourceDownloaderOperation downloader = YooAssetManager.Instance.Package.CreateResourceDownloader(downloadingMaxNum, failedTryAgain);
 
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新检查完成");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "更新检查完成");
 
             if (downloader.TotalDownloadCount == 0)
             {
@@ -57,6 +57,7 @@ namespace Invariable
         /// <summary>
         /// 下载资源
         /// </summary>
+        /// <param name="downloader">资源下载器</param>
         private IEnumerator DownloadUpdates(ResourceDownloaderOperation downloader)
         {
             downloader.DownloadFinishCallback = OnDownloadFinishFunction;
@@ -70,46 +71,47 @@ namespace Invariable
         /// <summary>
         /// 当下载器结束（无论成功或失败）
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">下载结束数据</param>
         private void OnDownloadFinishFunction(DownloaderFinishData data)
         {
             if (data.Succeed)
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新完成");
+                GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "更新完成");
                 m_machine.ChangeState<HotUpdateOver>();
             }
             else
             {
-                GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新失败，请检查网络后重启游戏");
+                GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "更新失败，请检查网络后重启游戏");
             }
         }
 
         /// <summary>
         /// 当下载器发生错误
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">下载错误数据</param>
         private void OnDownloadErrorFunction(DownloadErrorData data)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "更新失败，请检查网络后重启游戏");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "更新失败，请检查网络后重启游戏");
         }
 
         /// <summary>
         /// 当下载进度发生变化
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">下载进度数据</param>
         private void OnDownloadUpdateFunction(DownloadUpdateData data)
         {
-            List<long> progress = new List<long>() { data.CurrentDownloadBytes, data.TotalDownloadBytes };
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowProgress", progress);
+            m_progressInfo.CurrentBytes = data.CurrentDownloadBytes;
+            m_progressInfo.TotalBytes = data.TotalDownloadBytes;
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowProgress, m_progressInfo);
         }
 
         /// <summary>
         /// 当开始下载某个文件
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">下载文件数据</param>
         private void OnDownloadFileBeginFunction(DownloadFileData data)
         {
-            GameManager.Instance.InvokeEventCallBack("Launcher_ShowTips", "正在更新中...");
+            GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "正在更新中...");
         }
     }
 }

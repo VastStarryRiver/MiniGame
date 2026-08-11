@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine;
 using YooAsset;
 
 
@@ -9,7 +8,7 @@ namespace Invariable
     public class Launcher : MonoBehaviour
     {
         private EPlayMode m_playMode;
-        private GameLoadingPanel m_hotUpdatePanel;
+        private GameLoadingPanel m_hotUpdatePanel = null;
 
 
 
@@ -27,9 +26,9 @@ namespace Invariable
 
         private void OnEnable()
         {
-            GameManager.Instance.AddEventListener("Launcher_ShowTips", ShowTips);
-            GameManager.Instance.AddEventListener("Launcher_ShowProgress", ShowProgress);
-            GameManager.Instance.AddEventListener("Launcher_StartGame", StartGame);
+            GameManager.Instance.AddEventListener<string>(InvariableConst.Event_Launcher_ShowTips, ShowTips);
+            GameManager.Instance.AddEventListener<DownloadProgressInfo>(InvariableConst.Event_Launcher_ShowProgress, ShowProgress);
+            GameManager.Instance.AddEventListener<object>(InvariableConst.Event_Launcher_StartGame, StartGame);
         }
 
         private void Start()
@@ -43,13 +42,13 @@ namespace Invariable
 
             stateMachine.SetBlackboardValue("EPlayMode", m_playMode);
 
-            InitStartGameObject("UI_Root");
+            InitStartGameObject(InvariableConst.UIRootPath);
 
-            GameObject go = GameObject.Find("UI_Root/Canvas_0/Ts_Panel/HotUpdatePanel");
+            GameObject go = GameObject.Find(InvariableConst.HotUpdatePanelPath);
 
             if (go == null)
             {
-                Transform parent = GameObject.Find("UI_Root/Canvas_0/Ts_Panel").transform;
+                Transform parent = GameObject.Find(InvariableConst.UIPanelPath_0).transform;
                 GameObject asset = Resources.Load<GameObject>("LocalAssets/HotUpdatePanel");
                 go = GameObject.Instantiate<GameObject>(asset, Vector3.zero, Quaternion.identity, parent);
                 go.name = "HotUpdatePanel";
@@ -62,13 +61,16 @@ namespace Invariable
 
         private void OnDisable()
         {
-            GameManager.Instance.RemoveEventListener("Launcher_ShowTips", ShowTips);
-            GameManager.Instance.RemoveEventListener("Launcher_ShowProgress", ShowProgress);
-            GameManager.Instance.RemoveEventListener("Launcher_StartGame", StartGame);
+            GameManager.Instance.RemoveEventListener<string>(InvariableConst.Event_Launcher_ShowTips, ShowTips);
+            GameManager.Instance.RemoveEventListener<DownloadProgressInfo>(InvariableConst.Event_Launcher_ShowProgress, ShowProgress);
+            GameManager.Instance.RemoveEventListener<object>(InvariableConst.Event_Launcher_StartGame, StartGame);
         }
 
 
 
+        /// <summary>
+        /// 将启动根节点设为跨场景常驻
+        /// </summary>
         private void InitStartGameObject(string name)
         {
             GameObject go = GameObject.Find(name);
@@ -79,18 +81,25 @@ namespace Invariable
             }
         }
 
-        private void ShowTips(object arg)
+        /// <summary>
+        /// 显示热更提示文本
+        /// </summary>
+        private void ShowTips(string tips)
         {
-            string tips = arg as string;
             m_hotUpdatePanel.SetDes(tips);
         }
 
-        private void ShowProgress(object arg)
+        /// <summary>
+        /// 显示热更进度
+        /// </summary>
+        private void ShowProgress(DownloadProgressInfo progress)
         {
-            List<long> progress = arg as List<long>;
-            m_hotUpdatePanel.SetProgress(progress[0], progress[1]);
+            m_hotUpdatePanel.SetProgress(progress.CurrentBytes, progress.TotalBytes);
         }
 
+        /// <summary>
+        /// 热更完成并进入游戏
+        /// </summary>
         private void StartGame(object arg)
         {
             GameObject.Destroy(m_hotUpdatePanel.gameObject);
