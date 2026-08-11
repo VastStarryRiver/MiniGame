@@ -1,0 +1,23 @@
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.bytes binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.tga binary
+*.psd binary
+*.fbx binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.dll binary
+*.pdb binary
+*.so binary
+*.a binary
+*.bundle binary
+*.unitypackage binary
