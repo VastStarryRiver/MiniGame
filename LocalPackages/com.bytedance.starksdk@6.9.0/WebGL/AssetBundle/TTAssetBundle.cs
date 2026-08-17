@@ -41,7 +41,7 @@ namespace TTSDK
             
         }
 #endif
-        
+#if !PLATFORM_PLAYABLEADS
         public static UnityWebRequest GetAssetBundle(string uri) => GetAssetBundle(uri, 0U);
 
         public static UnityWebRequest GetAssetBundle(string uri, uint crc)
@@ -51,6 +51,6 @@ namespace TTSDK
             
             return new UnityWebRequest(uri, "GET", new DownloadHandlerTTAssetBundle(uri, crc), null);
         }
-
+#endif
     }
 }

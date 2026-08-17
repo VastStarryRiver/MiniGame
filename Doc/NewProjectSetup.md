@@ -6,7 +6,7 @@
 
 1. 用与源工程**相同版本**的团结引擎打开新工程目录。当前源工程版本见 `ProjectSettings/ProjectVersion.txt`（示例：`2022.3.61t9` / Tuanjie `1.6.8`）。版本不一致可能导致 HybridCLR、小游戏转换器、UOS 包行为差异。
 2. 首次打开会重建 `Library/`，耗时较长，等待完成。
-3. Package Manager 会按 `Packages/manifest.json` 拉取依赖（含 UOS CDN / CloudSave / Func Stateless / Launcher / Passport、YooAsset、HybridCLR、微信小游戏 SDK、抖音 SDK、NuGetForUnity 等）。若有 git 包拉取失败，检查网络与凭据后重试。
+3. Package Manager 会按 `Packages/manifest.json` 拉取依赖（含 UOS CDN / CloudSave / Func Stateless / Launcher、YooAsset、HybridCLR、微信小游戏 SDK、抖音 SDK、NuGetForUnity 等）。若有 git 包拉取失败，检查网络与凭据后重试。
 4. 使用 NuGetForUnity 还原 `Newtonsoft.Json`（与云函数、云存档 JSON 序列化相关）。
 5. 打开 Console，确认**无编译错误**后再进入后续步骤。若出现 `UOSSettings` 相关加载异常，先完成第 5 章「UOS Launcher 重新 Link」，或按编辑器提示使用 `UOS -> Launcher -> Fix settings by reimport / delete`。
 
@@ -20,9 +20,7 @@
 |---|---|
 | `Assets/Resources/UOSSettings.asset`（及 `.meta`） | UOS AppID / AppSecret / AppServiceSecret（加密） |
 | `Assets/UOSLauncherEncrypt/` | UOSSettings 加密密钥 |
-| `WebData.txt` | CDN 根地址源文件 |
-| `Assets/Resources/LocalAssets/WebData.bin`（及 `.meta`） | 导出后的首包 Web 配置 |
-| `Assets/Settings/`（含 Build Profiles） | 微信/抖音 Profile：AppID、CDN、输出路径等 |
+| `Assets/Settings/`（含 Build Profiles） | 微信/抖音 Profile：AppID、输出路径等（CDN 由打包菜单按 `InvariableConst.CDNPath` 自动写入） |
 | `Assets/WX-WASM-SDK-V2/` | 微信 WASM SDK 本地内容 |
 | `Assets/Editor/UnityOnlineServicesData/` | UOS 编辑器数据（含 CDN 设置） |
 | `Assets/Editor/UOSEnvironments.asset`（及 `.meta`） | UOS 环境配置 |
@@ -38,7 +36,6 @@
    - CDN
    - 云存档（Cloud Save）
    - 云函数（Func Stateless）
-   - Passport（外部登录）
 
 ### 3.2 CDN Bucket
 
@@ -50,7 +47,7 @@
 https://a.unity.cn/client_api/v1/buckets/{bucketUuid}/release_by_badge/{badge}/content
 ```
 
-将该地址记为 `{新CDN根地址}`，后续写入 `WebData.txt` 与 Build Profile。
+将该地址记为 `{新CDN根地址}`，后续写入 `InvariableConst.CDNPath`，打包时自动同步平台配置。
 
 ### 3.3 记录三密钥
 
@@ -79,7 +76,7 @@ https://a.unity.cn/client_api/v1/buckets/{bucketUuid}/release_by_badge/{badge}/c
 
 在微信/抖音小游戏后台的服务器域名（或等价配置页）中，按下列规则添加。
 
-**request 合法域名、socket 合法域名、uploadFile 合法域名、downloadFile 合法域名** — 四类全部添加以下 7 个：
+**request 合法域名、uploadFile 合法域名、downloadFile 合法域名** — 三类全部添加以下必需域名：
 
 ```text
 https://a.unity.cn
@@ -89,9 +86,10 @@ https://a3.unity3dcloud.cn
 https://p.unity.cn
 https://save.unity.cn
 https://uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com
+https://stateless.unity.cn
 ```
 
-**DNS 预解析域名、预连接域名** — 只添加前 4 个（通常不带 `https://`，以平台后台输入框规则为准）：
+**DNS 预解析域名、预连接域名** — 只添加 4 个（通常不带 `https://`，以平台后台输入框规则为准）：
 
 ```text
 a.unity.cn
@@ -112,13 +110,13 @@ a3.unity3dcloud.cn
 
 | 占位符 | 要求 |
 |---|---|
-| `{新GameId}` | 每个游戏唯一的英文字符串（建议与项目/产品英文名一致）。将用于云存档 namespace：`minigame_kv_{新GameId}` |
+| `{新GameId}` | 每个游戏唯一的英文字符串（建议与项目/产品英文名一致）。将用于云存档 namespace：`kv_{新GameId}_player` / `kv_{新GameId}_rank` |
 
 **三处必须相同：**
 
 1. `CloudHelper.Secrets.GameId`
 2. `CloudManager.CloudSaveGameId`
-3. 由此派生的 namespace `minigame_kv_{新GameId}`
+3. 由此派生的 namespace `kv_{新GameId}_player` 与 `kv_{新GameId}_rank`
 
 ### 5.2 UOS Launcher 重新绑定
 
@@ -127,22 +125,19 @@ a3.unity3dcloud.cn
 3. 结果写入 `Assets/Resources/UOSSettings.asset`（加密字段）
 4. **禁止**手改 `UOSSettings.asset` 中的 `encrypted*` 字段；`Assets/UOSLauncherEncrypt/` 已随工程复制，一般无需改动
 
-### 5.3 WebData（CDN 根地址）
+### 5.3 CDN 根地址
 
-1. 编辑工程根目录 `WebData.txt`，至少保证第 1 行为 `{新CDN根地址}`：
+文件：`Assets/Scripts/Invariable/Utils/InvariableConst.cs`（`#region 游戏资源`）
 
-```text
-第 1 行：CDN 根地址（必填）= {新CDN根地址}
-第 2 行：服务器 IP:Port（可选，当前框架未使用）
-第 3 行：认证用户名（可选）
-第 4 行：认证密码（可选）
+将 `CDNPath` 改为 `{新CDN根地址}`：
+
+```csharp
+public const string CDNPath = "{新CDN根地址}";
 ```
 
-2. 菜单：`VastStarryRiver/Config/导出Web配置`  
-   生成 `Assets/Resources/LocalAssets/WebData.bin`
-3. `WebData.bin` 属于**首包本地资源**，修改后必须重新构建基础小游戏包
+运行时 YooAsset 远程根为 `{CDNPath}/yoo`。打包微信/抖音时菜单会把该常量写入平台配置资产的 `CDN` 字段，无需手填 Profile。
 
-运行时：`Resources.Load("LocalAssets/WebData")` → 解密 → `ConfigUtils.CDNPath`；YooAsset 远程根为 `{CDNPath}/yoo`。
+`CDNPath` 属 `Invariable`，修改后必须重新构建并发布小游戏基础包，不能只热更。
 
 ### 5.4 云函数 Secrets 与云存档 GameId
 
@@ -167,7 +162,7 @@ private static readonly GameSecrets Secrets = new GameSecrets
 private const string CloudSaveGameId = "{新GameId}"; // 必须与 CloudHelper.Secrets.GameId 一致
 ```
 
-`CloudSaveNamespace` 会自动变为 `minigame_kv_{新GameId}`，无需单独改字符串字面量。
+`CloudSaveNamespace` 会自动变为 `kv_{新GameId}_player`，排行榜快照为 `kv_{新GameId}_rank`，无需单独改字符串字面量。
 
 > `CloudService` 程序集**不可热更**，以上改动只能随**基础包**生效。
 
@@ -277,27 +272,26 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 1. 激活目标平台 Build Profile（微信或抖音）
 2. 确认只激活正确的平台宏（`MINIGAME_SUBPLATFORM_WEIXIN` / `MINIGAME_SUBPLATFORM_DOUYIN`）
-3. 检查 Profile 的 AppID、CDN、输出路径和方向
-4. 确认 `WebData.txt` 已是 `{新CDN根地址}`
-5. `VastStarryRiver/Config/导出Web配置`
-6. 如有 Excel 变更：`VastStarryRiver/Config/导出Excel配置`
-7. 等待脚本编译成功
-8. `VastStarryRiver/DLL/导出所有DLL`
-9. `VastStarryRiver/DLL/复制热更新DLL`
-10. `VastStarryRiver/DLL/复制元数据DLL`
-11. `VastStarryRiver/构建AssetBundle`
-12. `VastStarryRiver/打包/复制bundle到CDN目录`（写入本地 `CDN/yoo`）
-13. 用 UOS CDN 工具将 `CDN/yoo` 上传到**新 Bucket** 并发布（Badge 与 `{新CDN根地址}` 一致）
-14. 确认云函数已上传且为**远程调用模式**（第 7 章）
-15. 打包：
+3. 检查 Profile 的 AppID、输出路径和方向（CDN 由打包菜单按 `InvariableConst.CDNPath` 自动写入）
+4. 确认 `InvariableConst.CDNPath` 已是 `{新CDN根地址}`
+5. 如有 Excel 变更：`VastStarryRiver/Config/导出Excel配置`
+6. 等待脚本编译成功
+7. `VastStarryRiver/DLL/导出所有DLL`
+8. `VastStarryRiver/DLL/复制热更新DLL`
+9. `VastStarryRiver/DLL/复制元数据DLL`
+10. `VastStarryRiver/构建AssetBundle`
+11. `VastStarryRiver/打包/复制bundle到CDN目录`（写入本地 `CDN/yoo`）
+12. 用 UOS CDN 工具将 `CDN/yoo` 上传到**新 Bucket** 并发布（Badge 与 `{新CDN根地址}` 一致）
+13. 确认云函数已上传且为**远程调用模式**（第 7 章）
+14. 打包：
     - 微信：`VastStarryRiver/打包/打包微信小游戏` → 输出 `Build/WeChat`
     - 抖音：`VastStarryRiver/打包/打包抖音小游戏` → 输出 `Build/DouYin`
-16. 若平台数据文件走 CDN：`VastStarryRiver/打包/复制unityweb.bin到CDN目录`，再上传到新 Bucket 根（与 `CDN/yoo` 区分）
-17. 用对应平台开发者工具打开构建产物并启动
-18. **清缓存**与**保留缓存**各测一轮
-19. 提交审核或发布
+15. 若平台数据文件走 CDN：`VastStarryRiver/打包/复制unityweb.bin到CDN目录`，再上传到新 Bucket 根（与 `CDN/yoo` 区分）
+16. 用对应平台开发者工具打开构建产物并启动
+17. **清缓存**与**保留缓存**各测一轮
+18. 提交审核或发布
 
-后续仅业务代码热更 / 仅资源热更，见 HotUpdateBuildAdapt §12.2 / §12.3。以下改动不能只靠热更，必须重发基础包：`Invariable`、`CloudService`、首包 Resources、`WebData.bin`、SDK/引擎/HybridCLR 配置、Start 场景、Build Profile 中影响运行时的设置等（详见 HotUpdateBuildAdapt §13）。
+后续仅业务代码热更 / 仅资源热更，见 HotUpdateBuildAdapt §12.2 / §12.3。以下改动不能只靠热更，必须重发基础包：`Invariable`、`CloudService`、首包 Resources、SDK/引擎/HybridCLR 配置、Start 场景、Build Profile 中影响运行时的设置等（详见 HotUpdateBuildAdapt §13）。
 
 ---
 
@@ -307,7 +301,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 - [ ] `CloudHelper.Secrets.GameId` 与 `CloudManager.CloudSaveGameId` 均为 `{新GameId}`
 - [ ] 工程内无旧游戏 CDN bucket UUID、无旧 GameId 残留（搜索旧值）
-- [ ] `WebData.txt` / 导出后的 `WebData.bin` 指向 `{新CDN根地址}`
+- [ ] `InvariableConst.CDNPath` 指向 `{新CDN根地址}`
 - [ ] UOS Launcher 显示已绑定新 App
 - [ ] Func Stateless 面板：云函数已上传且为远程模式
 - [ ] 微信/抖音 Build Profile AppID、输出路径已更新
@@ -319,8 +313,9 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 |---|:---:|:---:|
 | 首次无缓存启动 | 必测 | 必测 |
 | 有旧缓存启动 | 必测 | 必测 |
-| 平台登录 → 云函数换 token | 必测 | 必测 |
-| 云存档读写（`minigame_kv_{新GameId}`） | 必测 | 必测 |
+| 平台登录 → 云函数换取云存档令牌 | 必测 | 必测 |
+| 云存档读写（`kv_{新GameId}_player`） | 必测 | 必测 |
+| 排行榜上报/拉取（`kv_{新GameId}_rank`） | 必测 | 必测 |
 | CDN 热更资源下载（`{CDN}/yoo`） | 必测 | 必测 |
 | DLL 加载与主界面 | 必测 | 必测 |
 | 本地存档 | 必测 | 必测 |
@@ -350,7 +345,6 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 UOS -> Launcher
 UOS -> Func Stateless -> Open Panel
 UOS -> CDN
-VastStarryRiver/Config/导出Web配置
 VastStarryRiver/Config/导出Excel配置
 VastStarryRiver/Config/校验配置数据
 VastStarryRiver/DLL/导出所有DLL
@@ -369,7 +363,7 @@ VastStarryRiver/打包/复制unityweb.bin到CDN目录
 - [ ] 2. 版本控制初始化与忽略文件备份策略
 - [ ] 3. UOS 新 App / 四服务 / Bucket / 三密钥
 - [ ] 4. 微信+抖音注册与域名配置
-- [ ] 5. 工程内配置（UOS Link、WebData、GameId、Secrets、广告/分享常量、productName、Profile、CDN 目标）
+- [ ] 5. 工程内配置（UOS Link、CDNPath、GameId、Secrets、广告/分享常量、productName、Profile、CDN 目标）
 - [ ] 6. 游戏内容替换与导表
 - [ ] 7. 云函数上传并远程模式
 - [ ] 8. 首发构建流水线跑通

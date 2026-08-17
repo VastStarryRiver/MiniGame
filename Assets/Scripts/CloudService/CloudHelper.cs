@@ -2,10 +2,11 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Unity.UOS.Func.Stateless.Core.Attributes;
 using UnityEngine;
@@ -36,6 +37,21 @@ namespace CloudService
     [CloudService]
     public class CloudHelper
     {
+        private class GenerateTokenResponse
+        {
+            public string accessToken;
+            public long expiresAt;
+        }
+
+        private class RankSnapshot
+        {
+            public string saveId;
+            public List<PlayerSaveData> entries;
+        }
+
+        private const string RankSnapshotUserId = "sys";
+        private const int LeaderboardCapacity = 100;
+
         // GameId 必须与客户端 CloudManager.CloudSaveGameId 一致，并填入微信/抖音 AppID/AppSecret
         private static readonly GameSecrets Secrets = new GameSecrets
         {
@@ -55,7 +71,7 @@ namespace CloudService
 
 
         /// <summary>
-        /// 微信小游戏登录，用 code 换取 openid 并完成外部登录。
+        /// 微信小游戏登录，用 code 换取 openid 并换取云存档令牌
         /// </summary>
         [CloudFunc]
         public async Task<PlatformLoginResult> WechatLogin(string gameId, string code)
@@ -88,7 +104,7 @@ namespace CloudService
                         return null;
                     }
 
-                    return await ExternalLogin(client, "wx-" + result.openid);
+                    return await GenerateToken(client, "wx-" + result.openid);
                 }
             }
             catch (Exception error)
@@ -100,7 +116,7 @@ namespace CloudService
         }
 
         /// <summary>
-        /// 抖音小游戏登录，用 code 换取 openid 并完成外部登录。
+        /// 抖音小游戏登录，用 code 换取 openid 并换取云存档令牌
         /// </summary>
         [CloudFunc]
         public async Task<PlatformLoginResult> DouyinLogin(string gameId, string code)
@@ -134,7 +150,7 @@ namespace CloudService
                         return null;
                     }
 
-                    return await ExternalLogin(client, "dy-" + result.openid);
+                    return await GenerateToken(client, "dy-" + result.openid);
                 }
             }
             catch (Exception error)
@@ -146,7 +162,7 @@ namespace CloudService
         }
 
         /// <summary>
-        /// 按游戏标识拉取云存档，依 rankKey 数值降序取前 maxCount 名
+        /// 读取排行榜快照，依 rankKey 数值降序取前 maxCount 名
         /// </summary>
         [CloudFunc]
         public async Task<List<PlayerSaveData>> GetAllCloudData(string gameId, string rankKey, int maxCount)
@@ -164,8 +180,6 @@ namespace CloudService
                 return null;
             }
 
-            string namespaces = $"minigame_kv_{gameId}";
-
             if (maxCount <= 0)
             {
                 return new List<PlayerSaveData>();
@@ -176,81 +190,16 @@ namespace CloudService
                 using (HttpClient client = new HttpClient())
                 {
                     ApplyBasicAuth(client);
+                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId);
+                    List<PlayerSaveData> results = snapshot.entries;
+                    SortRankEntries(results, rankKey);
 
-                    List<SaveInfo> saveInfos = new List<SaveInfo>();
-                    int start = 0;
-                    const int PageSize = 50;
-                    bool hasMore = true;
-
-                    while (hasMore)
+                    if (results.Count > maxCount)
                     {
-                        string listUrl = $"https://save.unity.cn/v1/saves?namespaces={Uri.EscapeDataString(namespaces)}&start={start}&count={PageSize}&skipTotal=true";
-                        HttpResponseMessage listResponse = await client.GetAsync(listUrl);
-
-                        if (!listResponse.IsSuccessStatusCode)
-                        {
-                            string errBody = await listResponse.Content.ReadAsStringAsync();
-                            Debug.LogError($"GetAllCloudData: 列表请求失败 status={(int)listResponse.StatusCode}, body={errBody}");
-
-                            return null;
-                        }
-
-                        string listBody = await listResponse.Content.ReadAsStringAsync();
-                        ListSavesResponse listResult = JsonConvert.DeserializeObject<ListSavesResponse>(listBody);
-
-                        if (listResult?.saves == null || listResult.saves.Count == 0)
-                        {
-                            break;
-                        }
-
-                        saveInfos.AddRange(listResult.saves);
-                        start += listResult.saves.Count;
-                        hasMore = listResult.saves.Count >= PageSize;
+                        results.RemoveRange(maxCount, results.Count - maxCount);
                     }
 
-                    const int FetchConcurrency = 10;
-                    List<Task<PlayerSaveData>> fetchTasks = new List<Task<PlayerSaveData>>();
-
-                    using (SemaphoreSlim semaphore = new SemaphoreSlim(FetchConcurrency, FetchConcurrency))
-                    {
-                        for (int i = 0; i < saveInfos.Count; i++)
-                        {
-                            SaveInfo info = saveInfos[i];
-
-                            if (info == null || string.IsNullOrEmpty(info.saveId))
-                            {
-                                continue;
-                            }
-
-                            fetchTasks.Add(FetchSaveDataAsync(client, info, semaphore));
-                        }
-
-                        PlayerSaveData[] fetched = await Task.WhenAll(fetchTasks);
-                        List<PlayerSaveData> results = new List<PlayerSaveData>();
-
-                        for (int i = 0; i < fetched.Length; i++)
-                        {
-                            if (fetched[i] != null)
-                            {
-                                results.Add(fetched[i]);
-                            }
-                        }
-
-                        results.Sort((left, right) =>
-                        {
-                            double leftScore = GetRankScore(left.data, rankKey);
-                            double rightScore = GetRankScore(right.data, rankKey);
-
-                            return rightScore.CompareTo(leftScore);
-                        });
-
-                        if (results.Count > maxCount)
-                        {
-                            results.RemoveRange(maxCount, results.Count - maxCount);
-                        }
-
-                        return results;
-                    }
+                    return results;
                 }
             }
             catch (Exception error)
@@ -261,67 +210,419 @@ namespace CloudService
             }
         }
 
-
-
         /// <summary>
-        /// 并发拉取单条存档详情与内容
+        /// 上报排行分数，增量维护 Top100 快照，返回本次是否入榜或刷新纪录
         /// </summary>
-        private async Task<PlayerSaveData> FetchSaveDataAsync(HttpClient client, SaveInfo info, SemaphoreSlim semaphore)
+        [CloudFunc]
+        public async Task<bool> ReportRankScore(string gameId, string userId, string rankKey, double score)
         {
-            await semaphore.WaitAsync();
+            if (!TryGetGameSecrets(gameId, out _))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(rankKey) || double.IsNaN(score) || double.IsInfinity(score))
+            {
+                Debug.LogError("ReportRankScore: userId、rankKey 或 score 无效");
+
+                return false;
+            }
 
             try
             {
-                string getUrl = $"https://save.unity.cn/v1/saves/{Uri.EscapeDataString(info.saveId)}?includeDownloadURL=true";
-                HttpResponseMessage getResponse = await client.GetAsync(getUrl);
-
-                if (!getResponse.IsSuccessStatusCode)
+                using (HttpClient client = new HttpClient())
                 {
-                    Debug.LogError($"GetAllCloudData: 获取存档失败 saveId={info.saveId}, status={(int)getResponse.StatusCode}");
+                    ApplyBasicAuth(client);
+                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId);
+                    List<PlayerSaveData> entries = snapshot.entries;
+                    SortRankEntries(entries, rankKey);
+                    int existingIndex = FindRankEntryIndex(entries, userId);
 
-                    return null;
+                    if (existingIndex >= 0)
+                    {
+                        double oldScore = GetRankScore(entries[existingIndex].data, rankKey);
+
+                        if (score <= oldScore)
+                        {
+                            return false;
+                        }
+
+                        if (entries[existingIndex].data == null)
+                        {
+                            entries[existingIndex].data = new Dictionary<string, string>();
+                        }
+
+                        entries[existingIndex].data[rankKey] = score.ToString(CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        if (entries.Count >= LeaderboardCapacity)
+                        {
+                            double lastScore = GetRankScore(entries[entries.Count - 1].data, rankKey);
+
+                            if (score <= lastScore)
+                            {
+                                return false;
+                            }
+
+                            entries.RemoveAt(entries.Count - 1);
+                        }
+
+                        entries.Add(new PlayerSaveData
+                        {
+                            userId = userId,
+                            data = new Dictionary<string, string>
+                            {
+                                { rankKey, score.ToString(CultureInfo.InvariantCulture) }
+                            }
+                        });
+                    }
+
+                    SortRankEntries(entries, rankKey);
+
+                    if (entries.Count > LeaderboardCapacity)
+                    {
+                        entries.RemoveRange(LeaderboardCapacity, entries.Count - LeaderboardCapacity);
+                    }
+
+                    await SaveRankSnapshot(client, gameId, snapshot.saveId, entries);
+
+                    return true;
                 }
-
-                string getBody = await getResponse.Content.ReadAsStringAsync();
-                GetSaveResponse getResult = JsonConvert.DeserializeObject<GetSaveResponse>(getBody);
-                string fileUrl = getResult?.save?.file?.fileURL;
-
-                if (string.IsNullOrEmpty(fileUrl))
-                {
-                    return null;
-                }
-
-                HttpResponseMessage fileResponse = await client.GetAsync(fileUrl);
-
-                if (!fileResponse.IsSuccessStatusCode)
-                {
-                    Debug.LogError($"GetAllCloudData: 下载存档内容失败 saveId={info.saveId}, status={(int)fileResponse.StatusCode}");
-
-                    return null;
-                }
-
-                string fileText = await fileResponse.Content.ReadAsStringAsync();
-                Dictionary<string, string> data;
-
-                if (string.IsNullOrEmpty(fileText))
-                {
-                    data = new Dictionary<string, string>();
-                }
-                else
-                {
-                    data = JsonConvert.DeserializeObject<Dictionary<string, string>>(fileText) ?? new Dictionary<string, string>();
-                }
-
-                return new PlayerSaveData
-                {
-                    userId = !string.IsNullOrEmpty(getResult.save.userId) ? getResult.save.userId : info.userId,
-                    data = data
-                };
             }
-            finally
+            catch (Exception error)
             {
-                semaphore.Release();
+                Debug.LogError($"ReportRankScore 异常: {error.Message}");
+
+                throw;
             }
+        }
+
+
+
+        /// <summary>
+        /// 读取排行榜快照，不存在时返回空列表
+        /// </summary>
+        private async Task<RankSnapshot> LoadRankSnapshot(HttpClient client, string gameId)
+        {
+            RankSnapshot snapshot = new RankSnapshot
+            {
+                saveId = null,
+                entries = new List<PlayerSaveData>()
+            };
+            string namespaces = GetRankNamespace(gameId);
+            string listUrl = $"https://save.unity.cn/v1/saves?namespaces={Uri.EscapeDataString(namespaces)}&userId={Uri.EscapeDataString(RankSnapshotUserId)}&start=0&count=1&skipTotal=true";
+            HttpResponseMessage listResponse = await client.GetAsync(listUrl);
+
+            if (!listResponse.IsSuccessStatusCode)
+            {
+                string errBody = await listResponse.Content.ReadAsStringAsync();
+                Debug.LogError($"LoadRankSnapshot: 列表请求失败 status={(int)listResponse.StatusCode}, body={errBody}");
+                listResponse.EnsureSuccessStatusCode();
+            }
+
+            string listBody = await listResponse.Content.ReadAsStringAsync();
+            ListSavesResponse listResult = JsonConvert.DeserializeObject<ListSavesResponse>(listBody);
+            SaveInfo info = listResult?.saves != null && listResult.saves.Count > 0 ? listResult.saves[0] : null;
+
+            if (info == null || string.IsNullOrEmpty(info.saveId))
+            {
+                return snapshot;
+            }
+
+            snapshot.saveId = info.saveId;
+            string getUrl = $"https://save.unity.cn/v1/saves/{Uri.EscapeDataString(info.saveId)}?includeDownloadURL=true";
+            HttpResponseMessage getResponse = await client.GetAsync(getUrl);
+
+            if (!getResponse.IsSuccessStatusCode)
+            {
+                Debug.LogError($"LoadRankSnapshot: 获取存档失败 saveId={info.saveId}, status={(int)getResponse.StatusCode}");
+                getResponse.EnsureSuccessStatusCode();
+            }
+
+            string getBody = await getResponse.Content.ReadAsStringAsync();
+            GetSaveResponse getResult = JsonConvert.DeserializeObject<GetSaveResponse>(getBody);
+            string fileUrl = getResult?.save?.file?.fileURL;
+
+            if (string.IsNullOrEmpty(fileUrl))
+            {
+                FailRankWrite($"LoadRankSnapshot: 存档缺少下载地址 saveId={info.saveId}");
+
+                return snapshot;
+            }
+
+            HttpResponseMessage fileResponse = await client.GetAsync(fileUrl);
+
+            if (!fileResponse.IsSuccessStatusCode)
+            {
+                Debug.LogError($"LoadRankSnapshot: 下载存档内容失败 saveId={info.saveId}, status={(int)fileResponse.StatusCode}");
+                fileResponse.EnsureSuccessStatusCode();
+            }
+
+            string fileText = await fileResponse.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrEmpty(fileText))
+            {
+                return snapshot;
+            }
+
+            snapshot.entries = JsonConvert.DeserializeObject<List<PlayerSaveData>>(fileText) ?? new List<PlayerSaveData>();
+
+            return snapshot;
+        }
+
+        /// <summary>
+        /// 将排行榜快照写回独立 namespace
+        /// </summary>
+        private async Task SaveRankSnapshot(HttpClient client, string gameId, string saveId, List<PlayerSaveData> entries)
+        {
+            UploadTokenRequest tokenRequest = new UploadTokenRequest
+            {
+                userId = RankSnapshotUserId,
+                saveId = saveId,
+                fileUploadRequest = new FileUploadSpec
+                {
+                    format = "",
+                    originalName = "rank.json"
+                }
+            };
+            string tokenJson = JsonConvert.SerializeObject(tokenRequest, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+            HttpContent tokenContent = new StringContent(tokenJson, Encoding.UTF8, "application/json");
+            HttpResponseMessage tokenResponse = await client.PostAsync("https://save.unity.cn/v1/saves/upload-token", tokenContent);
+
+            if (!tokenResponse.IsSuccessStatusCode)
+            {
+                string errBody = await tokenResponse.Content.ReadAsStringAsync();
+                Debug.LogError($"SaveRankSnapshot: 获取上传令牌失败 status={(int)tokenResponse.StatusCode}, body={errBody}");
+                tokenResponse.EnsureSuccessStatusCode();
+            }
+
+            string tokenBody = await tokenResponse.Content.ReadAsStringAsync();
+            UploadTokenResponse tokenResult = JsonConvert.DeserializeObject<UploadTokenResponse>(tokenBody);
+
+            if (tokenResult == null || tokenResult.fileUploadToken == null || string.IsNullOrEmpty(tokenResult.fileUploadToken.objectId))
+            {
+                FailRankWrite("SaveRankSnapshot: 上传令牌返回数据无效");
+
+                return;
+            }
+
+            string resolvedSaveId = !string.IsNullOrEmpty(tokenResult.saveId) ? tokenResult.saveId : saveId;
+
+            if (string.IsNullOrEmpty(resolvedSaveId))
+            {
+                FailRankWrite("SaveRankSnapshot: 上传令牌未返回 saveId");
+
+                return;
+            }
+
+            byte[] fileBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(entries));
+            await UploadObjectToCos(tokenResult.fileUploadToken, fileBytes);
+
+            CreateSaveRequest createRequest = new CreateSaveRequest
+            {
+                userId = RankSnapshotUserId,
+                saveId = resolvedSaveId,
+                name = "rank_snapshot",
+                saveNamespace = GetRankNamespace(gameId),
+                progressType = "LINEAR",
+                fileUploadRequest = new FileUploadConfirmation
+                {
+                    clearExisting = false,
+                    objectId = tokenResult.fileUploadToken.objectId
+                }
+            };
+            string createJson = JsonConvert.SerializeObject(createRequest);
+            HttpContent createContent = new StringContent(createJson, Encoding.UTF8, "application/json");
+            HttpResponseMessage createResponse = await client.PostAsync("https://save.unity.cn/v1/saves", createContent);
+
+            if (!createResponse.IsSuccessStatusCode)
+            {
+                string errBody = await createResponse.Content.ReadAsStringAsync();
+                Debug.LogError($"SaveRankSnapshot: 创建或更新存档失败 status={(int)createResponse.StatusCode}, body={errBody}");
+                createResponse.EnsureSuccessStatusCode();
+            }
+        }
+
+        /// <summary>
+        /// 使用临时密钥将快照文件上传到 COS
+        /// </summary>
+        private static async Task UploadObjectToCos(UploadToken token, byte[] fileBytes)
+        {
+            if (string.IsNullOrEmpty(token.tmpSecretId) || string.IsNullOrEmpty(token.tmpSecretKey) || string.IsNullOrEmpty(token.token)
+                || string.IsNullOrEmpty(token.objectName))
+            {
+                FailRankWrite("UploadObjectToCos: 上传令牌字段不完整");
+
+                return;
+            }
+
+            string objectPath = BuildCosObjectPath(token.objectDir, token.objectName);
+            string host = "";
+            string url = "";
+
+            if (!string.IsNullOrEmpty(token.bucketUrl))
+            {
+                Uri bucketUri = new Uri(token.bucketUrl);
+                host = bucketUri.Host;
+                url = token.bucketUrl.TrimEnd('/') + objectPath;
+            }
+            else if (!string.IsNullOrEmpty(token.bucketName) && !string.IsNullOrEmpty(token.region))
+            {
+                host = $"{token.bucketName}.cos.{token.region}.myqcloud.com";
+                url = $"https://{host}{objectPath}";
+            }
+            else
+            {
+                FailRankWrite("UploadObjectToCos: 缺少 bucketUrl 或 bucketName/region");
+
+                return;
+            }
+
+            long startTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            string keyTime = $"{startTime};{startTime + 600}";
+            string signKey = HmacSha1Hex(token.tmpSecretKey, keyTime);
+            string httpHeaders = $"host={Uri.EscapeDataString(host)}&x-cos-security-token={Uri.EscapeDataString(token.token)}";
+            string httpString = $"put\n{objectPath}\n\n{httpHeaders}\n";
+            string stringToSign = $"sha1\n{keyTime}\n{Sha1Hex(httpString)}\n";
+            string signature = HmacSha1Hex(signKey, stringToSign);
+            string authorization = $"q-sign-algorithm=sha1&q-ak={token.tmpSecretId}&q-sign-time={keyTime}&q-key-time={keyTime}&q-header-list=host;x-cos-security-token&q-url-param-list=&q-signature={signature}";
+
+            using (HttpClient cosClient = new HttpClient())
+            using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, url))
+            {
+                request.Headers.TryAddWithoutValidation("Authorization", authorization);
+                request.Headers.TryAddWithoutValidation("x-cos-security-token", token.token);
+                request.Content = new ByteArrayContent(fileBytes);
+                HttpResponseMessage response = await cosClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errBody = await response.Content.ReadAsStringAsync();
+                    Debug.LogError($"UploadObjectToCos: 上传失败 status={(int)response.StatusCode}, body={errBody}");
+                    response.EnsureSuccessStatusCode();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 排行榜写路径失败时中止调用，避免客户端把失败当成已处理
+        /// </summary>
+        private static void FailRankWrite(string message)
+        {
+            Debug.LogError(message);
+
+            using (HttpResponseMessage failed = new HttpResponseMessage(HttpStatusCode.BadGateway))
+            {
+                failed.EnsureSuccessStatusCode();
+            }
+        }
+
+        /// <summary>
+        /// 按 rankKey 数值降序排列快照条目
+        /// </summary>
+        private static void SortRankEntries(List<PlayerSaveData> entries, string rankKey)
+        {
+            entries.Sort((left, right) =>
+            {
+                double leftScore = GetRankScore(left?.data, rankKey);
+                double rightScore = GetRankScore(right?.data, rankKey);
+
+                return rightScore.CompareTo(leftScore);
+            });
+        }
+
+        /// <summary>
+        /// 查找指定用户在快照中的下标，未找到返回 -1
+        /// </summary>
+        private static int FindRankEntryIndex(List<PlayerSaveData> entries, string userId)
+        {
+            for (int i = 0; i < entries.Count; i++)
+            {
+                if (entries[i] != null && entries[i].userId == userId)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// 拼接排行榜快照 namespace
+        /// </summary>
+        private static string GetRankNamespace(string gameId)
+        {
+            return $"kv_{gameId}_rank";
+        }
+
+        /// <summary>
+        /// 拼接 COS 对象路径并对每一段做 URL 编码
+        /// </summary>
+        private static string BuildCosObjectPath(string objectDir, string objectName)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append('/');
+
+            if (!string.IsNullOrEmpty(objectDir))
+            {
+                string[] dirParts = objectDir.Split('/');
+
+                for (int i = 0; i < dirParts.Length; i++)
+                {
+                    if (string.IsNullOrEmpty(dirParts[i]))
+                    {
+                        continue;
+                    }
+
+                    builder.Append(Uri.EscapeDataString(dirParts[i]));
+                    builder.Append('/');
+                }
+            }
+
+            builder.Append(Uri.EscapeDataString(objectName));
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// 计算 UTF-8 文本的 SHA1 十六进制摘要
+        /// </summary>
+        private static string Sha1Hex(string text)
+        {
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                return BytesToHex(sha1.ComputeHash(Encoding.UTF8.GetBytes(text)));
+            }
+        }
+
+        /// <summary>
+        /// 计算 HMAC-SHA1 十六进制摘要
+        /// </summary>
+        private static string HmacSha1Hex(string key, string text)
+        {
+            using (HMACSHA1 hmac = new HMACSHA1(Encoding.UTF8.GetBytes(key)))
+            {
+                return BytesToHex(hmac.ComputeHash(Encoding.UTF8.GetBytes(text)));
+            }
+        }
+
+        /// <summary>
+        /// 将字节数组转为小写十六进制
+        /// </summary>
+        private static string BytesToHex(byte[] bytes)
+        {
+            StringBuilder builder = new StringBuilder(bytes.Length * 2);
+
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+
+            return builder.ToString();
         }
 
         /// <summary>
@@ -343,7 +644,7 @@ namespace CloudService
         }
 
         /// <summary>
-        /// 校验游戏标识并获取对应密钥配置。
+        /// 校验游戏标识并获取对应密钥配置
         /// </summary>
         private bool TryGetGameSecrets(string gameId, out GameSecrets secrets)
         {
@@ -361,47 +662,44 @@ namespace CloudService
         }
 
         /// <summary>
-        /// 使用外部用户 ID 调用 UOS 外部登录接口。
+        /// 用用户 ID 换取云存档令牌
         /// </summary>
-        private async Task<PlatformLoginResult> ExternalLogin(HttpClient client, string externalUserID)
+        private async Task<PlatformLoginResult> GenerateToken(HttpClient client, string userId)
         {
             ApplyBasicAuth(client);
 
-            ExternalLoginRequest request = new ExternalLoginRequest { externalUserID = externalUserID };
-            string requestStr = JsonConvert.SerializeObject(request);
+            string requestStr = JsonConvert.SerializeObject(new { userID = userId });
             HttpContent content = new StringContent(requestStr, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await client.PostAsync("https://p.unity.cn/v1/login/external", content);
+            HttpResponseMessage response = await client.PostAsync("https://p.unity.cn/v1/login/token", content);
 
             if (!response.IsSuccessStatusCode)
             {
                 string errBody = await response.Content.ReadAsStringAsync();
-                Debug.LogError($"ExternalLogin 失败 status={(int)response.StatusCode}, body={errBody}");
+                Debug.LogError($"GenerateToken 失败 status={(int)response.StatusCode}, body={errBody}");
 
                 return null;
             }
 
             string body = await response.Content.ReadAsStringAsync();
-            ExternalLoginResponse loginResult = JsonConvert.DeserializeObject<ExternalLoginResponse>(body);
+            GenerateTokenResponse tokenResult = JsonConvert.DeserializeObject<GenerateTokenResponse>(body);
 
-            if (loginResult == null || string.IsNullOrEmpty(loginResult.personaAccessToken) || loginResult.persona == null)
+            if (tokenResult == null || string.IsNullOrEmpty(tokenResult.accessToken))
             {
-                Debug.LogError("ExternalLogin 返回数据无效");
+                Debug.LogError("GenerateToken 返回数据无效");
 
                 return null;
             }
 
             return new PlatformLoginResult
             {
-                personaAccessToken = loginResult.personaAccessToken,
-                personaRefreshToken = loginResult.personaRefreshToken,
-                userID = loginResult.persona.userID,
-                personaID = loginResult.persona.personaID
+                accessToken = tokenResult.accessToken,
+                expiresAt = tokenResult.expiresAt,
+                userID = userId
             };
         }
 
         /// <summary>
-        /// 为 HttpClient 设置 UOS Basic 认证头。
+        /// 为 HttpClient 设置 UOS Basic 认证头
         /// </summary>
         private void ApplyBasicAuth(HttpClient client)
         {

@@ -15,8 +15,6 @@ Assets/Editor/UnityOnlineServicesData.meta
 /Assets/Editor/UnityOnlineServicesData
 Assets/Editor/UOSEnvironments.asset
 Assets/Editor/UOSEnvironments.asset.meta
-Assets/Resources/LocalAssets/WebData.bin
-Assets/Resources/LocalAssets/WebData.bin.meta
 Assets/Resources/UOSSettings.asset
 Assets/Resources/UOSSettings.asset.meta
 Assets/UOSLauncherEncrypt.meta
@@ -28,7 +26,6 @@ Assets/WX-WASM-SDK-V2/Editor.meta
 /Bundles
 /CDN
 /TextToolDatas
-WebData.txt
 /Assets/Settings
 Assets/Settings.meta
 /UserSettings

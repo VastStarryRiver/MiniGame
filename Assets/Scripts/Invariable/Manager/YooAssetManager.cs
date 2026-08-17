@@ -62,16 +62,6 @@ namespace Invariable
 
 
         /// <summary>
-        /// 从本地资源读取并设置 Web 配置信息
-        /// </summary>
-        public void SetWebInfo()
-        {
-            BinAsset data = Resources.Load<BinAsset>("LocalAssets/WebData");
-            string[] webData = ConfigUtils.ReadSafeFile<string>(data.m_bytes).Split('\n');
-            ConfigUtils.SetWebData(webData);
-        }
-
-        /// <summary>
         /// 预加载Dll
         /// </summary>
         /// <param name="callBack">预加载完成回调</param>

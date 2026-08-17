@@ -37,7 +37,7 @@ Assets/Settings/Build Profiles/
 
 当前 `EditorBuildSettings.asset` 中微信 Profile 为启用状态，抖音 Profile 为未启用状态。切平台时应通过团结引擎 Build Profile 正确激活，而不是只改宏文本。
 
-> Profile 中包含 AppID、CDN、绝对构建路径等环境相关信息。文档不重复记录具体值；修改或分享时应注意凭据和环境隔离。
+> Profile 中包含 AppID、绝对构建路径等环境相关信息。CDN 字段由打包菜单按 `InvariableConst.CDNPath` 自动写入，无需手填。文档不重复记录具体值；修改或分享时应注意凭据和环境隔离。
 
 ## 2. `SdkManager` 平台能力
 
@@ -89,7 +89,7 @@ WechatFileSystem
 - 通过 `WX.GetCachePath` 判断缓存；
 - 支持清理全部或未使用 Bundle；
 - 创建时检查远程 URL 是否含双斜杠；
-- 远程根地址来自 `WebData.bin` 中 CDN 地址的 `/yoo` 子路径。
+- 远程根地址来自 `InvariableConst.CDNPath` 的 `/yoo` 子路径。
 
 ### 3.2 抖音
 
@@ -109,58 +109,22 @@ TiktokFileSystem
 
 - 使用 `TTFileSystemManager`；
 - 通过 URL 缓存接口判断和加载；
-- 远程根地址同样来自 CDN 的 `/yoo` 子路径。
+- 远程根地址同样来自 `InvariableConst.CDNPath` 的 `/yoo` 子路径。
 
-## 4. WebData 生成
+## 4. CDN 根地址配置
 
-### 4.1 源文件
+运行时 CDN 根地址为 `InvariableConst.CDNPath`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{CDNPath}/yoo`。
 
-项目根目录手工创建：
+打包微信/抖音小游戏时，菜单会把该常量写入平台配置资产的 `CDN` 字段后再构建，无需手填 Profile：
 
-```text
-WebData.txt
-```
+- 微信：`Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset`、`Assets/Settings/Build Profiles/WeChat Profile.asset`
+- 抖音：`Assets/Settings/Build Profiles/DouYin Profile.asset`、`Assets/Editor/StarkBuilderSetting.asset`
 
-最少需要第一行 CDN 根地址。代码还支持后续行（当前框架未使用）：
+只同步 `CDN` 字段。`ConfigUtils.CdnPath` 是本地 `CDN/` 暂存目录，与远程根不是同一概念。
 
-```text
-第 1 行：CDN 根地址
-第 2 行：服务器 IP:Port
-第 3 行：认证用户名
-第 4 行：认证密码
-```
+`InvariableConst.CDNPath` 属 `Invariable`，修改后必须重新构建基础包。
 
-### 4.2 导出
-
-菜单：
-
-```text
-VastStarryRiver/Config/导出Web配置
-```
-
-执行：
-
-```text
-WebData.txt
-  -> ConfigUtils.SaveSafeFile
-  -> Assets/Resources/LocalAssets/WebData.bin
-  -> BinImporter
-  -> BinAsset
-```
-
-运行时：
-
-```text
-Resources.Load("LocalAssets/WebData")
-  -> 解密
-  -> ConfigUtils.SetWebData
-  -> ConfigUtils.CDNPath
-```
-
-### 4.3 注意
-
-- `WebData.bin` 属于首包本地资源，修改 CDN 后需要重新构建基础包；
-- 末尾换行和 Windows `\r\n` 已通过读取时移除 `\r` 部分处理。
+当前未启用微信 Instant Game AutoStreaming；若开启，Build Profile 路径可能用 SDK 的 AutoStreaming CDN 覆盖 `ProjectConf.CDN`，需单独确认。
 
 ## 5. Excel 配置导出
 
@@ -329,7 +293,7 @@ VastStarryRiver/打包/复制bundle到CDN目录
 远程目录必须满足：
 
 ```text
-{ConfigUtils.CDNPath}/yoo/{YooAsset清单和Bundle文件}
+{InvariableConst.CDNPath}/yoo/{YooAsset清单和Bundle文件}
 ```
 
 注意：
@@ -463,23 +427,22 @@ CDN/
 
 1. 激活目标平台 Build Profile；
 2. 确认只激活正确的平台宏；
-3. 检查 Profile 的 AppID、CDN、输出路径和方向；
-4. 创建/更新 `WebData.txt`；
-5. 导出 Web 配置；
-6. 修改 Excel 后导出 Excel 配置；
-7. 等待脚本编译成功；
-8. 导出所有 HybridCLR DLL；
-9. 复制热更新 DLL；
-10. 复制 AOT 元数据 DLL；
-11. 构建 YooAsset；
-12. 复制 Bundle 到 `CDN/yoo`；
-13. 上传/发布 CDN 内容；
-14. 上传云函数（`UOS -> Func Stateless -> Open Panel`）并切换为远程调用模式；
-15. 构建微信或抖音小游戏；
-16. 如平台数据走 CDN，复制并上传 unityweb 数据文件；
-17. 使用平台开发者工具启动；
-18. 清缓存和保留缓存两种情况各测试一次；
-19. 提交审核或发布。
+3. 检查 Profile 的 AppID、输出路径和方向（CDN 由打包菜单按 `InvariableConst.CDNPath` 自动写入）；
+4. 确认 `InvariableConst.CDNPath` 为目标地址；
+5. 修改 Excel 后导出 Excel 配置；
+6. 等待脚本编译成功；
+7. 导出所有 HybridCLR DLL；
+8. 复制热更新 DLL；
+9. 复制 AOT 元数据 DLL；
+10. 构建 YooAsset；
+11. 复制 Bundle 到 `CDN/yoo`；
+12. 上传/发布 CDN 内容；
+13. 上传云函数（`UOS -> Func Stateless -> Open Panel`）并切换为远程调用模式；
+14. 构建微信或抖音小游戏；
+15. 如平台数据走 CDN，复制并上传 unityweb 数据文件；
+16. 使用平台开发者工具启动；
+17. 清缓存和保留缓存两种情况各测试一次；
+18. 提交审核或发布。
 
 ### 12.2 仅业务代码热更新
 
@@ -512,7 +475,6 @@ CDN/
 - `Assets/ToolPackage/YooAsset`；
 - `Assets/Scenes/Start.scene`；
 - `Assets/Resources/LocalAssets`；
-- `WebData.bin`；
 - 微信/抖音 SDK 版本；
 - Build Profile 和 PlayerSettings 中影响运行时的设置；
 - AOT 代码和基础程序集引用变化；

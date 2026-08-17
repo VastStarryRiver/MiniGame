@@ -32,7 +32,7 @@ MonoBehaviour:
   assetBundleBufferCapacity: 128
   assetBundleBufferTTL: 5
   preloadFiles: 
-  CDN: https://a.unity.cn/client_api/v1/buckets/b24fd050-49f0-4fa8-9c6a-6d4cf4fc99c6/release_by_badge/latest/content
+  CDN: 
   preloadDataListUrl: 
   dataLoadType: 0
   dataFileSubPrefix: 

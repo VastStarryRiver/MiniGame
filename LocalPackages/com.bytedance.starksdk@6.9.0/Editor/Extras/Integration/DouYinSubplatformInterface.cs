@@ -89,7 +89,7 @@ namespace TTSDK.Tool
         /// <summary>
         /// 构建参数校验
         /// </summary>
-        private static bool IsBuildSettingsValid(DouYinMiniGameSettings settings, PlayerSettings playerSettings)
+        protected static bool IsBuildSettingsValid(DouYinMiniGameSettings settings, PlayerSettings playerSettings)
         {
             if (!settings.needCompress)
             {
@@ -119,7 +119,7 @@ namespace TTSDK.Tool
         /// <summary>
         /// 将 BuildProfile 中配置的平台相关参数写回全局配置
         /// </summary>
-        private static void SyncBuildSettingsToStark(DouYinMiniGameSettings settings)
+        protected static void SyncBuildSettingsToStark(DouYinMiniGameSettings settings)
         {
             var starkSettings = StarkBuilderSettings.LoadSettings();
             starkSettings.appId = settings.appId;
@@ -143,7 +143,7 @@ namespace TTSDK.Tool
         /// <summary>
         /// 将 BuildProfile 中配置的 BuildOptions 参数写回全局配置
         /// </summary>
-        private static void SyncBuildOptionsToStark(BuildOptions buildOptions)
+        protected static void SyncBuildOptionsToStark(BuildOptions buildOptions)
         {
             var starkSettings = StarkBuilderSettings.LoadSettings();
             starkSettings.buildOptions = buildOptions;

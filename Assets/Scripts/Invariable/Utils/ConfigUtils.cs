@@ -12,97 +12,15 @@ namespace Invariable
 {
     public class ConfigUtils
     {
-#if UNITY_EDITOR
-        public static string m_localRootPath = Application.streamingAssetsPath.Replace("Assets/StreamingAssets", ""); // 本地数据根目录
-#else
-        public static string m_localRootPath = Application.persistentDataPath + "/";
-#endif
-
-        private static string[] m_webData = null;
-        private const string Key = "95gbt368426hyb13";
-        private const string Iv = "i8g3451h5cxmj6rf";
-        private static readonly byte[] KeyBytes = Encoding.UTF8.GetBytes(Key);
-        private static readonly byte[] IvBytes = Encoding.UTF8.GetBytes(Iv);
+        private static readonly byte[] KeyBytes = Encoding.UTF8.GetBytes(InvariableConst.EncryptKey);
+        private static readonly byte[] IvBytes = Encoding.UTF8.GetBytes(InvariableConst.EncryptIv);
         private static readonly byte[] SafeFileV2Magic = { (byte)'S', (byte)'F', (byte)'V', (byte)'2' };
 
-        public static readonly string ConfigExcelPath = m_localRootPath + "Excel";
-        public static readonly string LocalResourcePath = m_localRootPath + "Assets/Resources/LocalAssets";
-        public static readonly string HotUpdateDllPath = m_localRootPath + "Assets/GameAssets/DLL";
-        public static readonly string CdnPath = m_localRootPath + "CDN";
-        public static readonly string MiniBuildPath = m_localRootPath + "Build";
-
-        /// <summary>
-        /// CDN地址
-        /// </summary>
-        public static string CDNPath
-        {
-            get
-            {
-                return GetWebData(0);
-            }
-        }
-
-        /// <summary>
-        /// 服务器的公网地址
-        /// </summary>
-        public static string WebIpv4Str
-        {
-            get
-            {
-                string data = GetWebData(1);
-
-                if (string.IsNullOrEmpty(data))
-                {
-                    return "";
-                }
-
-                string[] list = data.Split(":");
-
-                return list[0];
-            }
-        }
-
-        /// <summary>
-        /// 服务器用于连接客户端的端口号
-        /// </summary>
-        public static int WebPortInt
-        {
-            get
-            {
-                string data = GetWebData(1);
-
-                if (string.IsNullOrEmpty(data))
-                {
-                    return 0;
-                }
-
-                string[] list = data.Split(":");
-
-                return int.Parse(list[1]);
-            }
-        }
-
-        /// <summary>
-        /// 请求下载的认证用户名
-        /// </summary>
-        public static string Username
-        {
-            get
-            {
-                return GetWebData(2);
-            }
-        }
-
-        /// <summary>
-        /// 请求下载的认证密码
-        /// </summary>
-        public static string Password
-        {
-            get
-            {
-                return GetWebData(3);
-            }
-        }
+        public static readonly string LocalRootPath = Application.streamingAssetsPath.Replace("Assets/StreamingAssets", "");
+        public static readonly string ConfigExcelPath = LocalRootPath + "Excel";
+        public static readonly string HotUpdateDllPath = LocalRootPath + "Assets/GameAssets/DLL";
+        public static readonly string CdnPath = LocalRootPath + "CDN";
+        public static readonly string MiniBuildPath = LocalRootPath + "Build";
 
 
 
@@ -404,31 +322,6 @@ namespace Invariable
                 // 确保路径中的所有文件夹都存在
                 Directory.CreateDirectory(directoryPath);
             }
-        }
-
-        /// <summary>
-        /// 设置 Web 配置数据
-        /// </summary>
-        public static void SetWebData(string[] webData)
-        {
-            m_webData = webData;
-        }
-
-
-
-        /// <summary>
-        /// 按索引读取 Web 配置项
-        /// </summary>
-        private static string GetWebData(int index)
-        {
-            if (m_webData == null || index >= m_webData.Length)
-            {
-                return "";
-            }
-
-            string text = m_webData[index].Replace("\r", "");
-
-            return text;
         }
     }
 }

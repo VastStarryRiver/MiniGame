@@ -1,5 +1,4 @@
 using Invariable;
-using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Profile;
@@ -24,6 +23,12 @@ namespace MyTools
         [MenuItem("VastStarryRiver/打包/打包微信小游戏", false, 30)]
         public static void PackageProject_WeiXin()
         {
+#if MINIGAME_SUBPLATFORM_WEIXIN
+            if (!ApplyCDNPathToWeChatConfigs())
+            {
+                return;
+            }
+#endif
             string path = $"{ConfigUtils.MiniBuildPath}/WeChat";
 
             if (Directory.Exists(path))
@@ -70,6 +75,12 @@ namespace MyTools
         [MenuItem("VastStarryRiver/打包/打包抖音小游戏", false, 31)]
         public static void PackageProject_DouYin()
         {
+#if MINIGAME_SUBPLATFORM_DOUYIN
+            if (!ApplyCDNPathToDouYinConfigs())
+            {
+                return;
+            }
+#endif
             string path = $"{ConfigUtils.MiniBuildPath}/DouYin";
 
             if (Directory.Exists(path))
@@ -95,6 +106,124 @@ namespace MyTools
 #if MINIGAME_SUBPLATFORM_DOUYIN
             return true;
 #else
+            return false;
+#endif
+        }
+
+
+
+        /// <summary>
+        /// 将 CDN 根地址写入微信 MiniGameConfig 与 WeChat Profile
+        /// </summary>
+        public static bool ApplyCDNPathToWeChatConfigs()
+        {
+#if MINIGAME_SUBPLATFORM_WEIXIN
+            string cdnPath = InvariableConst.CDNPath;
+            UnityEngine.Object miniGameConfig = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>("Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset");
+
+            if (miniGameConfig == null)
+            {
+                GameLog.Error("未找到 MiniGameConfig.asset，已中止写入微信 CDN");
+
+                return false;
+            }
+
+            SerializedObject miniGameConfigObject = new SerializedObject(miniGameConfig);
+            SerializedProperty miniGameCdn = miniGameConfigObject.FindProperty("ProjectConf.CDN");
+
+            if (miniGameCdn == null)
+            {
+                GameLog.Error("MiniGameConfig.asset 缺少 ProjectConf.CDN，已中止写入微信 CDN");
+
+                return false;
+            }
+
+            miniGameCdn.stringValue = cdnPath;
+            miniGameConfigObject.ApplyModifiedProperties();
+            BuildProfile profile = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/WeChat Profile.asset");
+
+            if (profile == null)
+            {
+                GameLog.Error("未找到 WeChat Profile.asset，已中止写入微信 CDN");
+
+                return false;
+            }
+
+            WeixinMiniGameSettings settings = profile.miniGameSettings as WeixinMiniGameSettings;
+
+            if (settings == null || settings.ProjectConf == null)
+            {
+                GameLog.Error("WeChat Profile 的 MiniGameSettings 无效，已中止写入微信 CDN");
+
+                return false;
+            }
+
+            settings.ProjectConf.CDN = cdnPath;
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+
+            return true;
+#else
+            GameLog.Error("当前未激活微信平台，无法写入微信 CDN 配置");
+
+            return false;
+#endif
+        }
+
+        /// <summary>
+        /// 将 CDN 根地址写入抖音 Profile 与 StarkBuilderSetting
+        /// </summary>
+        public static bool ApplyCDNPathToDouYinConfigs()
+        {
+#if MINIGAME_SUBPLATFORM_DOUYIN
+            string cdnPath = InvariableConst.CDNPath;
+            BuildProfile profile = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/DouYin Profile.asset");
+
+            if (profile == null)
+            {
+                GameLog.Error("未找到 DouYin Profile.asset，已中止写入抖音 CDN");
+
+                return false;
+            }
+
+            DouYinMiniGameSettings settings = profile.miniGameSettings as DouYinMiniGameSettings;
+
+            if (settings == null)
+            {
+                GameLog.Error("DouYin Profile 的 MiniGameSettings 无效，已中止写入抖音 CDN");
+
+                return false;
+            }
+
+            settings.CDN = cdnPath;
+            EditorUtility.SetDirty(profile);
+            UnityEngine.Object starkSetting = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>("Assets/Editor/StarkBuilderSetting.asset");
+
+            if (starkSetting == null)
+            {
+                GameLog.Error("未找到 StarkBuilderSetting.asset，已中止写入抖音 CDN");
+
+                return false;
+            }
+
+            SerializedObject starkObject = new SerializedObject(starkSetting);
+            SerializedProperty starkCdn = starkObject.FindProperty("CDN");
+
+            if (starkCdn == null)
+            {
+                GameLog.Error("StarkBuilderSetting.asset 缺少 CDN，已中止写入抖音 CDN");
+
+                return false;
+            }
+
+            starkCdn.stringValue = cdnPath;
+            starkObject.ApplyModifiedProperties();
+            AssetDatabase.SaveAssets();
+
+            return true;
+#else
+            GameLog.Error("当前未激活抖音平台，无法写入抖音 CDN 配置");
+
             return false;
 #endif
         }

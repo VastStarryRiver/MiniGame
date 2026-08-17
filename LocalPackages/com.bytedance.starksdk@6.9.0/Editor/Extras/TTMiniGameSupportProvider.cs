@@ -28,7 +28,11 @@ public class TTMiniGameSupportProvider : ITTMiniGameSupportProvider
         if (target == WasmSubFramework.MiniGame)
         {
 #if TT_MINIGAME_BUILD_SUPPORTED
+#if PLATFORM_PLAYABLEADS
+            return (int)BuildTargetGroup.PlayableAds;
+#else
             return (int)BuildTargetGroup.MiniGame;
+#endif
 #else
             Debug.LogError(NotSupportedTips);
             return (int)BuildTargetGroup.Unknown;
@@ -42,7 +46,11 @@ public class TTMiniGameSupportProvider : ITTMiniGameSupportProvider
         if (target == WasmSubFramework.MiniGame)
         {
 #if TT_MINIGAME_BUILD_SUPPORTED
+#if PLATFORM_PLAYABLEADS
+            return (int)BuildTarget.PlayableAds;  
+#else
             return (int)BuildTarget.MiniGame;
+#endif
 #else
             Debug.LogError(NotSupportedTips);
             return (int)BuildTargetGroup.Unknown;

@@ -15,7 +15,7 @@
 | 配置 | ExcelDataReader + 自定义生成器 | Excel 转 bytes 与生成代码 | `Assets/Plugins/ExcelDataReader.dll` 预编译库 |
 | JSON | Newtonsoft.Json | 云存档序列化等 | NuGetForUnity；亦为 AOT 元数据 DLL 之一 |
 | 其他 | Spine、UIParticle、UOS CDN | 动画、UI 粒子和 CDN | UPM |
-| UOS 服务 | UOS Launcher / CloudSave / Func Stateless | 账号登录、云存档与云函数 | UPM；另有 `Assets/UOSLauncherEncrypt`（Launcher 自带加密模块，勿改） |
+| UOS 服务 | UOS Launcher / CloudSave / Func Stateless | 云存档与云函数 | UPM；另有 `Assets/UOSLauncherEncrypt`（Launcher 自带加密模块，勿改） |
 
 ## 2. 程序集架构
 
@@ -70,7 +70,7 @@
 
 职责：
 
-- UOS Func Stateless 云函数（平台登录换 token、全量云存档拉取等）；
+- UOS Func Stateless 云函数（平台登录换取云存档令牌、排行榜快照读写等）；
 - 客户端经 SDK 远程代理调用，不在客户端执行函数体中的密钥逻辑；
 - 云存档相关数据模型（一类一文件，放在 `CloudService/Model/`）。
 
@@ -90,7 +90,7 @@
 
 职责：
 
-- Excel/WebData 导出；
+- Excel 导出；
 - HybridCLR DLL 生成与复制；
 - YooAsset Bundle 构建；
 - 微信/抖音小游戏构建；
@@ -219,12 +219,11 @@ HotUpdateOver
 职责：
 
 1. 若 `YooAssets.Initialized` 已为 true，直接跳到 `HotUpdateOver`（跳过清单检查与资源下载）；
-2. 否则读取 `Resources/LocalAssets/WebData.bin`；
-3. 解密并解析 CDN 等 Web 配置；
-4. 初始化 YooAsset，并设置 `YooAssets.SetOperationSystemMaxTimeSlice(1000)`；
-5. 创建或获取包 `MyPackage`；
-6. 设置为默认包；
-7. 按模式初始化文件系统。
+2. 否则直接取 `InvariableConst.CDNPath` 作为 CDN 根地址；
+3. 初始化 YooAsset，并设置 `YooAssets.SetOperationSystemMaxTimeSlice(1000)`；
+4. 创建或获取包 `MyPackage`；
+5. 设置为默认包；
+6. 按模式初始化文件系统。
 
 编辑器：
 
@@ -235,7 +234,7 @@ EditorSimulateModeHelper.SimulateBuild("MyPackage")
 小游戏：
 
 ```text
-CDN 根地址 = ConfigUtils.CDNPath + "/yoo"
+CDN 根地址 = InvariableConst.CDNPath + "/yoo"
 defaultHostServer = fallbackHostServer（主备同址，备线未单独配置）
 WebPlayModeParameters
   -> SdkManager.InitializeYooAsset
@@ -280,7 +279,7 @@ Package.CreateResourceDownloader(
 1. 清理未使用清单缓存；
 2. 清理未使用 Bundle 缓存；
 3. 初始化平台 SDK；
-4. 初始化云存档（平台登录 → 云函数换 token → 拉取云端存档）；
+4. 初始化云存档（平台登录 → 云函数换取云存档令牌 → 拉取云端存档）；
 5. 加载 AOT 补充元数据；
 6. 加载 `HotUpdate.dll`；
 7. 反射调用热更新入口。
@@ -467,7 +466,7 @@ Assets/AssetBundleCollectorSetting.asset
 | `YooAssetManager` | 包、资源、场景、DLL |
 | `UIManager` | 已打开页面字典；提供 `CloseUIPanel` / `CloseAllUIPanel`；`TipsPanel` 关闭时隐藏复用（`FloatTextPanel` 自管理复用） |
 | `SdkManager` | 平台 SDK、平台登录、本地/云读写入口、键盘、广告、分享、适配 |
-| `CloudManager` | 云存档初始化、云缓存、排行榜拉取（GetAllCloudData 按 rankKey 降序 Top100）、云函数代理；写后防抖上传（2s），`FlushCloudData` 立即上传脏数据 |
+| `CloudManager` | 云存档初始化、云缓存、排行榜快照上报（ReportRankScore）与拉取（GetAllCloudData 读 Top100 快照）、云函数代理；写后防抖上传（2s），`FlushCloudData` 立即上传脏数据 |
 
 基类：
 
@@ -649,7 +648,6 @@ Assets/Scripts/HotUpdate/Config/Generated/ # Config_*.cs + ConfigManager.Preload
 菜单：
 
 ```text
-VastStarryRiver/Config/导出Web配置
 VastStarryRiver/Config/导出Excel配置
 VastStarryRiver/Config/校验配置数据
 ```
@@ -735,38 +733,20 @@ int, float, string,
 - `Config_Player`
 - `Config_RoleRune`
 
-## 13. WebData 与本地二进制
+## 13. CDN 根地址
 
-源文件位于项目根目录：
+运行时 CDN 根地址为编译期常量 `InvariableConst.CDNPath`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`，`#region 游戏资源`）。YooAsset 远程根为 `{CDNPath}/yoo`。
 
-```text
-WebData.txt
-```
+打包微信/抖音小游戏时，菜单会把该常量写入平台配置资产的 `CDN` 字段后再构建：
 
-代码支持行定义：
+- 微信：`Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset`、`Assets/Settings/Build Profiles/WeChat Profile.asset`
+- 抖音：`Assets/Settings/Build Profiles/DouYin Profile.asset`、`Assets/Editor/StarkBuilderSetting.asset`
 
-| 行号（从 0 开始） | 含义 |
-|---:|---|
-| 0 | CDN 根地址，要求（CDN/yoo/所有Bundle） |
-| 1 | 服务器地址，格式（IP:Port） `当前未使用业务服务器` |
-| 2 | 下载认证用户名 `当前未使用业务服务器` |
-| 3 | 下载认证密码 `当前未使用业务服务器` |
+只同步 `CDN` 字段；`StreamCDN` / `AssetsUrl` / `wasmResourceUrl` 不改。Profile 里的 CDN 无需手填。
 
-当前启动资源更新只直接使用第 0 行。
+`ConfigUtils.CdnPath` 是工程根下的本地 `CDN/` 暂存目录（复制 bundle / unityweb.bin 用），与远程根 `InvariableConst.CDNPath` 不是同一概念。
 
-编辑器菜单：
-
-```text
-VastStarryRiver/Config/导出Web配置
-```
-
-输出：
-
-```text
-Assets/Resources/LocalAssets/WebData.bin
-```
-
-`.bin` 由 `BinImporter` 导入为 `BinAsset`，运行时通过 `Resources.Load<BinAsset>` 读取。
+`InvariableConst.CDNPath` 属 `Invariable`，修改后必须重新构建并发布小游戏基础包，不能只热更。
 
 ## 14. 工具类
 
@@ -805,17 +785,18 @@ Assets/Resources/LocalAssets/WebData.bin
 
 1. `CloudManager.InitCloudData`；
 2. `SdkManager.PlatformLogin`（`WX.Login` / `TT.Login`，抖音 `forceLogin=true`）；
-3. Func Stateless 云函数（code 换 openid，再 External Login 换 token）；
-4. `AuthTokenManager.SaveToken`；
-5. CloudSave 单存档 KV 拉取/上传。
+3. Func Stateless 云函数（code 换 openid，再签发云存档令牌）；
+4. `AuthTokenManager.SaveToken`（只存 AccessToken + UserId）；
+5. CloudSave 单存档 KV 拉取/上传。上传前校验令牌有效性，临期/过期自动重签；遇 401 再重签并重试一次。
 
 数据隔离规则：
 
-- `externalUserID = wx-` / `dy-` + openid（openid 按平台小游戏隔离）；
-- `namespace = minigame_kv_{游戏标识}`（`CloudManager.CloudSaveGameId`，每个游戏项目必须唯一）；
+- `userID = wx-` / `dy-` + openid（openid 按平台小游戏隔离）；
+- 玩家存档 `namespace = kv_{游戏标识}_player`（`CloudManager.CloudSaveGameId`，每个游戏项目必须唯一）；
+- 排行榜快照 `namespace = kv_{游戏标识}_rank`，单存档，userId 固定为 `sys`；
 - 同游戏同账号才同数据。
 
-客户端入口：`CloudManager` 负责 `InitCloudData` / `GetAllCloudData`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）。`GetAllCloudData(rankKey, callBack)`：客户端传入排名字段名（如 `"Score"`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后自行拼 `minigame_kv_{gameId}`，分页拉取全部存档元数据，再并发（上限 10）下载存档内容，按 `rankKey` 数值降序截取前 `CloudGetAllMaxCount = 100` 名返回，供排行榜场景使用；客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。
+客户端入口：`CloudManager` 负责 `InitCloudData` / `GetAllCloudData` / `ReportRankScore`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）。`GetAllCloudData(rankKey, callBack)`：客户端传入排名字段名（如 `"Score"`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后自行拼 `kv_{gameId}_rank`，只读 Top100 快照（list + 详情 + 下载共 3 次请求），按 `rankKey` 数值降序截取前 `CloudGetAllMaxCount = 100` 名返回。`ReportRankScore(rankKey, score)`：刷新个人纪录时上报，云函数增量维护快照；客户端按 `LocalKey_RankReportedPrefix` 节流，云函数有响应即写本地标记。客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。
 
 编辑器环境 `SdkManager.SetCloudData` / `GetCloudData` 走本地存储；真机转发 `CloudManager` 云缓存；云初始化失败后 Set 静默丢弃、Get 返回默认值。
 
@@ -825,4 +806,4 @@ Assets/Resources/LocalAssets/WebData.bin
 2. 菜单 `UOS -> Func Stateless -> Open Panel` 上传；
 3. 切换为远程调用模式。
 
-合法域名需包含：`save.unity.cn`、`p.unity.cn`、`f.unity.cn`、`metrics2.unity.cn`。
+微信/抖音 MP 后台白名单：`https://a.unity.cn`、`https://a.unity3dcloud.cn`、`https://a2.unity3dcloud.cn`、`https://a3.unity3dcloud.cn`（CDN 资源）；`https://save.unity.cn`、`https://uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com`、`https://stateless.unity.cn`、`https://p.unity.cn`。

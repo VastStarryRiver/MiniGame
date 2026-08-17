@@ -218,7 +218,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 写入云端缓存（编辑器回退本地存储）
+        /// 写入云端缓存
         /// </summary>
         public void SetCloudData(string key, string data)
         {
@@ -230,7 +230,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 读取云端缓存（编辑器回退本地存储）
+        /// 读取云端缓存
         /// </summary>
         public string GetCloudData(string key, string defaultValue = "")
         {

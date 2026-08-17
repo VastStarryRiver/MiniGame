@@ -15,7 +15,7 @@
    - 常用 API、命名约定和修改检查清单
 3. [HotUpdateBuildAdapt.md](Doc/HotUpdateBuildAdapt.md) `构建热更新与平台适配`
    - 微信/抖音平台差异
-   - WebData、HybridCLR DLL、YooAsset、CDN 和小游戏构建顺序
+   - HybridCLR DLL、YooAsset、CDN 和小游戏构建顺序
    - 热更新发布边界（含云函数上传与远程调用）
 4. [NewProjectSetup.md](Doc/NewProjectSetup.md) `新项目准备`
    - 复制工程后的环境恢复与版本控制注意
@@ -34,7 +34,7 @@
 | UI 系统 | 优 | 打开页面单一入口且加载中去重；UIPanel / UIPopup 职责切分；FloatText 对象池复用与对称清理 | `Utils.OpenUIPrefabPanel`、`UIPanel` / `UIPopup`、`FloatTextPanel` |
 | 音频系统 | 优 | BGM 单通道串行化，SFX 每名一源；音量经平台层本地持久化，读写与平台解耦 | `AudioManager`、`SdkManager` |
 | 资源与性能 | 优 | 同地址在途去重；闲置句柄 180s / 30s 扫描逐出并白名单兜底；配置分帧物化、字符串缓存、对象池降峰值 | `YooAssetManager`、`ConfigManagerCore`、`TryUnloadUnusedAsset` |
-| 云服务 | 优 | 密钥走环境变量分层；写后 2s 防抖 + 串行上传 + dirty 重标记；排行榜按 rankKey 降序 Top100 并限流；命名空间服务端自拼 | `CloudHelper` / `CloudManager`、`GetAllCloudData` |
+| 云服务 | 优 | 密钥走环境变量分层；写后 2s 防抖 + 串行上传 + dirty 重标记；排行榜快照增量维护 Top100，查看只读 3 次请求；命名空间服务端自拼 | `CloudHelper` / `CloudManager`、`ReportRankScore` / `GetAllCloudData` |
 | 编辑器工具链 | 优 | Excel→bytes→生成代码→运行时校验→独立回读闭环；菜单 priority 编码流水线顺序；生成代码 UTF-8 无 BOM + LF + 防注入 | `ConfigImporter` / `CodeGenerator` / `DllTool` / `AssetBundleTool` |
 
 ## 3. 项目一句话架构
@@ -82,9 +82,9 @@ Assets/
 │  ├─ Png/                 # 独立图片
 │  ├─ Config/              # 导表 bytes（YooAsset Config 组）
 │  └─ Scenes/              # 动态场景
-├─ Resources/LocalAssets/  # 首包本地资源：加载面板、WebData.bin
+├─ Resources/LocalAssets/  # 首包本地资源：加载面板
 ├─ Editor/MyTools/         # 编辑器工具（仅 Editor 平台）
-│  ├─ Config/              # Excel/WebData 导表与校验
+│  ├─ Config/              # Excel 导表与校验
 │  ├─ DllTool/             # HybridCLR DLL 生成与复制
 │  ├─ AssetBundle/         # YooAsset Bundle 构建
 │  ├─ CustomBuild/         # 微信/抖音打包与 CDN 复制
@@ -183,5 +183,5 @@ BUG 出现前的操作、实际结果、预期结果、日志或截图
   - `MINIGAME_SUBPLATFORM_WEIXIN`
   - `MINIGAME_SUBPLATFORM_DOUYIN`
 - 安全区为固定偏移，不是根据设备实时安全区计算。
-- UOS：Launcher / CloudSave / Func Stateless；云存档 namespace 为 `minigame_kv_{CloudManager.CloudSaveGameId}`，须与 `CloudHelper.Secrets.GameId` 一致。
+- UOS：Launcher / CloudSave / Func Stateless；玩家存档 namespace 为 `kv_{CloudManager.CloudSaveGameId}_player`，排行榜快照为 `kv_{CloudManager.CloudSaveGameId}_rank`，须与 `CloudHelper.Secrets.GameId` 一致。
 - 云读写业务入口：`SdkManager.SetCloudData` / `GetCloudData`；云初始化：`CloudManager.InitCloudData`。

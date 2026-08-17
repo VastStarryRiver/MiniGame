@@ -2,9 +2,8 @@ namespace CloudService
 {
     public class PlatformLoginResult
     {
-        public string personaAccessToken;
-        public string personaRefreshToken;
+        public string accessToken;
+        public long expiresAt;
         public string userID;
-        public string personaID;
     }
 }

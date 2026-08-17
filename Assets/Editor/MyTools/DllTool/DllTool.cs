@@ -25,7 +25,7 @@ namespace MyTools
         public static void MoveHotUpdateDLL()
         {
             string platform = EditorUserBuildSettings.activeBuildTarget.ToString();
-            string path = $"{ConfigUtils.m_localRootPath}HybridCLRData/HotUpdateDlls/{platform}/HotUpdate.dll";
+            string path = $"{ConfigUtils.LocalRootPath}HybridCLRData/HotUpdateDlls/{platform}/HotUpdate.dll";
             byte[] bytes = File.ReadAllBytes(path);
             ConfigUtils.SaveSafeFile(bytes, $"{ConfigUtils.HotUpdateDllPath}/{platform}/HotUpdate.dll.bin");
             AssetDatabase.Refresh();
@@ -41,7 +41,7 @@ namespace MyTools
 
             foreach (string aotDllName in InvariableConst.AotDllNames)
             {
-                string path = $"{ConfigUtils.m_localRootPath}HybridCLRData/AssembliesPostIl2CppStrip/{platform}/{aotDllName}.dll";
+                string path = $"{ConfigUtils.LocalRootPath}HybridCLRData/AssembliesPostIl2CppStrip/{platform}/{aotDllName}.dll";
                 byte[] bytes = File.ReadAllBytes(path);
                 ConfigUtils.SaveSafeFile(bytes, $"{ConfigUtils.HotUpdateDllPath}/{platform}/{aotDllName}.dll.bin");
             }

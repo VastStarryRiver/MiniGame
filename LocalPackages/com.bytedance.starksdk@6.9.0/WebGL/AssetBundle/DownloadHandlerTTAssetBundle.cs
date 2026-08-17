@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.Scripting;
-
+#if !PLATFORM_PLAYABLEADS
 namespace TTSDK
 {
     /**
@@ -82,3 +82,4 @@ namespace TTSDK
         
     }
 }
+#endif

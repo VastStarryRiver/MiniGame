@@ -43,8 +43,6 @@ namespace Invariable
                 return;
             }
 
-            YooAssetManager.Instance.SetWebInfo();
-
             GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "游戏加载中...");
 
             YooAssets.Initialize();
@@ -83,7 +81,7 @@ namespace Invariable
             }
             else if (playMode == EPlayMode.WebPlayMode)
             {
-                string defaultHostServer = $"{ConfigUtils.CDNPath}/yoo";
+                string defaultHostServer = $"{InvariableConst.CDNPath}/yoo";
                 string fallbackHostServer = defaultHostServer;
                 RemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
 

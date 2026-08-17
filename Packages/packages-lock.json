@@ -44,24 +44,6 @@
       },
       "hash": "76a5a7e54c24e8f428e43b5071892f60260beea2"
     },
-    "cn.unity.uos.passport.core": {
-      "version": "https://cnb.cool/unity/uos/PassportCore.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.2.1"
-      },
-      "hash": "0b673f4fc3a3442dd695b28ec99cdd8f38907896"
-    },
-    "cn.unity.uos.passport.feature": {
-      "version": "https://cnb.cool/unity/uos/PassportFeatureSDK.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.2.1"
-      },
-      "hash": "5a7531c0cc034129325b32f798accdc12b188f90"
-    },
     "com.boxqkrtm.ide.cursor": {
       "version": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
       "depth": 0,
@@ -72,7 +54,7 @@
       "hash": "fd8ff1fb700caf062eb5cce364c1d0a85f99ebe6"
     },
     "com.bytedance.starksdk": {
-      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.7.6",
+      "version": "file:../Assets/../LocalPackages/com.bytedance.starksdk@6.9.0",
       "depth": 0,
       "source": "local",
       "dependencies": {}

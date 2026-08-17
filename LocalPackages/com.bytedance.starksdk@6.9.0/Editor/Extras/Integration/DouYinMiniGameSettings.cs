@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TTSDK.Tool
 {
-    class DouYinMiniGameSettings: MiniGameSettings
+    public class DouYinMiniGameSettings: MiniGameSettings
     {
         [SerializeField] public string appId = "";
         [SerializeField] public int wasmMemorySize = 128;

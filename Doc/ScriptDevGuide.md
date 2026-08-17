@@ -995,7 +995,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 | Editor | 转发 `SetLocalData` / `GetLocalData` |
 | 微信/抖音 | 转发 `CloudManager` 云缓存；写后异步上传 |
 
-云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜拉取用 `CloudManager.Instance.GetAllCloudData(rankKey, callBack)`（按存档字段 `rankKey` 数值降序取前 100）。云函数/密钥约束见 `cloud-service` 规则。
+云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜：刷新纪录时调用 `CloudManager.Instance.ReportRankScore(rankKey, score)`（仅个人新高才打云函数，有响应即写本地标记）；拉取用 `CloudManager.Instance.GetAllCloudData(rankKey, callBack)`（读 `kv_{GameId}_rank` 快照，按 `rankKey` 降序取前 100）。上传前校验令牌有效性、临期/过期自动重签，401 自动重签并重试一次。云函数/密钥约束见 `cloud-service` 规则。
 
 存档修改应考虑：
 

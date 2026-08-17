@@ -23,6 +23,9 @@ namespace Invariable
             "Newtonsoft.Json",
         };
         public const string YooAssetPackageName = "MyPackage";
+        public const string CDNPath = "";
+        public const string EncryptKey = "";
+        public const string EncryptIv = "";
         public const string UIRootPath = "UI_Root";
         public const string UICameraPath_0 = "UI_Root/Canvas_0/UI_Camera";
         public const string UICameraPath_1 = "UI_Root/Canvas_1/UI_Camera";
@@ -45,6 +48,10 @@ namespace Invariable
         public const string LocalKey_AudioBgmVolume = "Audio_BgmVolume";
         public const string LocalKey_AudioSfxVolume = "Audio_SfxVolume";
         public const string LocalKey_AudioMute = "Audio_Mute";
+        #endregion
+
+        #region 云存档
+        public const string LocalKey_RankReportedPrefix = "Rank_Reported_";
         #endregion
     }
 }

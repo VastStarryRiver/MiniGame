@@ -330,7 +330,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 加载并物化整表。行数超过阈值时分帧，完成才回调完整列表。
+        /// 加载并物化整表，行数超过阈值时分帧，完成才回调完整列表
         /// </summary>
         public static void LoadAllSliced<TConfig>(
             ref ConfigData<TConfig> configData,
