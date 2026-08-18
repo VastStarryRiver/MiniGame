@@ -62,6 +62,7 @@ Assets/Scripts/Invariable/Manager/SdkManager.cs
 | 侧边栏复访 | 无 | 无 | 有（跳转成功写入本地 IsGetReward=1） |
 | 游戏圈按钮 | 无 | 有 | 无 |
 | 分享 | `GameLog.Info` | WX.ShareAppMessage | TT.ShareAppMessage（成功/失败/取消回调） |
+| 用户信息授权/获取 | `SyncPlatformUserInfo` 直接回调 false | 已授权 `WX.GetUserInfo`；未授权 `WX.CreateUserInfoButton` | 同步时 `GetUserInfoAuth` 检查，已授权 `TT.GetUserInfo`；未授权锚点按钮触发 `RequestPlatformUserInfoAuth`（`TT.Authorize`） |
 | 环境判断 | IsWeChat/IsDouYin 均返回 false | IsWeChat 返回 true | IsDouYin 返回 true |
 | YooAsset 文件系统 | 不走此接口 | 微信 FS | 抖音 FS |
 
@@ -121,6 +122,8 @@ TiktokFileSystem
 - 抖音：`Assets/Settings/Build Profiles/DouYin Profile.asset`、`Assets/Editor/StarkBuilderSetting.asset`
 
 只同步 `CDN` 字段。`ConfigUtils.CdnPath` 是本地 `CDN/` 暂存目录，与远程根不是同一概念。
+
+`CDNPath` 必须填写。留空时编辑器模拟模式可跑，但真机 WebPlayMode 远程根变为 `/yoo`，资源下载必失败；打包菜单会把空串写入上述平台配置资产的 `CDN` 字段。打包前必查。
 
 `InvariableConst.CDNPath` 属 `Invariable`，修改后必须重新构建基础包。
 
@@ -241,7 +244,7 @@ MiniGame_System.dll
 
 若引擎升级后 BuildTarget 名变化，需同步修改运行时或生成路径。
 
-若重建或重命名 `HotUpdate.asmdef`，需在 HybridCLR 设置面板确认热更程序集引用仍然有效（静态检查可能出现设置内引用与当前 `.meta` 标识编码不一致，以编辑器面板为准）。
+若重建或重命名 `HotUpdate.asmdef`，需在 HybridCLR 设置面板确认热更程序集引用仍然有效（静态检查可能出现设置内引用与当前 `.meta` 标识编码不一致，以编辑器面板为准）。项目内程序集（`Invariable` / `CloudService` / `MyTools` / `HotUpdate`）之间的引用统一写名称；第三方包继续用 GUID。
 
 ## 7. YooAsset 构建
 
@@ -394,13 +397,7 @@ Profile/Stark 设置中包含：
 VastStarryRiver/打包/复制unityweb.bin到CDN目录
 ```
 
-按当前平台从：
-
-```text
-Build/WeChat/webgl
-或
-Build/DouYin/webgl
-```
+按编译期平台宏二选一源目录（`#if MINIGAME_SUBPLATFORM_WEIXIN` → `Build/WeChat/webgl`，`#elif MINIGAME_SUBPLATFORM_DOUYIN` → `Build/DouYin/webgl`）；两宏都未激活时路径为空并静默返回。
 
 查找包含以下名称之一的文件：
 
@@ -437,7 +434,7 @@ CDN/
 10. 构建 YooAsset；
 11. 复制 Bundle 到 `CDN/yoo`；
 12. 上传/发布 CDN 内容；
-13. 上传云函数（`UOS -> Func Stateless -> Open Panel`）并切换为远程调用模式；
+13. 上传云函数（`UOS/Func Stateless/Open Panel`）并切换为远程调用模式；
 14. 构建微信或抖音小游戏；
 15. 如平台数据走 CDN，复制并上传 unityweb 数据文件；
 16. 使用平台开发者工具启动；
@@ -483,8 +480,6 @@ CDN/
 - 首包加载界面或平台转换配置。
 
 Editor 工具本身不进入运行时，但其产物变化可能要求重新构建。
-
-`Invariable` / `HotUpdate` / `MyTools` 运行时与编辑器工具日志统一使用 `GameLog.Info` / `GameLog.Error`；`GameLog.Info` 仅编辑器可见，`GameLog.Error` 始终输出；`CloudService` 云函数体仍使用 `UnityEngine.Debug`。
 
 ## 14. 平台功能验证矩阵
 

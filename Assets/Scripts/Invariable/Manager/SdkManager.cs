@@ -1,3 +1,4 @@
+using CloudService;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -22,10 +23,13 @@ namespace Invariable
     {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
         private WXRewardedVideoAd m_rewardedVideoAd = null;
-        private WXGameClubButton m_wXGameClubButton = null;
+        private WXGameClubButton m_wxGameClubButton = null;
+        private WXUserInfoButton m_wxUserInfoButton = null;
+        private int m_wxUserInfoRequestId = 0;
 
 #elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
         private TTRewardedVideoAd m_rewardedVideoAd = null;
+        private int m_douYinUserInfoRequestId = 0;
 #endif
 
         private TMP_InputField m_inputField = null;
@@ -33,6 +37,9 @@ namespace Invariable
         private List<ScreenAdapter> m_screenAdapters = null;
         private bool m_isShowRewardedVideoAd = false;
         private Action<bool> m_rewardedVideoAdCallBack = null;
+        private string m_platformNickName = null;
+        private string m_platformAvatarUrl = null;
+        private bool m_platformUserInfoLoading = false;
 
 
 
@@ -240,6 +247,342 @@ namespace Invariable
             return CloudManager.Instance.GetCloudCache(key, defaultValue);
 #endif
         }
+        #endregion
+
+        #region 平台用户信息
+        /// <summary>
+        /// 同步平台昵称与头像，已授权则刷新，未授权则走首次授权入口
+        /// </summary>
+        public void SyncPlatformUserInfo(RectTransform authAnchor, Action<bool> callBack = null)
+        {
+            if (m_platformUserInfoLoading)
+            {
+                callBack?.Invoke(false);
+
+                return;
+            }
+
+#if UNITY_EDITOR
+            callBack?.Invoke(false);
+
+#elif MINIGAME_SUBPLATFORM_WEIXIN
+            m_platformUserInfoLoading = true;
+            RequestWeChatUserInfo(callBack, authAnchor);
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+            m_platformUserInfoLoading = true;
+            RequestDouYinUserInfo(callBack, authAnchor);
+#endif
+        }
+
+        /// <summary>
+        /// 读取内存中的平台昵称与头像，不触发平台调用
+        /// </summary>
+        public bool TryGetPlatformUserInfo(out string nickName, out string avatarUrl)
+        {
+            nickName = m_platformNickName;
+            avatarUrl = m_platformAvatarUrl;
+
+            return !string.IsNullOrEmpty(nickName) || !string.IsNullOrEmpty(avatarUrl);
+        }
+
+        /// <summary>
+        /// 授权按钮点击后发起平台授权，无论同意或拒绝锚点按钮都消失
+        /// 微信由原生按钮接管，调用方无需处理
+        /// </summary>
+        public void RequestPlatformUserInfoAuth(RectTransform authAnchor = null, Action<bool> callBack = null)
+        {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+            if (m_platformUserInfoLoading)
+            {
+                return;
+            }
+
+            m_platformUserInfoLoading = true;
+            int requestId = m_douYinUserInfoRequestId;
+            TT.Authorize("scope.userInfo", (msg, data) =>
+            {
+                if (requestId != m_douYinUserInfoRequestId)
+                {
+                    return;
+                }
+
+                HideAuthAnchor(authAnchor);
+                RequestDouYinUserInfoDirect(callBack, authAnchor, false);
+            }, (msg, err) =>
+            {
+                if (requestId != m_douYinUserInfoRequestId)
+                {
+                    return;
+                }
+
+                m_platformUserInfoLoading = false;
+                HideAuthAnchor(authAnchor);
+                GameLog.Info("抖音用户信息授权未完成");
+                callBack?.Invoke(false);
+            });
+#endif
+        }
+
+        /// <summary>
+        /// 销毁平台用户信息授权按钮
+        /// </summary>
+        public void DestroyPlatformUserInfoButton()
+        {
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+            m_wxUserInfoRequestId++;
+            DestroyWeChatUserInfoButton();
+            m_platformUserInfoLoading = false;
+
+#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+            m_douYinUserInfoRequestId++;
+            m_platformUserInfoLoading = false;
+#endif
+        }
+
+        /// <summary>
+        /// 写入平台资料缓存并同步到云存档键
+        /// </summary>
+        private void ApplyPlatformUserInfo(string nickName, string avatarUrl, Action<bool> callBack)
+        {
+            m_platformUserInfoLoading = false;
+
+            if (string.IsNullOrEmpty(nickName) && string.IsNullOrEmpty(avatarUrl))
+            {
+                callBack?.Invoke(false);
+
+                return;
+            }
+
+            m_platformNickName = nickName ?? "";
+            m_platformAvatarUrl = avatarUrl ?? "";
+
+            if (!string.IsNullOrEmpty(nickName))
+            {
+                SetCloudData(CloudDataKeys.ProfileNickName, nickName);
+            }
+
+            if (!string.IsNullOrEmpty(avatarUrl))
+            {
+                SetCloudData(CloudDataKeys.ProfileAvatarUrl, avatarUrl);
+            }
+
+            callBack?.Invoke(true);
+        }
+
+        /// <summary>
+        /// 显示授权锚点按钮，空引用安全
+        /// </summary>
+        private static void ShowAuthAnchor(RectTransform authAnchor)
+        {
+            authAnchor.gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// 隐藏授权锚点按钮，空引用安全
+        /// </summary>
+        private static void HideAuthAnchor(RectTransform authAnchor)
+        {
+            authAnchor.gameObject.SetActive(false);
+        }
+
+#if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
+        /// <summary>
+        /// 微信已授权则直接取资料，未授权则创建用户信息按钮
+        /// </summary>
+        private void RequestWeChatUserInfo(Action<bool> callBack, RectTransform authAnchor)
+        {
+            int requestId = m_wxUserInfoRequestId;
+            WX.GetSetting(new GetSettingOption
+            {
+                success = res =>
+                {
+                    if (requestId != m_wxUserInfoRequestId)
+                    {
+                        return;
+                    }
+
+                    bool authorized = res.authSetting != null
+                        && res.authSetting.TryGetValue("scope.userInfo", out bool value)
+                        && value;
+
+                    if (authorized)
+                    {
+                        RequestWeChatUserInfoDirect(callBack);
+                    }
+                    else
+                    {
+                        CreateWeChatUserInfoButton(callBack, authAnchor);
+                    }
+                },
+                fail = err =>
+                {
+                    if (requestId != m_wxUserInfoRequestId)
+                    {
+                        return;
+                    }
+
+                    GameLog.Error($"微信 GetSetting 失败: {err.errMsg}");
+                    CreateWeChatUserInfoButton(callBack, authAnchor);
+                }
+            });
+        }
+
+        /// <summary>
+        /// 微信已授权后直接拉取最新昵称头像
+        /// </summary>
+        private void RequestWeChatUserInfoDirect(Action<bool> callBack)
+        {
+            WX.GetUserInfo(new GetUserInfoOption
+            {
+                lang = "zh_CN",
+                withCredentials = false,
+                success = res =>
+                {
+                    string nickName = res.userInfo.nickName;
+                    string avatarUrl = res.userInfo.avatarUrl;
+                    ApplyPlatformUserInfo(nickName, avatarUrl, callBack);
+                },
+                fail = err =>
+                {
+                    m_platformUserInfoLoading = false;
+                    GameLog.Error($"微信 GetUserInfo 失败: {err.errMsg}");
+                    callBack?.Invoke(false);
+                }
+            });
+        }
+
+        /// <summary>
+        /// 创建微信用户信息授权按钮，点击后取资料并销毁按钮
+        /// </summary>
+        private void CreateWeChatUserInfoButton(Action<bool> callBack, RectTransform authAnchor)
+        {
+            int requestId = m_wxUserInfoRequestId;
+            ShowAuthAnchor(authAnchor);
+            DestroyWeChatUserInfoButton();
+            GetScreenRectByNodePos(authAnchor, out Rect rect);
+            int x = Mathf.RoundToInt(rect.x);
+            int y = Mathf.RoundToInt(rect.y);
+            int width = Mathf.Max(1, Mathf.RoundToInt(rect.width));
+            int height = Mathf.Max(1, Mathf.RoundToInt(rect.height));
+            m_wxUserInfoButton = WX.CreateUserInfoButton(x, y, width, height, "zh_CN", false);
+            m_wxUserInfoButton.OnTap(res =>
+            {
+                if (requestId != m_wxUserInfoRequestId)
+                {
+                    return;
+                }
+
+                DestroyWeChatUserInfoButton();
+                HideAuthAnchor(authAnchor);
+
+                bool ok = res != null
+                    && !string.IsNullOrEmpty(res.errMsg)
+                    && res.errMsg.IndexOf(":ok", StringComparison.Ordinal) >= 0;
+
+                if (!ok)
+                {
+                    m_platformUserInfoLoading = false;
+                    GameLog.Info("微信用户信息授权未完成");
+                    callBack?.Invoke(false);
+
+                    return;
+                }
+
+                string nickName = res.userInfo.nickName;
+                string avatarUrl = res.userInfo.avatarUrl;
+                ApplyPlatformUserInfo(nickName, avatarUrl, callBack);
+            });
+        }
+
+        /// <summary>
+        /// 销毁微信用户信息授权按钮
+        /// </summary>
+        private void DestroyWeChatUserInfoButton()
+        {
+            if (m_wxUserInfoButton == null)
+            {
+                return;
+            }
+
+            m_wxUserInfoButton.OffTap();
+            m_wxUserInfoButton.Destroy();
+            m_wxUserInfoButton = null;
+        }
+
+#elif !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
+        /// <summary>
+        /// 抖音已授权则直接取资料，未授权则显示授权锚点等玩家点击
+        /// </summary>
+        private void RequestDouYinUserInfo(Action<bool> callBack, RectTransform authAnchor)
+        {
+            int requestId = m_douYinUserInfoRequestId;
+            TT.GetUserInfoAuth(auth =>
+            {
+                if (requestId != m_douYinUserInfoRequestId)
+                {
+                    return;
+                }
+
+                if (auth)
+                {
+                    RequestDouYinUserInfoDirect(callBack, authAnchor, true);
+                }
+                else
+                {
+                    m_platformUserInfoLoading = false;
+                    ShowAuthAnchor(authAnchor);
+                    callBack?.Invoke(false);
+                }
+            }, err =>
+            {
+                if (requestId != m_douYinUserInfoRequestId)
+                {
+                    return;
+                }
+
+                m_platformUserInfoLoading = false;
+                GameLog.Error($"抖音 GetUserInfoAuth 失败: {err}");
+                ShowAuthAnchor(authAnchor);
+                callBack?.Invoke(false);
+            });
+        }
+
+        /// <summary>
+        /// 抖音已授权后直接拉取最新昵称头像，showAnchorOnFail 控制失败时是否显示授权锚点
+        /// </summary>
+        private void RequestDouYinUserInfoDirect(Action<bool> callBack, RectTransform authAnchor, bool showAnchorOnFail)
+        {
+            int requestId = m_douYinUserInfoRequestId;
+            TT.GetUserInfo(false, userInfo =>
+            {
+                if (requestId != m_douYinUserInfoRequestId)
+                {
+                    return;
+                }
+
+                string nickName = userInfo != null ? userInfo.nickName : null;
+                string avatarUrl = userInfo != null ? userInfo.avatarUrl : null;
+                ApplyPlatformUserInfo(nickName, avatarUrl, callBack);
+            }, err =>
+            {
+                if (requestId != m_douYinUserInfoRequestId)
+                {
+                    return;
+                }
+
+                m_platformUserInfoLoading = false;
+                GameLog.Error($"抖音 GetUserInfo 失败: {err}");
+
+                if (showAnchorOnFail)
+                {
+                    ShowAuthAnchor(authAnchor);
+                }
+
+                callBack?.Invoke(false);
+            });
+        }
+#endif
         #endregion
 
         #region 输入框
@@ -452,6 +795,38 @@ namespace Invariable
             offsetMax = new Vector2(-30, -90); // Right = 30, Top = 90
         }
 
+        /// <summary>
+        /// 由左上节点 topLeft pivot=(0,1) 与其子节点 Ts_Pos（右下）换算屏幕 Rect（物理像素，未除 pixelRatio）
+        /// </summary>
+        public static void GetScreenRectByNodePos(Transform topLeft, out Rect rect)
+        {
+            rect = default;
+
+            if (topLeft == null)
+            {
+                return;
+            }
+
+            Vector2 pos1 = RectTransformUtility.WorldToScreenPoint(Utils.UICamera[0], topLeft.position);
+            Transform bottomRight = topLeft.Find("Ts_Pos");
+
+            if (bottomRight == null)
+            {
+                return;
+            }
+
+            Vector2 pos2 = RectTransformUtility.WorldToScreenPoint(Utils.UICamera[0], bottomRight.position);
+            float width = pos2.x - pos1.x;
+            float height = pos1.y - pos2.y;
+
+            if (width <= 0f || height <= 0f)
+            {
+                return;
+            }
+
+            rect = new Rect(pos1.x, Screen.height - pos1.y, width, height);
+        }
+
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
         /// <summary>
         /// 微信设备方向变化回调
@@ -586,18 +961,20 @@ namespace Invariable
         /// <summary>
         /// 展示微信游戏圈按钮
         /// </summary>
-        public void ShowGameClubButton(Rect rect = default, float fontSize = 0)
+        public void ShowGameClubButton(RectTransform anchor, float fontSize = 0)
         {
 #if UNITY_EDITOR
             GameLog.Info("展示游戏圈按钮");
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-            if (m_wXGameClubButton == null)
+            if (m_wxGameClubButton == null)
             {
                 var info = WX.GetWindowInfo();
                 double pixelRatio = info.pixelRatio;
 
-                m_wXGameClubButton = WX.CreateGameClubButton(new WXCreateGameClubButtonParam()
+                GetScreenRectByNodePos(anchor, out Rect rect);
+
+                m_wxGameClubButton = WX.CreateGameClubButton(new WXCreateGameClubButtonParam()
                 {
                     type = GameClubButtonType.text,
                     text = "",
@@ -627,7 +1004,7 @@ namespace Invariable
             }
             else
             {
-                m_wXGameClubButton.Show();
+                m_wxGameClubButton.Show();
             }
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
@@ -644,12 +1021,12 @@ namespace Invariable
             GameLog.Info("隐藏游戏圈按钮");
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
-            if (m_wXGameClubButton == null)
+            if (m_wxGameClubButton == null)
             {
                 return;
             }
 
-            m_wXGameClubButton.Hide();
+            m_wxGameClubButton.Hide();
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
             GameLog.Info("隐藏游戏圈按钮");

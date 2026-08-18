@@ -8,7 +8,7 @@
 2. 首次打开会重建 `Library/`，耗时较长，等待完成。
 3. Package Manager 会按 `Packages/manifest.json` 拉取依赖（含 UOS CDN / CloudSave / Func Stateless / Launcher、YooAsset、HybridCLR、微信小游戏 SDK、抖音 SDK、NuGetForUnity 等）。若有 git 包拉取失败，检查网络与凭据后重试。
 4. 使用 NuGetForUnity 还原 `Newtonsoft.Json`（与云函数、云存档 JSON 序列化相关）。
-5. 打开 Console，确认**无编译错误**后再进入后续步骤。若出现 `UOSSettings` 相关加载异常，先完成第 5 章「UOS Launcher 重新 Link」，或按编辑器提示使用 `UOS -> Launcher -> Fix settings by reimport / delete`。
+5. 打开 Console，确认**无编译错误**后再进入后续步骤。若出现 `UOSSettings` 相关加载异常，先完成第 5 章「UOS Launcher 重新 Link」，或按编辑器提示使用 `UOS/Launcher/Fix settings by reimport / delete`。
 
 ---
 
@@ -110,17 +110,17 @@ a3.unity3dcloud.cn
 
 | 占位符 | 要求 |
 |---|---|
-| `{新GameId}` | 每个游戏唯一的英文字符串（建议与项目/产品英文名一致）。将用于云存档 namespace：`kv_{新GameId}_player` / `kv_{新GameId}_rank` |
+| `{新GameId}` | 每个游戏唯一的英文字符串（建议与项目/产品英文名一致）。将用于云存档 namespace：`kv_{新GameId}_player` / `kv_{新GameId}_rank_{平台}` |
 
 **三处必须相同：**
 
 1. `CloudHelper.Secrets.GameId`
 2. `CloudManager.CloudSaveGameId`
-3. 由此派生的 namespace `kv_{新GameId}_player` 与 `kv_{新GameId}_rank`
+3. 由此派生的 namespace `kv_{新GameId}_player` 与 `kv_{新GameId}_rank_{平台}`（`wx` / `dy`）
 
 ### 5.2 UOS Launcher 重新绑定
 
-1. 菜单：`UOS -> Launcher`
+1. 菜单：`UOS/Launcher`
 2. 使用 `{UOS_AppID}` / `{UOS_AppSecret}` / `{UOS_AppServiceSecret}` 重新 Link 新 App
 3. 结果写入 `Assets/Resources/UOSSettings.asset`（加密字段）
 4. **禁止**手改 `UOSSettings.asset` 中的 `encrypted*` 字段；`Assets/UOSLauncherEncrypt/` 已随工程复制，一般无需改动
@@ -137,9 +137,31 @@ public const string CDNPath = "{新CDN根地址}";
 
 运行时 YooAsset 远程根为 `{CDNPath}/yoo`。打包微信/抖音时菜单会把该常量写入平台配置资产的 `CDN` 字段，无需手填 Profile。
 
+`CDNPath` **必须填写**。留空时编辑器模拟模式可跑，但真机 WebPlayMode 远程根变为 `/yoo`，资源下载必失败。
+
 `CDNPath` 属 `Invariable`，修改后必须重新构建并发布小游戏基础包，不能只热更。
 
-### 5.4 云函数 Secrets 与云存档 GameId
+### 5.4 DLL/配置加密密钥
+
+文件：`Assets/Scripts/Invariable/Utils/InvariableConst.cs`（`#region 游戏资源`）
+
+`ConfigUtils` 用这两项做 AES 加解密（`DllTool` 复制 `.dll.bin` 与运行时 `ReadSafeFile` 共用）：
+
+```csharp
+public const string EncryptKey = "{新EncryptKey}";
+public const string EncryptIv = "{新EncryptIv}";
+```
+
+要求（按 UTF-8 字节计）：
+
+- `EncryptKey`：16 / 24 / 32 字节
+- `EncryptIv`：16 字节
+
+留空时 `Encoding.UTF8.GetBytes("")` 得到 0 长度密钥，AES 直接抛异常，**DLL 加密复制与真机 DLL 解密都会失败**。
+
+> `Invariable` 不可热更，以上改动只能随**基础包**生效。改密钥后必须重跑 DLL 导出/复制再打基础包。
+
+### 5.5 云函数 Secrets 与云存档 GameId
 
 **文件 A：** `Assets/Scripts/CloudService/CloudHelper.cs`
 
@@ -162,11 +184,20 @@ private static readonly GameSecrets Secrets = new GameSecrets
 private const string CloudSaveGameId = "{新GameId}"; // 必须与 CloudHelper.Secrets.GameId 一致
 ```
 
-`CloudSaveNamespace` 会自动变为 `kv_{新GameId}_player`，排行榜快照为 `kv_{新GameId}_rank`，无需单独改字符串字面量。
+`CloudSaveNamespace` 会自动变为 `kv_{新GameId}_player`，排行榜快照为 `kv_{新GameId}_rank_{平台}`（`wx` / `dy` 分榜），无需单独改字符串字面量。
 
-> `CloudService` 程序集**不可热更**，以上改动只能随**基础包**生效。
+后台显示名（仅展示，不参与定位）：
 
-### 5.5 广告位与分享文案
+| 存档 | 显示名 |
+|---|---|
+| 玩家存档 | 微信玩家数据 / 抖音玩家数据 |
+| 排行榜快照 | 微信排行榜 / 抖音排行榜 |
+
+微信需配置隐私协议；抖音需在开放平台开通 `scope.userInfo`。头像 URL 的实际域名必须加入对应 MP 后台 downloadFile 合法域名，不进 UOS 白名单。
+
+> `CloudService` 程序集**不可热更**，以上改动只能随**基础包**生效。`CloudHelper.Secrets` 含平台 AppSecret 且随 `Assets/Scripts` 进入版本控制，注意仓库可见性。
+
+### 5.6 广告位与分享文案
 
 文件：`Assets/Scripts/Invariable/Utils/InvariableConst.cs`（`#region 游戏配置`）
 
@@ -177,14 +208,14 @@ public const string ShareGameTitle = "{新游戏显示名}";
 
 > `Invariable` 不可热更，以上改动只能随**基础包**生效。
 
-### 5.6 产品名称
+### 5.7 产品名称
 
 在 Player Settings 或 `ProjectSettings/ProjectSettings.asset` 中：
 
 - `productName` → `{新游戏显示名}`（源工程默认多为 `MiniGame`）
 - `companyName` 按需保留或改为 `{公司名}`
 
-### 5.7 Build Profile（微信 + 抖音）
+### 5.8 Build Profile（微信 + 抖音）
 
 路径：
 
@@ -198,20 +229,21 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 项 | 新值 |
 |---|---|
 | 小游戏 AppID | `{微信AppID}` / `{抖音AppID}` |
-| CDN / 相关远程地址 | 与 `{新CDN根地址}` 策略一致（按 Profile 字段要求填写） |
+| CDN / 相关远程地址 | 与 `{新CDN根地址}` 策略一致（核对即可，打包菜单按 `CDNPath` 自动写入，无需手填） |
 | 构建输出路径 | 指向本机新工程下的路径（如 `{新工程根}/Build/WeChat`、`{新工程根}/Build/DouYin`） |
 | 屏幕方向、内存、压缩等 | 按新游戏需求核对 |
 
 **重要：** Profile 含机器相关绝对路径。整目录复制后必须重新检查，不能沿用旧机器路径。切平台时通过 Build Profile 正确激活，不要只改宏文本。
 
-### 5.8 编辑器 CDN 上传目标
+### 5.9 编辑器 CDN 上传目标
 
-打开 UOS CDN 相关面板（`UOS -> CDN` 或工程内已有 CDN 工具），将上传目标切换为**新 App 下的新 Bucket**，再执行后续「复制到 CDN / 上传」步骤，避免把资源传到旧游戏 Bucket。
+打开 UOS CDN 相关面板（`UOS/CDN` 或工程内已有 CDN 工具），将上传目标切换为**新 App 下的新 Bucket**，再执行后续「复制到 CDN / 上传」步骤，避免把资源传到旧游戏 Bucket。
 
-### 5.9 明确无需改动的项
+### 5.10 明确无需改动的项
 
 - `YooAssetManager.LoadMetadataForAOTAssemblies("MiniGame", ...)` 中的 `"MiniGame"` 是团结引擎 **BuildTarget 名**（与 `EditorUserBuildSettings.activeBuildTarget.ToString()` 对应），**不是**产品名 / GameId。同引擎版本下保持不变。
 - YooAsset Package 名默认 `MyPackage`，可继续沿用，除非团队另有规范。
+- `HotUpdate.asmdef` 引用 `Invariable` 与 `CloudService`（消费 Model DTO），统一写名称，**勿删**。项目内程序集之间用名称引用，第三方包继续用 GUID。
 
 ---
 
@@ -252,9 +284,9 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 ## 7. 云函数部署
 
-前置：第 5.4 节 Secrets 与 GameId 已填正确，且工程已编译通过。
+前置：第 5.5 节 Secrets 与 GameId 已填正确，且工程已编译通过。
 
-1. 菜单：`UOS -> Func Stateless -> Open Panel`
+1. 菜单：`UOS/Func Stateless/Open Panel`
 2. 上传 `CloudHelper` 所在云函数工程（`Assets/Scripts/CloudService/`）
 3. **切换为远程调用模式**
 4. 打包微信/抖音小游戏前确认仍为远程模式；**禁止**以本地调用模式出正式包
@@ -301,9 +333,12 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 - [ ] `CloudHelper.Secrets.GameId` 与 `CloudManager.CloudSaveGameId` 均为 `{新GameId}`
 - [ ] 工程内无旧游戏 CDN bucket UUID、无旧 GameId 残留（搜索旧值）
-- [ ] `InvariableConst.CDNPath` 指向 `{新CDN根地址}`
+- [ ] `InvariableConst.CDNPath` 指向 `{新CDN根地址}`（不可留空）
+- [ ] `InvariableConst.EncryptKey` / `EncryptIv` 已填合法长度（key 16/24/32 字节、iv 16 字节）
 - [ ] UOS Launcher 显示已绑定新 App
 - [ ] Func Stateless 面板：云函数已上传且为远程模式
+- [ ] 微信隐私协议已配置；抖音开放平台已开通 `scope.userInfo`
+- [ ] 头像实际域名已加入微信/抖音 MP 后台 downloadFile 合法域名
 - [ ] 微信/抖音 Build Profile AppID、输出路径已更新
 - [ ] Console 无编译错误
 
@@ -315,7 +350,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 有旧缓存启动 | 必测 | 必测 |
 | 平台登录 → 云函数换取云存档令牌 | 必测 | 必测 |
 | 云存档读写（`kv_{新GameId}_player`） | 必测 | 必测 |
-| 排行榜上报/拉取（`kv_{新GameId}_rank`） | 必测 | 必测 |
+| 排行榜上报/拉取（`kv_{新GameId}_rank_wx` / `kv_{新GameId}_rank_dy`，分榜不混） | 必测 | 必测 |
 | CDN 热更资源下载（`{CDN}/yoo`） | 必测 | 必测 |
 | DLL 加载与主界面 | 必测 | 必测 |
 | 本地存档 | 必测 | 必测 |
@@ -331,6 +366,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 占位符 | 获取来源 |
 |---|---|
 | `{新GameId}` | 团队自定，唯一英文标识 |
+| `{新EncryptKey}` / `{新EncryptIv}` | 团队自定 AES 密钥（key 16/24/32 字节、iv 16 字节，按 UTF-8 计） |
 | `{新游戏显示名}` | 产品命名 |
 | `{公司名}` | 可选 |
 | `{UOS_AppID}` / `{UOS_AppSecret}` / `{UOS_AppServiceSecret}` | UOS 控制台新 App 设置 |
@@ -342,9 +378,9 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 ## 附录 B：关键菜单速查
 
 ```text
-UOS -> Launcher
-UOS -> Func Stateless -> Open Panel
-UOS -> CDN
+UOS/Launcher
+UOS/Func Stateless/Open Panel
+UOS/CDN
 VastStarryRiver/Config/导出Excel配置
 VastStarryRiver/Config/校验配置数据
 VastStarryRiver/DLL/导出所有DLL
@@ -361,9 +397,9 @@ VastStarryRiver/打包/复制unityweb.bin到CDN目录
 
 - [ ] 1. 首次打开与环境恢复
 - [ ] 2. 版本控制初始化与忽略文件备份策略
-- [ ] 3. UOS 新 App / 四服务 / Bucket / 三密钥
+- [ ] 3. UOS 新 App / 三服务 / Bucket / 三密钥
 - [ ] 4. 微信+抖音注册与域名配置
-- [ ] 5. 工程内配置（UOS Link、CDNPath、GameId、Secrets、广告/分享常量、productName、Profile、CDN 目标）
+- [ ] 5. 工程内配置（UOS Link、CDNPath、EncryptKey/EncryptIv、GameId、Secrets、广告/分享常量、productName、Profile、CDN 目标）
 - [ ] 6. 游戏内容替换与导表
 - [ ] 7. 云函数上传并远程模式
 - [ ] 8. 首发构建流水线跑通

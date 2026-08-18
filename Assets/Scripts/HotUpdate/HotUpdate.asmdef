@@ -2,11 +2,12 @@
     "name": "HotUpdate",
     "rootNamespace": "",
     "references": [
-        "GUID:f16055b11d76b41479c6190abd5dfef8",
+        "Invariable",
         "GUID:6055be8ebefd69e48b49212b09b47b2f",
         "GUID:543a2a0410124c04dab2751abcaf6d87",
         "GUID:67db3e66202e3dc40944076d390a96b0",
-        "GUID:afccbff78309d9e49a78ed2fd8e69c02"
+        "GUID:afccbff78309d9e49a78ed2fd8e69c02",
+        "CloudService"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.U2D;
 using UnityEngine.UI;
 
@@ -16,6 +17,7 @@ namespace Invariable
         private static Camera[] m_uiCamera = null;
         private static RectTransform m_uiRoot = null;
         private static Dictionary<string, Sprite> m_spriteCache = null;
+        private static Dictionary<string, Sprite> m_remoteSpriteCache = null;
         private static RectTransform[] m_panelParents = null;
         private static Dictionary<string, Type> m_panelTypeCache = null;
         private static HashSet<string> m_loadingPanels = null;
@@ -48,8 +50,6 @@ namespace Invariable
 
 
 
-        #region UI 查找与对象操作
-
         /// <summary>
         /// 从对象或子路径获取 GameObject
         /// </summary>
@@ -78,16 +78,6 @@ namespace Invariable
 
                 return null;
             }
-
-            return gameObject;
-        }
-
-        /// <summary>
-        /// 按场景路径查找 GameObject
-        /// </summary>
-        public static GameObject GetGameObject(string childPath)
-        {
-            GameObject gameObject = GameObject.Find(childPath);
 
             return gameObject;
         }
@@ -131,30 +121,6 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 设置对象激活状态
-        /// </summary>
-        public static void SetActive(UnityEngine.Object obj, bool isActive = false)
-        {
-            GameObject item = GetGameObject(obj);
-            item.SetActive(isActive);
-        }
-
-        /// <summary>
-        /// 设置子节点激活状态
-        /// </summary>
-        public static void SetActive(UnityEngine.Object obj, string childPath, bool isActive = false)
-        {
-            GameObject item = GetGameObject(obj);
-
-            if (!string.IsNullOrEmpty(childPath))
-            {
-                item = item.transform.Find(childPath).gameObject;
-            }
-
-            item.SetActive(isActive);
-        }
-
-        /// <summary>
         /// 隐藏全部子节点
         /// </summary>
         public static void HideAllChildren(Transform transform)
@@ -187,38 +153,12 @@ namespace Invariable
             return $"{size:0.##} {units[unitIndex]}";
         }
 
-        #endregion
-
-        #region 面板开关
-
         /// <summary>
         /// 关闭指定名称的 UI 面板
         /// </summary>
         public static void CloseUIPrefabPanel(string prefabName)
         {
             UIManager.Instance.CloseUIPanel(prefabName);
-        }
-
-        #endregion
-
-        #region 文本与灰态
-
-        /// <summary>
-        /// 设置 TextMeshPro 文本内容
-        /// </summary>
-        public static void SetText(UnityEngine.Object obj, string childPath = "", string des = "")
-        {
-            Transform trans = GetTransform(obj, childPath);
-
-            if (trans != null)
-            {
-                TextMeshProUGUI text = trans.GetComponent<TextMeshProUGUI>();
-
-                if (text != null)
-                {
-                    text.text = des;
-                }
-            }
         }
 
         /// <summary>
@@ -280,10 +220,6 @@ namespace Invariable
                 rawImage.material = null;
             }
         }
-
-        #endregion
-
-        #region Sprite 缓存
 
         /// <summary>
         /// 异步设置 Image/RawImage 精灵
@@ -377,6 +313,122 @@ namespace Invariable
         }
 
         /// <summary>
+        /// 按远程 URL 设置 Image/RawImage，URL 为空/非法或下载失败时赋值兜底图，兜底图为空则保留旧图
+        /// </summary>
+        public static void SetRemoteImage(UnityEngine.Object obj, string childPath = "", string url = "", bool isSetNativeSize = false, Sprite fallBackSprite = null)
+        {
+            Transform trans = GetTransform(obj, childPath);
+
+            if (trans == null)
+            {
+                return;
+            }
+
+            Image image = trans.GetComponent<Image>();
+            RawImage rawImage = trans.GetComponent<RawImage>();
+
+            if (image == null && rawImage == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(url) || (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)))
+            {
+                if (fallBackSprite != null)
+                {
+                    ApplyRemoteSprite(image, rawImage, fallBackSprite, isSetNativeSize);
+                }
+
+                return;
+            }
+
+            if (m_remoteSpriteCache != null && m_remoteSpriteCache.TryGetValue(url, out Sprite cachedSprite) && cachedSprite != null)
+            {
+                ApplyRemoteSprite(image, rawImage, cachedSprite, isSetNativeSize);
+
+                return;
+            }
+
+            UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
+            UnityWebRequestAsyncOperation operation = request.SendWebRequest();
+            operation.completed += _ =>
+            {
+                try
+                {
+                    if (obj == null || (image == null && rawImage == null))
+                    {
+                        return;
+                    }
+
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        GameLog.Info($"远程图片下载失败: {request.error}");
+
+                        if (fallBackSprite != null)
+                        {
+                            ApplyRemoteSprite(image, rawImage, fallBackSprite, isSetNativeSize);
+                        }
+
+                        return;
+                    }
+
+                    Texture2D texture = DownloadHandlerTexture.GetContent(request);
+
+                    if (texture == null)
+                    {
+                        GameLog.Info("远程图片下载结果为空");
+
+                        if (fallBackSprite != null)
+                        {
+                            ApplyRemoteSprite(image, rawImage, fallBackSprite, isSetNativeSize);
+                        }
+
+                        return;
+                    }
+
+                    Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100f);
+                    m_remoteSpriteCache ??= new Dictionary<string, Sprite>();
+                    m_remoteSpriteCache[url] = sprite;
+                    ApplyRemoteSprite(image, rawImage, sprite, isSetNativeSize);
+                }
+                finally
+                {
+                    request.Dispose();
+                }
+            };
+        }
+
+        /// <summary>
+        /// 将远程 Sprite 赋给 Image 或 RawImage
+        /// </summary>
+        private static void ApplyRemoteSprite(Image image, RawImage rawImage, Sprite sprite, bool isSetNativeSize)
+        {
+            if (sprite == null)
+            {
+                return;
+            }
+
+            if (image != null)
+            {
+                image.sprite = sprite;
+
+                if (isSetNativeSize)
+                {
+                    image.SetNativeSize();
+                }
+            }
+            else if (rawImage != null)
+            {
+                rawImage.texture = sprite.texture;
+
+                if (isSetNativeSize)
+                {
+                    rawImage.SetNativeSize();
+                }
+            }
+        }
+
+        /// <summary>
         /// 清理图集 Sprite 缓存；传空则清空全部
         /// </summary>
         /// <param name="atlasAddress">图集资源地址</param>
@@ -436,184 +488,6 @@ namespace Invariable
             return sprite;
         }
 
-        #endregion
-
-        #region 按钮监听
-
-        /// <summary>
-        /// 为子节点添加单击监听
-        /// </summary>
-        public static void AddClickListener(UnityEngine.Object obj, string childPath, Action callBack)
-        {
-            Transform trans = GetTransform(obj, childPath);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.AddClickListener(callBack);
-        }
-
-        /// <summary>
-        /// 移除单击监听
-        /// </summary>
-        public static void ReleaseClickListener(UnityEngine.Object obj)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.ReleaseClickListener();
-        }
-
-        /// <summary>
-        /// 添加按下监听
-        /// </summary>
-        public static void AddDownListener(UnityEngine.Object obj, Action callBack)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.AddDownListener(callBack);
-        }
-
-        /// <summary>
-        /// 移除按下监听
-        /// </summary>
-        public static void ReleaseDownListener(UnityEngine.Object obj)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.ReleaseDownListener();
-        }
-
-        /// <summary>
-        /// 添加抬起监听
-        /// </summary>
-        public static void AddUpListener(UnityEngine.Object obj, Action callBack)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.AddUpListener(callBack);
-        }
-
-        /// <summary>
-        /// 移除抬起监听
-        /// </summary>
-        public static void ReleaseUpListener(UnityEngine.Object obj)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.ReleaseUpListener();
-        }
-
-        /// <summary>
-        /// 添加双击监听
-        /// </summary>
-        public static void AddDoubleClickListener(UnityEngine.Object obj, Action callBack)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.AddDoubleClickListener(callBack);
-        }
-
-        /// <summary>
-        /// 移除双击监听
-        /// </summary>
-        public static void ReleaseDoubleClickListener(UnityEngine.Object obj)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.ReleaseDoubleClickListener();
-        }
-
-        /// <summary>
-        /// 添加长按监听
-        /// </summary>
-        public static void AddLongPressListener(UnityEngine.Object obj, Action callBack)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.AddLongPressListener(callBack);
-        }
-
-        /// <summary>
-        /// 移除长按监听
-        /// </summary>
-        public static void ReleaseLongPressListener(UnityEngine.Object obj)
-        {
-            Transform trans = GetTransform(obj);
-
-            UIButton btn = trans.GetComponent<UIButton>();
-
-            if (btn == null)
-            {
-                return;
-            }
-
-            btn.ReleaseLongPressListener();
-        }
-
-        #endregion
-
-        #region 动画
-
         /// <summary>
         /// 播放 Animation 动画
         /// </summary>
@@ -621,10 +495,6 @@ namespace Invariable
         {
             GameManager.Instance.StartCoroutine(PlayAnimation2(obj, childPath, animName, wrapMode, callBack));
         }
-
-        #endregion
-
-        #region 面板加载
 
         /// <summary>
         /// 打开 UI Prefab 面板（加载中重复调用直接忽略）
@@ -684,10 +554,6 @@ namespace Invariable
                 callBack?.Invoke(gameObject);
             });
         }
-
-        #endregion
-
-        #region 组件与类型解析
 
         /// <summary>
         /// 按组件名添加组件
@@ -855,10 +721,6 @@ namespace Invariable
             return null;
         }
 
-        #endregion
-
-        #region 管理器与杂项
-
         /// <summary>
         /// 创建并常驻 Manager 实例
         /// </summary>
@@ -948,6 +810,5 @@ namespace Invariable
                 callBack?.Invoke();
             }
         }
-        #endregion
     }
 }

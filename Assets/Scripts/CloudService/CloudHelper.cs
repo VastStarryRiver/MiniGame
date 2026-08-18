@@ -165,12 +165,19 @@ namespace CloudService
         /// 读取排行榜快照，依 rankKey 数值降序取前 maxCount 名
         /// </summary>
         [CloudFunc]
-        public async Task<List<PlayerSaveData>> GetAllCloudData(string gameId, string rankKey, int maxCount)
+        public async Task<List<PlayerSaveData>> GetAllCloudData(string gameId, string rankKey, int maxCount, string platform)
         {
             // 禁止客户端直接指定命名空间，避免共享 UOS App 时跨游戏拉取
             if (!TryGetGameSecrets(gameId, out _))
             {
                 return null;
+            }
+
+            if (!IsValidPlatform(platform))
+            {
+                Debug.LogError("GetAllCloudData: platform 无效");
+
+                return new List<PlayerSaveData>();
             }
 
             if (string.IsNullOrEmpty(rankKey))
@@ -190,9 +197,8 @@ namespace CloudService
                 using (HttpClient client = new HttpClient())
                 {
                     ApplyBasicAuth(client);
-                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId);
+                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId, platform);
                     List<PlayerSaveData> results = snapshot.entries;
-                    SortRankEntries(results, rankKey);
 
                     if (results.Count > maxCount)
                     {
@@ -211,13 +217,20 @@ namespace CloudService
         }
 
         /// <summary>
-        /// 上报排行分数，增量维护 Top100 快照，返回本次是否入榜或刷新纪录
+        /// 上报排行分数，增量维护 Top100 快照，返回本次是否上榜或更新
         /// </summary>
         [CloudFunc]
-        public async Task<bool> ReportRankScore(string gameId, string userId, string rankKey, double score)
+        public async Task<bool> ReportRankScore(string gameId, string userId, string rankKey, double score, string platform, string nickName, string avatarUrl)
         {
             if (!TryGetGameSecrets(gameId, out _))
             {
+                return false;
+            }
+
+            if (!IsValidPlatform(platform))
+            {
+                Debug.LogError("ReportRankScore: platform 无效");
+
                 return false;
             }
 
@@ -233,26 +246,20 @@ namespace CloudService
                 using (HttpClient client = new HttpClient())
                 {
                     ApplyBasicAuth(client);
-                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId);
+                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId, platform);
                     List<PlayerSaveData> entries = snapshot.entries;
                     SortRankEntries(entries, rankKey);
                     int existingIndex = FindRankEntryIndex(entries, userId);
 
                     if (existingIndex >= 0)
                     {
-                        double oldScore = GetRankScore(entries[existingIndex].data, rankKey);
-
-                        if (score <= oldScore)
-                        {
-                            return false;
-                        }
-
                         if (entries[existingIndex].data == null)
                         {
                             entries[existingIndex].data = new Dictionary<string, string>();
                         }
 
                         entries[existingIndex].data[rankKey] = score.ToString(CultureInfo.InvariantCulture);
+                        ApplyProfileData(entries[existingIndex].data, nickName, avatarUrl);
                     }
                     else
                     {
@@ -267,14 +274,20 @@ namespace CloudService
 
                             entries.RemoveAt(entries.Count - 1);
                         }
+                        else if (score <= 0)
+                        {
+                            return false; // 榜不满 100 时，rankKey 数据需大于 0 才上榜
+                        }
 
+                        Dictionary<string, string> data = new Dictionary<string, string>
+                        {
+                            { rankKey, score.ToString(CultureInfo.InvariantCulture) }
+                        };
+                        ApplyProfileData(data, nickName, avatarUrl);
                         entries.Add(new PlayerSaveData
                         {
                             userId = userId,
-                            data = new Dictionary<string, string>
-                            {
-                                { rankKey, score.ToString(CultureInfo.InvariantCulture) }
-                            }
+                            data = data
                         });
                     }
 
@@ -285,7 +298,7 @@ namespace CloudService
                         entries.RemoveRange(LeaderboardCapacity, entries.Count - LeaderboardCapacity);
                     }
 
-                    await SaveRankSnapshot(client, gameId, snapshot.saveId, entries);
+                    await SaveRankSnapshot(client, gameId, platform, snapshot.saveId, entries);
 
                     return true;
                 }
@@ -303,14 +316,14 @@ namespace CloudService
         /// <summary>
         /// 读取排行榜快照，不存在时返回空列表
         /// </summary>
-        private async Task<RankSnapshot> LoadRankSnapshot(HttpClient client, string gameId)
+        private async Task<RankSnapshot> LoadRankSnapshot(HttpClient client, string gameId, string platform)
         {
             RankSnapshot snapshot = new RankSnapshot
             {
                 saveId = null,
                 entries = new List<PlayerSaveData>()
             };
-            string namespaces = GetRankNamespace(gameId);
+            string namespaces = GetRankNamespace(gameId, platform);
             string listUrl = $"https://save.unity.cn/v1/saves?namespaces={Uri.EscapeDataString(namespaces)}&userId={Uri.EscapeDataString(RankSnapshotUserId)}&start=0&count=1&skipTotal=true";
             HttpResponseMessage listResponse = await client.GetAsync(listUrl);
 
@@ -374,7 +387,7 @@ namespace CloudService
         /// <summary>
         /// 将排行榜快照写回独立 namespace
         /// </summary>
-        private async Task SaveRankSnapshot(HttpClient client, string gameId, string saveId, List<PlayerSaveData> entries)
+        private async Task SaveRankSnapshot(HttpClient client, string gameId, string platform, string saveId, List<PlayerSaveData> entries)
         {
             UploadTokenRequest tokenRequest = new UploadTokenRequest
             {
@@ -422,12 +435,23 @@ namespace CloudService
             byte[] fileBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(entries));
             await UploadObjectToCos(tokenResult.fileUploadToken, fileBytes);
 
+            string snapshotName = "排行榜";
+
+            if (platform == "wx")
+            {
+                snapshotName = "微信排行榜";
+            }
+            else if (platform == "dy")
+            {
+                snapshotName = "抖音排行榜";
+            }
+
             CreateSaveRequest createRequest = new CreateSaveRequest
             {
                 userId = RankSnapshotUserId,
                 saveId = resolvedSaveId,
-                name = "rank_snapshot",
-                saveNamespace = GetRankNamespace(gameId),
+                name = snapshotName,
+                saveNamespace = GetRankNamespace(gameId, platform),
                 progressType = "LINEAR",
                 fileUploadRequest = new FileUploadConfirmation
                 {
@@ -552,11 +576,40 @@ namespace CloudService
         }
 
         /// <summary>
+        /// 非空昵称头像写入排行榜条目，空值保留旧资料
+        /// </summary>
+        private static void ApplyProfileData(Dictionary<string, string> data, string nickName, string avatarUrl)
+        {
+            if (data == null)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(nickName))
+            {
+                data[CloudDataKeys.ProfileNickName] = nickName;
+            }
+
+            if (!string.IsNullOrEmpty(avatarUrl))
+            {
+                data[CloudDataKeys.ProfileAvatarUrl] = avatarUrl;
+            }
+        }
+
+        /// <summary>
+        /// 校验平台标识是否为 wx 或 dy
+        /// </summary>
+        private static bool IsValidPlatform(string platform)
+        {
+            return platform == "wx" || platform == "dy";
+        }
+
+        /// <summary>
         /// 拼接排行榜快照 namespace
         /// </summary>
-        private static string GetRankNamespace(string gameId)
+        private static string GetRankNamespace(string gameId, string platform)
         {
-            return $"kv_{gameId}_rank";
+            return $"kv_{gameId}_rank_{platform}";
         }
 
         /// <summary>

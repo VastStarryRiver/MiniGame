@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 
@@ -11,21 +12,25 @@ namespace Invariable
     {
         public bool m_isNotChangeScale = false;
         public float m_changeScale = 1.1f;
+        public UnityEvent m_clickEvent = new UnityEvent();
+        public UnityEvent m_doubleClickEvent = new UnityEvent();
+        public UnityEvent m_downEvent = new UnityEvent();
+        public UnityEvent m_upEvent = new UnityEvent();
+        public UnityEvent m_longPressEvent = new UnityEvent();
 
-        private static readonly List<UIButton> m_activeButtons = new List<UIButton>();
+        private static readonly List<UIButton> ActiveButtons = new List<UIButton>();
+
         private static UIButtonDriver m_driver = null;
 
+        private bool m_hasClickListener;
+        private bool m_hasDoubleClickListener;
+        private bool m_hasLongPressListener;
         private int m_clickTimes;
         private bool m_isCancelClick;
         private float m_startPressTime;
         private float m_endPressTime;
         private float m_startClickTime;
         private float m_endClickTime;
-        private Action m_clickFunc = null;
-        private Action m_doubleClickFunc = null;
-        private Action m_downFunc = null;
-        private Action m_upFunc = null;
-        private Action m_longPressFunc = null;
         private PointerEventData m_eventData = null;
         private RectTransform m_trans = null;
         private bool m_isActiveTracked;
@@ -37,7 +42,7 @@ namespace Invariable
             m_trans = gameObject.GetComponent<RectTransform>();
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             UnregisterActive();
             m_eventData = null;
@@ -46,11 +51,6 @@ namespace Invariable
             m_startClickTime = 0;
             m_endClickTime = 0;
             m_clickTimes = 0;
-        }
-
-        private void OnDestroy()
-        {
-            UnregisterActive();
         }
 
 
@@ -64,15 +64,15 @@ namespace Invariable
             }
             else
             {
-                if (m_doubleClickFunc != null)
+                if (m_hasDoubleClickListener || m_doubleClickEvent.GetPersistentEventCount() > 0)
                 {
                     m_clickTimes++;
                     m_eventData = eventData;
                     RegisterActive();
                 }
-                else if (m_clickFunc != null)
+                else if (m_hasClickListener || m_clickEvent.GetPersistentEventCount() > 0)
                 {
-                    m_clickFunc.Invoke();
+                    m_clickEvent.Invoke();
                 }
             }
         }
@@ -84,13 +84,13 @@ namespace Invariable
                 m_trans.localScale = new Vector3(m_changeScale, m_changeScale, m_changeScale);
             }
 
-            if (m_longPressFunc != null)
+            if (m_hasLongPressListener || m_longPressEvent.GetPersistentEventCount() > 0)
             {
                 m_startPressTime = Time.time;
                 RegisterActive();
             }
 
-            m_downFunc?.Invoke();
+            m_downEvent.Invoke();
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -100,14 +100,14 @@ namespace Invariable
                 m_trans.localScale = new Vector3(1, 1, 1);
             }
 
-            if (m_longPressFunc != null)
+            if (m_hasLongPressListener || m_longPressEvent.GetPersistentEventCount() > 0)
             {
                 m_startPressTime = 0;
                 m_endPressTime = 0;
             }
 
             RefreshActiveState();
-            m_upFunc?.Invoke();
+            m_upEvent.Invoke();
         }
 
 
@@ -117,7 +117,15 @@ namespace Invariable
         /// </summary>
         public void AddClickListener(Action callBack)
         {
-            m_clickFunc = callBack;
+            ReleaseClickListener();
+
+            if (callBack == null)
+            {
+                return;
+            }
+
+            m_hasClickListener = true;
+            m_clickEvent.AddListener(callBack.Invoke);
         }
 
         /// <summary>
@@ -125,7 +133,8 @@ namespace Invariable
         /// </summary>
         public void ReleaseClickListener()
         {
-            m_clickFunc = null;
+            m_clickEvent.RemoveAllListeners();
+            m_hasClickListener = false;
         }
 
         /// <summary>
@@ -133,7 +142,15 @@ namespace Invariable
         /// </summary>
         public void AddDoubleClickListener(Action callBack)
         {
-            m_doubleClickFunc = callBack;
+            ReleaseDoubleClickListener();
+
+            if (callBack == null)
+            {
+                return;
+            }
+
+            m_hasDoubleClickListener = true;
+            m_doubleClickEvent.AddListener(callBack.Invoke);
         }
 
         /// <summary>
@@ -141,7 +158,8 @@ namespace Invariable
         /// </summary>
         public void ReleaseDoubleClickListener()
         {
-            m_doubleClickFunc = null;
+            m_doubleClickEvent.RemoveAllListeners();
+            m_hasDoubleClickListener = false;
             RefreshActiveState();
         }
 
@@ -150,7 +168,14 @@ namespace Invariable
         /// </summary>
         public void AddDownListener(Action callBack)
         {
-            m_downFunc = callBack;
+            ReleaseDownListener();
+
+            if (callBack == null)
+            {
+                return;
+            }
+
+            m_downEvent.AddListener(callBack.Invoke);
         }
 
         /// <summary>
@@ -158,7 +183,7 @@ namespace Invariable
         /// </summary>
         public void ReleaseDownListener()
         {
-            m_downFunc = null;
+            m_downEvent.RemoveAllListeners();
         }
 
         /// <summary>
@@ -166,7 +191,14 @@ namespace Invariable
         /// </summary>
         public void AddUpListener(Action callBack)
         {
-            m_upFunc = callBack;
+            ReleaseUpListener();
+
+            if (callBack == null)
+            {
+                return;
+            }
+
+            m_upEvent.AddListener(callBack.Invoke);
         }
 
         /// <summary>
@@ -174,7 +206,7 @@ namespace Invariable
         /// </summary>
         public void ReleaseUpListener()
         {
-            m_upFunc = null;
+            m_upEvent.RemoveAllListeners();
         }
 
         /// <summary>
@@ -182,7 +214,15 @@ namespace Invariable
         /// </summary>
         public void AddLongPressListener(Action callBack)
         {
-            m_longPressFunc = callBack;
+            ReleaseLongPressListener();
+
+            if (callBack == null)
+            {
+                return;
+            }
+
+            m_hasLongPressListener = true;
+            m_longPressEvent.AddListener(callBack.Invoke);
         }
 
         /// <summary>
@@ -190,7 +230,8 @@ namespace Invariable
         /// </summary>
         public void ReleaseLongPressListener()
         {
-            m_longPressFunc = null;
+            m_longPressEvent.RemoveAllListeners();
+            m_hasLongPressListener = false;
             RefreshActiveState();
         }
 
@@ -201,13 +242,13 @@ namespace Invariable
         /// </summary>
         internal static void TickActiveButtons()
         {
-            for (int i = m_activeButtons.Count - 1; i >= 0; i--)
+            for (int i = ActiveButtons.Count - 1; i >= 0; i--)
             {
-                UIButton button = m_activeButtons[i];
+                UIButton button = ActiveButtons[i];
 
                 if (button == null)
                 {
-                    m_activeButtons.RemoveAt(i);
+                    ActiveButtons.RemoveAt(i);
 
                     continue;
                 }
@@ -245,12 +286,12 @@ namespace Invariable
                     if (m_clickTimes == 1)
                     {
                         m_clickTimes = 0;
-                        m_clickFunc?.Invoke();
+                        m_clickEvent.Invoke();
                     }
                     else if (m_clickTimes >= 2)
                     {
                         m_clickTimes = 0;
-                        m_doubleClickFunc?.Invoke();
+                        m_doubleClickEvent.Invoke();
                     }
 
                     m_eventData = null;
@@ -285,7 +326,7 @@ namespace Invariable
 
                         m_isCancelClick = true;
 
-                        m_longPressFunc?.Invoke();
+                        m_longPressEvent.Invoke();
                     }
                 }
             }
@@ -303,7 +344,7 @@ namespace Invariable
                 return;
             }
 
-            m_activeButtons.Add(this);
+            ActiveButtons.Add(this);
             m_isActiveTracked = true;
         }
 
@@ -317,7 +358,7 @@ namespace Invariable
                 return;
             }
 
-            m_activeButtons.Remove(this);
+            ActiveButtons.Remove(this);
             m_isActiveTracked = false;
         }
 

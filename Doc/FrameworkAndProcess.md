@@ -7,8 +7,8 @@
 | 引擎 | 团结引擎 1.6.8 / Unity 2022.3.61t9 | 游戏运行与小游戏构建 | 引擎本体 |
 | 热更新 | HybridCLR | 运行时加载 `HotUpdate.dll` | UPM 包；生成物在 `Assets/HybridCLRGenerate/` |
 | 资源系统 | YooAsset 2.3.19 | Bundle、清单、下载、缓存和异步资源加载 | UPM 包；小游戏文件系统在 `Assets/ToolPackage/YooAsset` |
-| 微信平台 | `com.qq.weixin.minigame` + `Assets/WX-WASM-SDK-V2` | 小游戏转换与运行时 API | UPM 转换工具 + Assets 内运行时 SDK |
-| 抖音平台 | StarkSDK 6.7.6 | 抖音小游戏构建与运行时 API | `LocalPackages/com.bytedance.starksdk@6.7.6` 本地包 |
+| 微信平台 | `com.qq.weixin.minigame` + `Assets/WX-WASM-SDK-V2` + `cn.tuanjie.wx-uploader` | 小游戏转换、运行时 API 与上传 | UPM 转换工具 + Assets 内运行时 SDK + 上传器 |
+| 抖音平台 | StarkSDK 6.9.0 | 抖音小游戏构建与运行时 API | `LocalPackages/com.bytedance.starksdk@6.9.0` 本地包 |
 | 异步 | UniTask 2.5.10 | 延迟和重复调用 | `Assets/ToolPackage/UniTask` 本地源码 |
 | UI | UGUI + TextMeshPro | 页面和文本 | TextMeshPro 在 `Assets/ToolPackage/TextMesh Pro` |
 | 动画 | DOTween | UI 补间 | `Assets/ToolPackage/DOTween` 本地源码 |
@@ -18,6 +18,8 @@
 | UOS 服务 | UOS Launcher / CloudSave / Func Stateless | 云存档与云函数 | UPM；另有 `Assets/UOSLauncherEncrypt`（Launcher 自带加密模块，勿改） |
 
 ## 2. 程序集架构
+
+项目内程序集（`Invariable` / `CloudService` / `MyTools` / `HotUpdate`）之间的引用统一写名称；第三方包继续用 GUID。
 
 ### 2.1 `Invariable`
 
@@ -40,7 +42,7 @@
 - 运行于热更新 DLL 加载之前；
 - 修改后不能只替换 `HotUpdate.dll`，通常需要重新构建并发布小游戏基础包；
 - 不直接引用 `HotUpdate`，通过字符串和反射启动热更新层；
-- 引用 `CloudService`，通过 Func Stateless 远程代理调用云函数。
+- 引用 `CloudService`（名称引用），通过 Func Stateless 远程代理调用云函数。
 
 主要命名空间：`Invariable`。
 
@@ -58,7 +60,8 @@
 特点：
 
 - 被 HybridCLR 标记为热更新程序集；
-- 可以引用 `Invariable` 的公共能力；
+- 可以引用 `Invariable` 的公共能力（名称引用）；
+- 引用 `CloudService`（名称引用，消费 Model DTO 如 `PlayerCloudData`、`CloudDataKeys`）；
 - 发布时作为加密 `.dll.bin` 放入 YooAsset 资源；
 - 当前入口必须保持为 `HotUpdate.StartGame.Play()`，除非同时修改反射入口。
 
@@ -76,9 +79,10 @@
 
 特点：
 
-- 独立程序集，被 `Invariable` 引用；
+- 独立程序集，被 `Invariable` 与 `HotUpdate` 引用；
 - `autoReferenced: false`；
 - 修改后需重新构建并发布小游戏基础包，不能只热更；
+- Model DTO 契约变更 = 重发基础包 + 必须同步重导热更 DLL（`HotUpdate` 编译期绑定 DTO）；
 - 所有游戏可共享同一 UOS App；每个游戏工程在 `CloudHelper.Secrets` 中只配置本游戏密钥；
 - 云函数类与 `Model/` 数据类同属 `Assets/Scripts/CloudService/` 目录树，满足 Func Stateless 同目录打包约束。
 
@@ -96,7 +100,7 @@
 - 微信/抖音小游戏构建；
 - 图集和 `.bin` 导入。
 
-仅包含 Editor 平台，不进入运行时。
+仅包含 Editor 平台，不进入运行时。引用 `Invariable` 用名称引用。
 
 ### 2.5 `YooAsset.MiniGame`
 
@@ -147,7 +151,6 @@ UI_Root/
 
 - `Launcher.cs`
 - `Utils.cs`
-- `HotUpdateUtils.cs`
 - `UIDrag.cs`
 - `Rocker.cs`
 
@@ -219,7 +222,7 @@ HotUpdateOver
 职责：
 
 1. 若 `YooAssets.Initialized` 已为 true，直接跳到 `HotUpdateOver`（跳过清单检查与资源下载）；
-2. 否则直接取 `InvariableConst.CDNPath` 作为 CDN 根地址；
+2. 否则以 `InvariableConst.CDNPath` 为 CDN 根（小游戏远程根为 `CDNPath + "/yoo"`，见下方「小游戏」分支）；
 3. 初始化 YooAsset，并设置 `YooAssets.SetOperationSystemMaxTimeSlice(1000)`；
 4. 创建或获取包 `MyPackage`；
 5. 设置为默认包；
@@ -464,9 +467,9 @@ Assets/AssetBundleCollectorSetting.asset
 | Manager | 用途 |
 |---|---|
 | `YooAssetManager` | 包、资源、场景、DLL |
-| `UIManager` | 已打开页面字典；提供 `CloseUIPanel` / `CloseAllUIPanel`；`TipsPanel` 关闭时隐藏复用（`FloatTextPanel` 自管理复用） |
-| `SdkManager` | 平台 SDK、平台登录、本地/云读写入口、键盘、广告、分享、适配 |
-| `CloudManager` | 云存档初始化、云缓存、排行榜快照上报（ReportRankScore）与拉取（GetAllCloudData 读 Top100 快照）、云函数代理；写后防抖上传（2s），`FlushCloudData` 立即上传脏数据 |
+| `UIManager` | 已打开页面字典；提供 `CloseUIPanel` / `CloseAllUIPanel`；`TipsPanel` 池化复用 |
+| `SdkManager` | 平台 SDK、平台登录、本地/云读写入口、平台用户信息同步（`SyncPlatformUserInfo` / `TryGetPlatformUserInfo`）、授权锚点（`RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`）、键盘、广告、分享、适配 |
+| `CloudManager` | 云存档初始化、云缓存、排行榜快照上报（ReportRankScore）与拉取（GetAllCloudData 读 Top100 快照）；私有持有 `CloudHelper`，业务禁止直调；写后防抖上传（2s），`FlushCloudData` 立即上传脏数据 |
 
 基类：
 
@@ -568,13 +571,13 @@ public class UIPanel : MonoBehaviour
 
 - 带 `UIPopup`：先播放关闭动画，再走关闭流程；
 - `TipsPanel`（`UIManager` 池化名单）：隐藏复用，不从字典移除；
-- 其余普通页面（含 `FloatTextPanel`）：从 UIManager 移除并 `Destroy`。
+- 其余页面：从 UIManager 移除并 `Destroy`。
 
 ### 10.3 当前页面
 
 | 页面 | 脚本 | 层级 | 用途 |
 |---|---|---:|---|
-| MainPanel | `HotUpdate.UI/MainPanel/MainPanel.cs` | 0 | 当前主界面 |
+| MainPanel | `HotUpdate.UI/MainPanel/MainPanel.cs` | 0 | 当前主界面（云功能测试：云存档读写 / 排行榜上报 / 配置读取 / 排行榜拉取+头像 / 授权入口） |
 | TipsPanel | `HotUpdate.UI/Popup/TipsPanel.cs` | 2 | 单/双按钮提示 |
 | FloatTextPanel | `HotUpdate.UI/Popup/FloatTextPanel.cs` | 3 | 可复用飘字提示 |
 
@@ -589,10 +592,11 @@ HotUpdateUtils.ShowFloatText(...);
 
 | 组件 | 用途 |
 |---|---|
-| `UIButton` | 单击、双击、按下、抬起、长按、缩放反馈；每类监听覆盖赋值（非追加）；双击判定窗口 0.15s；长按阈值 0.2s；注册双击后单击会延迟 0.15s 且可能被双击吞掉 |
+| `UIButton` | 单击、双击、按下、抬起、长按、缩放反馈；每类监听覆盖赋值（非追加）；5 个 public UnityEvent 字段（`m_clickEvent` 等）可在 Inspector 绑定监听；`m_isNotChangeScale` / `m_changeScale`（默认 1.1f）；双击判定窗口 0.15s；长按阈值 0.2s；注册双击后单击会延迟 0.15s 且可能被双击吞掉 |
 | `UIPanel` | 页面基类 |
 | `UIPopup` | 弹窗开关动画；入场动画在 `OnEnable`（每次激活重播并重置缩放）；`m_tsTrans` 所在物体须同时挂 `CanvasGroup`；DOTween 使用 `SetTarget` / `DOKill` |
 | `LoopScrollList` | 横向/纵向循环列表；列表项缓存索引 |
+| `LoopScrollItem` | 循环列表项，缓存索引，配合 `LoopScrollList` |
 | `MiniInputField` | 调起小游戏原生键盘 |
 | `ScreenAdapter` | `[ExecuteInEditMode]`；注册安全区适配；实际偏移由 `SdkManager.GetSafeAnchor` 写死为 Left/Bottom=30/130、Right/Top=30/90，非设备 SafeArea；编辑期 `OnEnable` 即改节点偏移 |
 | `BgAdapter` | `[ExecuteInEditMode]`；背景等比铺满；编辑期同样生效 |
@@ -746,19 +750,20 @@ int, float, string,
 
 `ConfigUtils.CdnPath` 是工程根下的本地 `CDN/` 暂存目录（复制 bundle / unityweb.bin 用），与远程根 `InvariableConst.CDNPath` 不是同一概念。
 
+`CDNPath` 必须填写。留空时编辑器模拟模式可跑，但真机 WebPlayMode 远程根变为 `/yoo`，资源下载必失败；打包菜单会把空串写入上述平台配置资产的 `CDN` 字段。打包前必查。
+
 `InvariableConst.CDNPath` 属 `Invariable`，修改后必须重新构建并发布小游戏基础包，不能只热更。
 
 ## 14. 工具类
 
-`Utils` 按 `#region` 分区（共 9 个）：UI 查找与对象操作 / 面板开关 / 文本与灰态 / Sprite 缓存 / 按钮监听 / 动画 / 面板加载 / 组件与类型解析 / 管理器与杂项。
+`Utils` 为静态工具类。
 
 主要能力：
 
 - 固定 UI Camera、UI Root 查找（`Utils.UICamera` / `Utils.UIRoot`，路径常量来自 `InvariableConst`）；
-- GameObject/Transform 获取和克隆；
-- 显隐（`SetActive` 默认 `isActive = false`，省略参数即隐藏）、`HideAllChildren`；
-- 文本、图片、灰度材质；
-- UIButton 事件包装；
+- GameObject/Transform 获取和克隆、`HideAllChildren`；
+- `SetImage` 只处理 YooAsset 地址（`Png_{名}` 或 `图集/精灵`）；远程头像 URL 走 `SetRemoteImage`（下载为 Texture2D 后赋 `Image.sprite` / `RawImage.texture`）；
+- 灰度材质（`SetGray`）；
 - Animation 播放；
 - 按字符串查找/添加组件（`GetComponent` / `AddComponent`，含 `HotUpdate` 程序集类型解析）；
 - UI 页面打开/关闭（`OpenUIPrefabPanel` / `CloseUIPrefabPanel`）；面板父节点按 layer 选择 `InvariableConst.UIPanelPath_0..3`；
@@ -774,7 +779,7 @@ int, float, string,
 - `Invariable` / `HotUpdate` / `MyTools` 业务日志使用 `GameLog.Info` / `GameLog.Error`，禁止直接调用 `UnityEngine.Debug.Log` / `LogWarning` / `LogError`；
 - `GameLog.Info` 仅编辑器环境输出（包内剔除）；`GameLog.Error` 始终输出；
 - 映射：`Debug.Log` / `Debug.LogWarning` → `GameLog.Info`；`Debug.LogError` → `GameLog.Error`；
-- `CloudService` 云函数体仍使用 `UnityEngine.Debug`（云函数约束，且避免与 `Invariable` 循环引用）；
+- `CloudService` 云函数体仍使用 `UnityEngine.Debug`（云函数约束，且 `GameLog` 位于 `Invariable`，引用它会与 `Invariable` → `CloudService` 的现有依赖形成循环引用）；
 - 例外：`GameLog.cs` 自身实现；第三方库 `ToolPackage` 不在此约束。
 
 ## 16. UOS 服务与云存档
@@ -784,7 +789,7 @@ int, float, string,
 云存档链路：
 
 1. `CloudManager.InitCloudData`；
-2. `SdkManager.PlatformLogin`（`WX.Login` / `TT.Login`，抖音 `forceLogin=true`）；
+2. `SdkManager.PlatformLogin`（`WX.Login` / `TT.Login`（`forceLogin=true`））；
 3. Func Stateless 云函数（code 换 openid，再签发云存档令牌）；
 4. `AuthTokenManager.SaveToken`（只存 AccessToken + UserId）；
 5. CloudSave 单存档 KV 拉取/上传。上传前校验令牌有效性，临期/过期自动重签；遇 401 再重签并重试一次。
@@ -793,17 +798,18 @@ int, float, string,
 
 - `userID = wx-` / `dy-` + openid（openid 按平台小游戏隔离）；
 - 玩家存档 `namespace = kv_{游戏标识}_player`（`CloudManager.CloudSaveGameId`，每个游戏项目必须唯一）；
-- 排行榜快照 `namespace = kv_{游戏标识}_rank`，单存档，userId 固定为 `sys`；
+- 排行榜快照 `namespace = kv_{游戏标识}_rank_{平台}`（`wx` / `dy`），各平台单存档，userId 固定为 `sys`，微信与抖音分榜不混排；
+- 后台显示名（仅展示，不参与定位）：玩家存档「微信玩家数据」/「抖音玩家数据」，快照「微信排行榜」/「抖音排行榜」；
 - 同游戏同账号才同数据。
 
-客户端入口：`CloudManager` 负责 `InitCloudData` / `GetAllCloudData` / `ReportRankScore`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）。`GetAllCloudData(rankKey, callBack)`：客户端传入排名字段名（如 `"Score"`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后自行拼 `kv_{gameId}_rank`，只读 Top100 快照（list + 详情 + 下载共 3 次请求），按 `rankKey` 数值降序截取前 `CloudGetAllMaxCount = 100` 名返回。`ReportRankScore(rankKey, score)`：刷新个人纪录时上报，云函数增量维护快照；客户端按 `LocalKey_RankReportedPrefix` 节流，云函数有响应即写本地标记。客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。
+客户端入口：`CloudManager` 负责 `InitCloudData` / `GetAllCloudData` / `ReportRankScore`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）以及 `SyncPlatformUserInfo` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`。`GetAllCloudData(rankKey, callBack)`：客户端传入排名字段名（如 `"Score"`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后，按客户端传入的平台标识自行拼 `kv_{gameId}_rank_{platform}`，只读该平台 Top100 快照（list + 详情 + 下载共 3 次请求）；快照由 `ReportRankScore` 写入时维护 `rankKey` 降序，读取仅截取前 `CloudGetAllMaxCount = 100` 名返回。`ReportRankScore(rankKey, score)`：数据变化时上报，云函数增量维护对应平台快照，并写入 `CloudDataKeys.ProfileNickName` / `ProfileAvatarUrl`（空值保留旧资料）；上榜判断由云函数以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0。玩家存档上传同样注入这两键。微信首次/未授权必须 `WX.CreateUserInfoButton` 用户点击，已授权后 `WX.GetUserInfo` 可刷新。抖音授权为两段链路：同步时 `TT.GetUserInfoAuth` 检查，已授权走 `TT.GetUserInfo`，未授权显示授权锚点；`TT.Authorize("scope.userInfo")` 在 `SdkManager.RequestPlatformUserInfoAuth`（锚点点击）中，授权成功后再 `TT.GetUserInfo`。未授权不阻塞存档。头像只存 URL，显示走 `Utils.SetRemoteImage`，域名配到 MP 后台 downloadFile，不进 UOS 白名单。客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。资料键契约：`CloudService.CloudDataKeys`。
 
 编辑器环境 `SdkManager.SetCloudData` / `GetCloudData` 走本地存储；真机转发 `CloudManager` 云缓存；云初始化失败后 Set 静默丢弃、Get 返回默认值。
 
 云函数部署：
 
 1. 在 `CloudHelper.Secrets` 填入当前游戏的 `GameId` 与平台 AppID/AppSecret；`CloudManager.CloudSaveGameId` 必须与其一致；
-2. 菜单 `UOS -> Func Stateless -> Open Panel` 上传；
+2. 菜单 `UOS/Func Stateless/Open Panel` 上传；
 3. 切换为远程调用模式。
 
 微信/抖音 MP 后台白名单：`https://a.unity.cn`、`https://a.unity3dcloud.cn`、`https://a2.unity3dcloud.cn`、`https://a3.unity3dcloud.cn`（CDN 资源）；`https://save.unity.cn`、`https://uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com`、`https://stateless.unity.cn`、`https://p.unity.cn`。

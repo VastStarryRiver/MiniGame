@@ -49,9 +49,5 @@ namespace Invariable
         public const string LocalKey_AudioSfxVolume = "Audio_SfxVolume";
         public const string LocalKey_AudioMute = "Audio_Mute";
         #endregion
-
-        #region 云存档
-        public const string LocalKey_RankReportedPrefix = "Rank_Reported_";
-        #endregion
     }
 }

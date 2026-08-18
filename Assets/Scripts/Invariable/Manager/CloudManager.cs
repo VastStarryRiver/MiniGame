@@ -2,7 +2,6 @@ using CloudService;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,7 +44,7 @@ namespace Invariable
         /// <summary>
         /// UOS云函数类
         /// </summary>
-        public static CloudHelper CloudHelper
+        private static CloudHelper CloudHelper
         {
             get
             {
@@ -141,7 +140,25 @@ namespace Invariable
                     return;
                 }
 
-                List<PlayerSaveData> saveList = await CloudHelper.GetAllCloudData(CloudSaveGameId, rankKey, CloudGetAllMaxCount);
+                string platform = null;
+
+                if (SdkManager.Instance.IsWeChat())
+                {
+                    platform = "wx";
+                }
+                else if (SdkManager.Instance.IsDouYin())
+                {
+                    platform = "dy";
+                }
+
+                if (platform == null)
+                {
+                    GameLog.Error("获取全部云数据失败: 当前环境不是微信或抖音");
+
+                    return;
+                }
+
+                List<PlayerSaveData> saveList = await CloudHelper.GetAllCloudData(CloudSaveGameId, rankKey, CloudGetAllMaxCount, platform);
 
                 if (saveList != null)
                 {
@@ -174,7 +191,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 上报排行分数，仅在刷新个人纪录时调用云函数
+        /// 上报排行分数
         /// </summary>
         public void ReportRankScore(string rankKey, double score, Action<bool> callBack = null)
         {
@@ -186,21 +203,22 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 异步上报排行分数并按本地标记节流
+        /// 异步上报排行分数
         /// </summary>
         private async Task ReportRankScoreAsync(string rankKey, double score, Action<bool> callBack)
         {
-            if (m_cloudDataCache == null || string.IsNullOrEmpty(m_userId) || string.IsNullOrEmpty(rankKey) || double.IsNaN(score) || double.IsInfinity(score))
-            {
-                callBack?.Invoke(false);
+            string platform = null;
 
-                return;
+            if (SdkManager.Instance.IsWeChat())
+            {
+                platform = "wx";
+            }
+            else if (SdkManager.Instance.IsDouYin())
+            {
+                platform = "dy";
             }
 
-            string localKey = InvariableConst.LocalKey_RankReportedPrefix + rankKey;
-            string raw = SdkManager.Instance.GetLocalData(localKey, "");
-
-            if (double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double lastScore) && score <= lastScore)
+            if (m_cloudDataCache == null || string.IsNullOrEmpty(m_userId) || string.IsNullOrEmpty(rankKey) || platform == null || double.IsNaN(score) || double.IsInfinity(score))
             {
                 callBack?.Invoke(false);
 
@@ -209,8 +227,8 @@ namespace Invariable
 
             try
             {
-                bool entered = await CloudHelper.ReportRankScore(CloudSaveGameId, m_userId, rankKey, score);
-                SdkManager.Instance.SetLocalData(localKey, score.ToString(CultureInfo.InvariantCulture));
+                SdkManager.Instance.TryGetPlatformUserInfo(out string nickName, out string avatarUrl);
+                bool entered = await CloudHelper.ReportRankScore(CloudSaveGameId, m_userId, rankKey, score, platform, nickName, avatarUrl);
                 callBack?.Invoke(entered);
             }
             catch (Exception error)
@@ -273,11 +291,37 @@ namespace Invariable
         /// </summary>
         private async Task SaveCloudDataInternal()
         {
-            string json = JsonConvert.SerializeObject(m_cloudDataCache);
+            string saveName = "玩家数据";
+
+            if (SdkManager.Instance.IsWeChat())
+            {
+                saveName = "微信玩家数据";
+            }
+            else if (SdkManager.Instance.IsDouYin())
+            {
+                saveName = "抖音玩家数据";
+            }
+
+            Dictionary<string, string> uploadData = new Dictionary<string, string>(m_cloudDataCache);
+
+            if (SdkManager.Instance.TryGetPlatformUserInfo(out string nickName, out string avatarUrl))
+            {
+                if (!string.IsNullOrEmpty(nickName))
+                {
+                    uploadData[CloudDataKeys.ProfileNickName] = nickName;
+                }
+
+                if (!string.IsNullOrEmpty(avatarUrl))
+                {
+                    uploadData[CloudDataKeys.ProfileAvatarUrl] = avatarUrl;
+                }
+            }
+
+            string json = JsonConvert.SerializeObject(uploadData);
             byte[] fileBytes = Encoding.UTF8.GetBytes(json);
             await CloudSaveSDK.Instance.Files.SaveLinearAsync(CloudSaveNamespace, new UpdateOptions
             {
-                Name = "minigame_kv_save",
+                Name = saveName,
                 File = new FileOptions
                 {
                     UpdateFileWay = UpdateFileWay.ByFileBytes,
@@ -302,11 +346,14 @@ namespace Invariable
 
             PlatformLoginResult loginResult = null;
 
-#if MINIGAME_SUBPLATFORM_WEIXIN
-            loginResult = await CloudHelper.WechatLogin(CloudSaveGameId, code);
-#elif MINIGAME_SUBPLATFORM_DOUYIN
-            loginResult = await CloudHelper.DouyinLogin(CloudSaveGameId, code);
-#endif
+            if (SdkManager.Instance.IsWeChat())
+            {
+                loginResult = await CloudHelper.WechatLogin(CloudSaveGameId, code);
+            }
+            else if (SdkManager.Instance.IsDouYin())
+            {
+                loginResult = await CloudHelper.DouyinLogin(CloudSaveGameId, code);
+            }
 
             if (loginResult == null || string.IsNullOrEmpty(loginResult.accessToken))
             {
@@ -357,7 +404,7 @@ namespace Invariable
             }
             catch (Exception error)
             {
-                GameLog.Info($"解析 AccessToken JWT 过期时间失败，回退 expiresAt: {error.Message}");
+                GameLog.Error($"解析 AccessToken JWT 过期时间失败，回退 expiresAt: {error.Message}");
             }
 
             return ParseTokenExpiresAt(expiresAt);

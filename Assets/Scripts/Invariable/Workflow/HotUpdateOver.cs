@@ -57,12 +57,11 @@ namespace Invariable
             GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "初始化游戏中...");
             SdkManager.Instance.InitSDK(() =>
             {
-                GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "同步数据中...");
                 CloudManager.Instance.InitCloudData(() =>
                 {
+                    GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "即将进入游戏...");
                     YooAssetManager.Instance.PreLoadDll((hotUpdateAss) =>
                     {
-                        GameManager.Instance.InvokeEventCallBack(InvariableConst.Event_Launcher_ShowTips, "即将进入游戏...");
                         Type type = hotUpdateAss.GetType("HotUpdate.StartGame");
                         MethodInfo methodInfo = type.GetMethod("Play", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
                         methodInfo.Invoke(null, null);

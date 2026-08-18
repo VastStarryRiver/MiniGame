@@ -56,6 +56,7 @@ Editor 代码不能被运行时程序集引用。
 |---|---|
 | 不可热更命名空间 | `Invariable` |
 | 热更新命名空间 | `HotUpdate` |
+| 云服务命名空间 | `CloudService`（不可热更，云函数 + Model DTO） |
 | 可写字段（私有/受保护/public 实例，含 static） | `m_` 前缀；例外见 §3.3 |
 | `const` / `readonly` 字段 | PascalCase，禁止 `m_` |
 | 生成配置表缓存字段 | `m_config{表名}`（由 CodeGenerator 生成，可写 static） |
@@ -330,16 +331,16 @@ GameManager.Instance.InvokeEventCallBack<object>(InvariableConst.Event_Launcher_
 - 方法较短时不为了形式继续拆分；
 - 避免超过 3 层的深层嵌套，优先使用提前返回；
 - 对外部输入、资源加载结果和可能为空的对象进行必要校验；
-- 注册的事件、按钮监听、计时器和 SDK 回调应在对应生命周期中解除。
+- 注册的事件、计时器和 SDK 回调应在对应生命周期中解除；按钮监听：Inspector UnityEvent 持久化绑定和代码 `AddClickListener` 等等五个注册的监听都会在GameObject销毁的时候自动失效所以无需代码清理。
 
-`MainPanel.Start` 的组织方式是推荐写法：
+`MainPanel.Start` 的组织方式是推荐写法（生命周期只组织调用）。当前 MainPanel 按钮监听走 Prefab 上 `UIButton` 的 UnityEvent 字段绑定；代码 `AddClickListener` 方式仍合法（见 §5.1 模板）：
 
 ```csharp
 private void Start()
 {
     PlayBGM();
     PlayBtnAnim();
-    m_btnPlay.AddClickListener(OnPlayGameClick);
+    SdkManager.Instance.SyncPlatformUserInfo((RectTransform)m_btnAuth.transform);
 }
 ```
 
@@ -385,7 +386,7 @@ m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetEase(Ease.InSine).OnComplete(() =>
 - `Invariable` / `HotUpdate` / `MyTools` 禁止直接调用 `UnityEngine.Debug.Log` / `LogWarning` / `LogError` 输出业务日志；
 - 必须使用 `GameLog.Info`（仅编辑器环境输出）或 `GameLog.Error`（始终输出）；
 - 映射：`Debug.Log` / `Debug.LogWarning` → `GameLog.Info`；`Debug.LogError` → `GameLog.Error`；
-- 排除 `CloudService`：云函数约束要求只能用 `UnityEngine.Debug`，且与 `Invariable` 存在循环引用；
+- 排除 `CloudService`：云函数约束要求只能用 `UnityEngine.Debug`，且 `GameLog` 位于 `Invariable`，引用它会与 `Invariable` → `CloudService` 的现有依赖形成循环引用；
 - `GameLog` 命名空间为 `Invariable`：同程序集直接用；跨程序集（`MyTools`）需 `using Invariable;`；
 - 例外：`GameLog.cs` 自身实现；第三方库 `ToolPackage` 不在此约束。
 
@@ -415,7 +416,7 @@ m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetEase(Ease.InSine).OnComplete(() =>
 - [ ] 同组同级别方法之间 1 空行，3 空行仅用于大组边界；文件末尾无空行（不以换行符结束；生成文件例外）；
 - [ ] 固定组件引用均为 `public` 并已拖拽赋值（预制体脚本）；
 - [ ] 生命周期按执行序；预制体脚本 public 绑定字段在前；
-- [ ] 事件、按钮监听、计时器和 SDK 回调已对称清理；
+- [ ] 事件、计时器和 SDK 回调已对称清理；按钮监听：Inspector UnityEvent 持久化绑定和代码 `AddClickListener` 等等五个注册的监听都会在GameObject销毁的时候自动失效所以无需代码清理；
 - [ ] 没有废弃注释代码、调试残留或敏感信息。
 
 ## 4. 新增普通热更新业务脚本
@@ -437,10 +438,7 @@ namespace HotUpdate
     {
         public void Start()
         {
-            GameManager.Instance.InvokeEventCallBack<object>(
-                "ExampleFeature_Started",
-                null
-            );
+            GameManager.Instance.InvokeEventCallBack<object>(HotUpdateConst.Event_ExampleFeature_Started, null);
         }
     }
 }
@@ -448,10 +446,12 @@ namespace HotUpdate
 
 注意：
 
-1. `HotUpdate` 可以 `using Invariable`；
+1. `HotUpdate` 可以 `using Invariable`；asmdef 对项目内程序集统一写名称引用，第三方包继续用 GUID；
 2. 不要让 `Invariable` 直接引用此类型；
-3. 如需从不可热更层调用，应定义稳定接口、事件，或在唯一入口处反射；
-4. 如果使用新泛型组合，真机构建前应验证 HybridCLR AOT 泛型支持。
+3. `HotUpdate` 可消费 `CloudService` 的 Model DTO（如 `PlayerCloudData`），仅限数据模型，禁止依赖云函数内部实现；DTO 契约变更需重发基础包并同步重导热更 DLL；
+4. 如需从不可热更层调用，应定义稳定接口、事件，或在唯一入口处反射；
+5. 如果使用新泛型组合，真机构建前应验证 HybridCLR AOT 泛型支持。
+6. 事件 key 必须先在 `HotUpdateConst` 的 `#region 事件` 定义为常量后再引用（定义示例见 §7.1），禁止在调用处散落字面量。
 
 ## 5. 新增 UI 页面
 
@@ -583,7 +583,7 @@ HotUpdateUtils.OpenTipsPanel(
 HotUpdateUtils.ShowFloatText("操作成功");
 ```
 
-`FloatTextPanel` 会复用内部 item，但页面本身在 UIManager 中按单例管理。
+`FloatTextPanel` 重复打开经 UIManager 单例去重激活，内部 item 对象池复用，播完自动隐藏；不在池化名单（池化仅 TipsPanel），主动 CloseUIPanel 时 Destroy。
 
 ## 7. 使用事件系统
 
@@ -597,6 +597,7 @@ HotUpdateUtils.ShowFloatText("操作成功");
 // HotUpdateConst.cs
 #region 事件
 public const string Event_Inventory_DataChanged = "Inventory_DataChanged";
+public const string Event_ExampleFeature_Started = "ExampleFeature_Started";
 #endregion
 ```
 
@@ -635,7 +636,7 @@ GameManager.Instance.InvokeEventCallBack(
 无参纯通知：
 
 ```csharp
-GameManager.Instance.InvokeEventCallBack<object>("ExampleFeature_Started", null);
+GameManager.Instance.InvokeEventCallBack<object>(HotUpdateConst.Event_ExampleFeature_Started, null);
 ```
 
 ### 7.2 使用注意
@@ -846,7 +847,7 @@ BGM 用 `PlayBGM`，音效用 `PlaySFX`（同名打断重播）；另有 `SetMas
 约束：
 
 - `Id` 必须是标量 `int`，不能是数组；
-- 字段按字段名字典序重排后写入 bytes 与生成代码，布局顺序不等于 Excel 列序；
+- 字段按 baseName 字典序、同前缀按数字后缀排序后写入 bytes 与生成代码，`Id` 强制首位；布局顺序不等于 Excel 列序；
 - 定长数组：列名使用 `字段名+序号`（如 `Reward1`/`Reward2`/`Reward3`），同前缀连续列且类型一致，生成 `字段名` 数组；
 - 空单元格：`int`/`float` 按 0，`string` 按空串。
 
@@ -995,7 +996,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 | Editor | 转发 `SetLocalData` / `GetLocalData` |
 | 微信/抖音 | 转发 `CloudManager` 云缓存；写后异步上传 |
 
-云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜：刷新纪录时调用 `CloudManager.Instance.ReportRankScore(rankKey, score)`（仅个人新高才打云函数，有响应即写本地标记）；拉取用 `CloudManager.Instance.GetAllCloudData(rankKey, callBack)`（读 `kv_{GameId}_rank` 快照，按 `rankKey` 降序取前 100）。上传前校验令牌有效性、临期/过期自动重签，401 自动重签并重试一次。云函数/密钥约束见 `cloud-service` 规则。
+云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜：数据变化时调用 `CloudManager.Instance.ReportRankScore(rankKey, score)`（上榜判断由云函数以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0）；拉取用 `CloudManager.Instance.GetAllCloudData(rankKey, callBack)`（读 `kv_{GameId}_rank_{平台}` 快照，快照由 `ReportRankScore` 写入时维护降序，读取仅截取前 100，微信与抖音分榜）。编辑器桩：`GetAllCloudData` 回空列表、`ReportRankScore` 回 true。玩家存档与排行榜条目默认带 `CloudDataKeys.ProfileNickName` / `ProfileAvatarUrl`；未授权 fail-soft，不阻塞存档且不清空旧资料。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要走 `Utils.SetImage`。上传前校验令牌有效性、临期/过期自动重签，401 自动重签并重试一次。云函数/密钥约束见 `cloud-service` 规则。
 
 存档修改应考虑：
 
@@ -1009,7 +1010,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 
 推荐做法：
 
-1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`、云读写 `SetCloudData/GetCloudData`），避免重复实现；云存档/云函数能力见 `CloudManager` 与 `cloud-service` 规则；
+1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`、云读写 `SetCloudData/GetCloudData`、用户信息 `SyncPlatformUserInfo` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`），避免重复实现；云存档/云函数能力见 `CloudManager` 与 `cloud-service` 规则；
 2. 在 `SdkManager` 添加平台无关的公共方法；
 3. 方法内部使用平台宏分支；
 4. Editor 分支提供可预测的模拟结果；
@@ -1083,7 +1084,8 @@ public void DoPlatformAction(Action<bool> callBack)
 
 ### 16.3 热更新
 
-- [ ] `HotUpdate.asmdef` 引用足够；
+- [ ] `HotUpdate.asmdef` 引用足够（项目内程序集统一名称引用 `Invariable` / `CloudService`）；
+- [ ] 云资料键使用 `CloudDataKeys`，未散落 `Profile_NickName` / `Profile_AvatarUrl` 字面量；
 - [ ] 新类型可被 HybridCLR 加载；
 - [ ] AOT 泛型和反射类型已验证；
 - [ ] DLL 已重新生成、加密并构建到 YooAsset；
@@ -1094,5 +1096,5 @@ public void DoPlatformAction(Action<bool> callBack)
 - [ ] Editor、微信、抖音分支均有明确行为；
 - [ ] 正确平台宏处于激活状态；
 - [ ] SDK 初始化完成后才调用；
-- [ ] 成功、失败、关闭、取消均会回调；
+- [ ] 成功、失败、关闭、取消均会回调（含用户信息授权）；
 - [ ] 真机生命周期切后台/回前台已验证。
