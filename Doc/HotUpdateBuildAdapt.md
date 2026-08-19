@@ -59,8 +59,8 @@ Assets/Scripts/Invariable/Manager/SdkManager.cs
 | 原生键盘 | `ShowKeyboard` 会置位 `m_isKeyboardShowing`，但编辑器分支 `HideKeyboard` 无复位，后续调用全部直接返回 | WX Keyboard | TT Keyboard |
 | 方向变化 | 直接适配 | WX 监听 | TT 监听 |
 | 激励视频 | 直接回调成功 | 已有框架 | 已有框架 |
-| 侧边栏复访 | 无 | 无 | 有（跳转成功写入本地 IsGetReward=1） |
-| 游戏圈按钮 | 无 | 有 | 无 |
+| 侧边栏复访 | `GameLog.Info` | `GameLog.Info` | 有（跳转成功写入本地 IsGetReward=1） |
+| 游戏圈按钮 | `GameLog.Info` | 有 | `GameLog.Info` |
 | 分享 | `GameLog.Info` | WX.ShareAppMessage | TT.ShareAppMessage（成功/失败/取消回调） |
 | 用户信息授权/获取 | `SyncPlatformUserInfo` 直接 `userInfoCallBack` 回 false | 已授权 `WX.GetUserInfo`；未授权 `WX.CreateUserInfoButton` | 同步时 `GetUserInfoAuth` 检查，已授权 `TT.GetUserInfo`；未授权锚点按钮触发 `RequestPlatformUserInfoAuth`（`TT.Authorize`） |
 | 环境判断 | IsWeChat/IsDouYin 均返回 false | IsWeChat 返回 true | IsDouYin 返回 true |
@@ -434,7 +434,7 @@ CDN/
 10. 构建 YooAsset；
 11. 复制 Bundle 到 `CDN/yoo`；
 12. 上传/发布 CDN 内容；
-13. 上传云函数（`UOS/Func Stateless/Open Panel`）并切换为远程调用模式；
+13. 上传云函数（`UOS/Func Stateless/Open Panel`）并切换为远程调用模式（首次发布还需在 UOS 控制台配置 `ResetDayRank` 定时触发器，见 NewProjectSetup §7）；
 14. 构建微信或抖音小游戏；
 15. 如平台数据走 CDN，复制并上传 unityweb 数据文件；
 16. 使用平台开发者工具启动；

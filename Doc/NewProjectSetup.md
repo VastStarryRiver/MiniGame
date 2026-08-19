@@ -8,7 +8,7 @@
 2. 首次打开会重建 `Library/`，耗时较长，等待完成。
 3. Package Manager 会按 `Packages/manifest.json` 拉取依赖（含 UOS CDN / CloudSave / Func Stateless / Launcher、YooAsset、HybridCLR、微信小游戏 SDK、抖音 SDK、NuGetForUnity 等）。若有 git 包拉取失败，检查网络与凭据后重试。
 4. 使用 NuGetForUnity 还原 `Newtonsoft.Json`（与云函数、云存档 JSON 序列化相关）。
-5. 打开 Console，确认**无编译错误**后再进入后续步骤。若出现 `UOSSettings` 相关加载异常，先完成第 5 章「UOS Launcher 重新 Link」，或按编辑器提示使用 `UOS/Launcher/Fix settings by reimport / delete`。
+5. 打开 Console，确认**无编译错误**后再进入后续步骤。若出现 `UOSSettings` 相关加载异常，先完成第 5 章「UOS Launcher 重新 Link」，或按编辑器提示使用 `UOS/Launcher/Fix settings by reimport` / `UOS/Launcher/Fix settings by delete`。
 
 ---
 
@@ -120,7 +120,7 @@ a3.unity3dcloud.cn
 
 ### 5.2 UOS Launcher 重新绑定
 
-1. 菜单：`UOS/Launcher`
+1. 菜单：`UOS/Open Launcher`
 2. 使用 `{UOS_AppID}` / `{UOS_AppSecret}` / `{UOS_AppServiceSecret}` 重新 Link 新 App
 3. 结果写入 `Assets/Resources/UOSSettings.asset`（加密字段）
 4. **禁止**手改 `UOSSettings.asset` 中的 `encrypted*` 字段；`Assets/UOSLauncherEncrypt/` 已随工程复制，一般无需改动
@@ -239,7 +239,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 ### 5.9 编辑器 CDN 上传目标
 
-打开 UOS CDN 相关面板（`UOS/CDN` 或工程内已有 CDN 工具），将上传目标切换为**新 App 下的新 Bucket**，再执行后续「复制到 CDN / 上传」步骤，避免把资源传到旧游戏 Bucket。
+打开 UOS CDN 相关面板（`UOS/CDN/Manager` 或工程内已有 CDN 工具），将上传目标切换为**新 App 下的新 Bucket**，再执行后续「复制到 CDN / 上传」步骤，避免把资源传到旧游戏 Bucket。
 
 ### 5.10 明确无需改动的项
 
@@ -291,7 +291,8 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 1. 菜单：`UOS/Func Stateless/Open Panel`
 2. 上传 `CloudHelper` 所在云函数工程（`Assets/Scripts/CloudService/`）
 3. **切换为远程调用模式**
-4. 打包微信/抖音小游戏前确认仍为远程模式；**禁止**以本地调用模式出正式包
+4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户，注意控制台时区）
+5. 打包微信/抖音小游戏前确认仍为远程模式；**禁止**以本地调用模式出正式包
 
 提醒：
 
@@ -316,7 +317,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 10. `VastStarryRiver/构建AssetBundle`
 11. `VastStarryRiver/打包/复制bundle到CDN目录`（写入本地 `CDN/yoo`）
 12. 用 UOS CDN 工具将 `CDN/yoo` 上传到**新 Bucket** 并发布（Badge 与 `{新CDN根地址}` 一致）
-13. 确认云函数已上传且为**远程调用模式**（第 7 章）
+13. 确认云函数已上传且为**远程调用模式**，`ResetDayRank` 定时触发器已配置（第 7 章）
 14. 打包：
     - 微信：`VastStarryRiver/打包/打包微信小游戏` → 输出 `Build/WeChat`
     - 抖音：`VastStarryRiver/打包/打包抖音小游戏` → 输出 `Build/DouYin`
@@ -381,9 +382,9 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 ## 附录 B：关键菜单速查
 
 ```text
-UOS/Launcher
+UOS/Open Launcher
 UOS/Func Stateless/Open Panel
-UOS/CDN
+UOS/CDN/Manager
 VastStarryRiver/Config/导出Excel配置
 VastStarryRiver/Config/校验配置数据
 VastStarryRiver/DLL/导出所有DLL
@@ -404,6 +405,6 @@ VastStarryRiver/打包/复制unityweb.bin到CDN目录
 - [ ] 4. 微信+抖音注册与域名配置
 - [ ] 5. 工程内配置（UOS Link、CDNPath、EncryptKey/EncryptIv、GameId、Secrets、广告/分享常量、productName、Profile、CDN 目标）
 - [ ] 6. 游戏内容替换与导表
-- [ ] 7. 云函数上传并远程模式
+- [ ] 7. 云函数上传并远程模式，ResetDayRank 定时触发器已配置
 - [ ] 8. 首发构建流水线跑通
 - [ ] 9. 双平台验证清单通过

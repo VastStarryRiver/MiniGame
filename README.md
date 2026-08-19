@@ -83,6 +83,8 @@ Assets/
 │  ├─ Config/              # 导表 bytes（YooAsset Config 组）
 │  └─ Scenes/              # 动态场景
 ├─ Resources/LocalAssets/  # 首包本地资源：加载面板
+├─ Scenes/                 # 唯一构建场景 Start.scene
+├─ ProjectSettings/        # UIParticle 等设置资产
 ├─ Editor/MyTools/         # 编辑器工具（仅 Editor 平台）
 │  ├─ Config/              # Excel 导表与校验
 │  ├─ DllTool/             # HybridCLR DLL 生成与复制

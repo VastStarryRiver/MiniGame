@@ -190,6 +190,8 @@ Editor 代码不能被运行时程序集引用。
 
 其余类型同理，例如：`m_objContent` ↔ `Obj_Content` ↔ `GameObject`；`m_sliProgress` ↔ `Sli_Progress` ↔ `Slider`；`m_scrList` ↔ `Scr_List` ↔ `ScrollRect`。
 
+例外（适用于本节全部命名对应要求，含下文「必须遵守」清单）：同一节点可同时被 Inspector 事件绑定（如 UIButton 的 UnityEvent 点击）与代码字段引用（如该节点的 RectTransform）；节点名只需与其中一种引用方式满足命名对应即可（如 `m_tsTest` 引用 `Btn_Test1` 节点的 RectTransform 做动画）。
+
 推荐写法：
 
 ```csharp
