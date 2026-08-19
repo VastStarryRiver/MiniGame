@@ -468,8 +468,8 @@ Assets/AssetBundleCollectorSetting.asset
 |---|---|
 | `YooAssetManager` | 包、资源、场景、DLL |
 | `UIManager` | 已打开页面字典；提供 `CloseUIPanel` / `CloseAllUIPanel`；`TipsPanel` 池化复用 |
-| `SdkManager` | 平台 SDK、平台登录、本地/云读写入口、平台用户信息同步（`SyncPlatformUserInfo` / `TryGetPlatformUserInfo`）、授权锚点（`RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`）、键盘、广告、分享、适配 |
-| `CloudManager` | 云存档初始化、云缓存、排行榜快照上报（ReportRankScore）与拉取（GetAllCloudData 读 Top100 快照）；私有持有 `CloudHelper`，业务禁止直调；写后防抖上传（2s），`FlushCloudData` 立即上传脏数据 |
+| `SdkManager` | 平台 SDK、平台登录、本地/云读写入口、平台用户信息同步（`SyncPlatformUserInfo` / `TryGetPlatformUserInfo`，`authCallBack` 仅授权动作、`userInfoCallBack` 仅资料结果）、授权锚点（`RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`，同样双回调）、键盘、广告、分享、适配 |
+| `CloudManager` | 云存档初始化、云缓存、世界榜/日榜快照上报（ReportRankScore）与拉取（GetRankList 读 Top100 快照）；私有持有 `CloudHelper`，业务禁止直调；写后防抖上传（2s），`FlushCloudData` 立即上传脏数据 |
 
 基类：
 
@@ -798,11 +798,12 @@ int, float, string,
 
 - `userID = wx-` / `dy-` + openid（openid 按平台小游戏隔离）；
 - 玩家存档 `namespace = kv_{游戏标识}_player`（`CloudManager.CloudSaveGameId`，每个游戏项目必须唯一）；
-- 排行榜快照 `namespace = kv_{游戏标识}_rank_{平台}`（`wx` / `dy`），各平台单存档，userId 固定为 `sys`，微信与抖音分榜不混排；
-- 后台显示名（仅展示，不参与定位）：玩家存档「微信玩家数据」/「抖音玩家数据」，快照「微信排行榜」/「抖音排行榜」；
+- 排行榜快照 `namespace = kv_{游戏标识}_rank_{平台}`（`wx` / `dy`），同 namespace 下用 `userId` 区分：世界榜 `rank_world`、日榜 `rank_day`，微信与抖音分榜不混排；
+- 后台显示名（仅展示，不参与定位）：玩家存档「微信玩家数据」/「抖音玩家数据」，快照「微信世界排行榜」/「微信每日排行榜」/「抖音世界排行榜」/「抖音每日排行榜」；
+- 玩家资料字段统一为 `UserId` / `NickName` / `AvatarUrl`：玩家存档写在 JSON 内容里，排行榜条目写在顶层与 `Data` 并列（`Data` 只保留排行分数等业务数据）；
 - 同游戏同账号才同数据。
 
-客户端入口：`CloudManager` 负责 `InitCloudData` / `GetAllCloudData` / `ReportRankScore`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）以及 `SyncPlatformUserInfo` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`。`GetAllCloudData(rankKey, callBack)`：客户端传入排名字段名（如 `"Score"`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后，按客户端传入的平台标识自行拼 `kv_{gameId}_rank_{platform}`，只读该平台 Top100 快照（list + 详情 + 下载共 3 次请求）；快照由 `ReportRankScore` 写入时维护 `rankKey` 降序，读取仅截取前 `CloudGetAllMaxCount = 100` 名返回。`ReportRankScore(rankKey, score)`：数据变化时上报，云函数增量维护对应平台快照，并写入 `CloudDataKeys.ProfileNickName` / `ProfileAvatarUrl`（空值保留旧资料）；上榜判断由云函数以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0。玩家存档上传同样注入这两键。微信首次/未授权必须 `WX.CreateUserInfoButton` 用户点击，已授权后 `WX.GetUserInfo` 可刷新。抖音授权为两段链路：同步时 `TT.GetUserInfoAuth` 检查，已授权走 `TT.GetUserInfo`，未授权显示授权锚点；`TT.Authorize("scope.userInfo")` 在 `SdkManager.RequestPlatformUserInfoAuth`（锚点点击）中，授权成功后再 `TT.GetUserInfo`。未授权不阻塞存档。头像只存 URL，显示走 `Utils.SetRemoteImage`，域名配到 MP 后台 downloadFile，不进 UOS 白名单。客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。资料键契约：`CloudService.CloudDataKeys`。
+客户端入口：`CloudManager` 负责 `InitCloudData` / `GetRankList` / `ReportRankScore`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）以及 `SyncPlatformUserInfo` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`（`SyncPlatformUserInfo` 与 `RequestPlatformUserInfoAuth` 为双回调：`authCallBack` 仅在本次发生授权动作时触发，`userInfoCallBack` 返回昵称/头像获取结果）。`GetRankList(rankKey, rankType, callBack)`：`rankType` 必填（`CloudRankTypes.World` / `Day`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后，按客户端传入的平台标识自行拼 `kv_{gameId}_rank_{platform}`，再按 `rankType` 读 `rank_world` 或 `rank_day` Top100 快照（list + 详情 + 下载共 3 次请求）；快照由 `ReportRankScore` 写入时维护 `rankKey` 降序，读取仅截取前 `CloudGetAllMaxCount = 100` 名返回。日榜 0-5 点（UTC+8）只读前一天完整数据，5 点由云函数定时任务 `ResetDayRank` 主动清空（5 点后日榜立即为空），写入侧惰性清空兜底。`ReportRankScore(rankKey, score)`：数据变化时上报，云函数同时增量维护世界榜与日榜，并写入条目顶层 `UserId` / `NickName` / `AvatarUrl`（与 `Data` 并列，空值保留旧资料，`Data` 只保留排行分数等业务数据）；上榜判断由云函数以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0。日榜 0-5 点停止写入（世界榜仍更新），5 点后允许写入，若快照日期不是当天则惰性清空再写入。玩家存档上传同样写入 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`。微信首次/未授权必须 `WX.CreateUserInfoButton` 用户点击，已授权后 `WX.GetUserInfo` 可刷新。抖音授权为两段链路：同步时 `TT.GetUserInfoAuth` 检查，已授权走 `TT.GetUserInfo`，未授权显示授权锚点；`TT.Authorize("scope.userInfo")` 在 `SdkManager.RequestPlatformUserInfoAuth`（锚点点击）中，授权成功后再 `TT.GetUserInfo`。未授权不阻塞存档。头像只存 URL，显示走 `Utils.SetRemoteImage`，域名配到 MP 后台 downloadFile，不进 UOS 白名单。客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。资料键契约：`CloudService.CloudDataKeys`。
 
 编辑器环境 `SdkManager.SetCloudData` / `GetCloudData` 走本地存储；真机转发 `CloudManager` 云缓存；云初始化失败后 Set 静默丢弃、Get 返回默认值。
 
@@ -810,6 +811,7 @@ int, float, string,
 
 1. 在 `CloudHelper.Secrets` 填入当前游戏的 `GameId` 与平台 AppID/AppSecret；`CloudManager.CloudSaveGameId` 必须与其一致；
 2. 菜单 `UOS/Func Stateless/Open Panel` 上传；
-3. 切换为远程调用模式。
+3. 切换为远程调用模式；
+4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户，注意控制台时区）。
 
 微信/抖音 MP 后台白名单：`https://a.unity.cn`、`https://a.unity3dcloud.cn`、`https://a2.unity3dcloud.cn`、`https://a3.unity3dcloud.cn`（CDN 资源）；`https://save.unity.cn`、`https://uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com`、`https://stateless.unity.cn`、`https://p.unity.cn`。

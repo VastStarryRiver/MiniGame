@@ -17,20 +17,30 @@ namespace HotUpdate
         public Image m_imgTest;
         public UIButton m_btnAuth;
 
+        private bool m_hasReportedRank;
+
 
 
         private void Awake()
         {
             GameManager.Instance.InvokeEventCallBack<object>(InvariableConst.Event_Launcher_StartGame, null); // 销毁热更新面板
+            m_hasReportedRank = false;
+        }
+
+        private void OnEnable()
+        {
+            ShowAuthButton();
         }
 
         private void Start()
         {
             PlayBGM();
             PlayBtnAnim();
+        }
 
-            RectTransform authAnchor = (RectTransform)m_btnAuth.transform;
-            SdkManager.Instance.SyncPlatformUserInfo(authAnchor);
+        private void OnDisable()
+        {
+            HideAuthButton();
         }
 
 
@@ -52,6 +62,24 @@ namespace HotUpdate
             {
                 m_tsTest.DOAnchorPos(new Vector2(0, -500), 1f).SetTarget(m_tsTest).SetEase(Ease.OutSine);
             });
+        }
+
+        /// <summary>
+        /// 同步平台资料并显示未授权时的锚点按钮
+        /// </summary>
+        private void ShowAuthButton()
+        {
+            RectTransform authAnchor = (RectTransform)m_btnAuth.transform;
+            SdkManager.Instance.SyncPlatformUserInfo(authAnchor, OnAuthResult);
+        }
+
+        /// <summary>
+        /// 隐藏授权锚点并销毁平台原生授权按钮
+        /// </summary>
+        private void HideAuthButton()
+        {
+            m_btnAuth.gameObject.SetActive(false);
+            SdkManager.Instance.DestroyPlatformUserInfoButton();
         }
 
         /// <summary>
@@ -98,7 +126,7 @@ namespace HotUpdate
         /// </summary>
         public void OnTestClick4()
         {
-            CloudManager.Instance.GetAllCloudData("Score", (list) =>
+            CloudManager.Instance.GetRankList("Score", CloudRankTypes.World, (list) =>
             {
                 if (this == null || m_textTest == null)
                 {
@@ -121,11 +149,15 @@ namespace HotUpdate
                     string nickName = "";
                     string avatarUrl = "";
 
-                    if (list[i] != null && list[i].Data != null)
+                    if (list[i] != null)
                     {
-                        list[i].Data.TryGetValue("Score", out score);
-                        list[i].Data.TryGetValue(CloudDataKeys.ProfileNickName, out nickName);
-                        list[i].Data.TryGetValue(CloudDataKeys.ProfileAvatarUrl, out avatarUrl);
+                        nickName = list[i].NickName ?? "";
+                        avatarUrl = list[i].AvatarUrl ?? "";
+
+                        if (list[i].Data != null)
+                        {
+                            list[i].Data.TryGetValue("Score", out score);
+                        }
                     }
 
                     str.Append($"\n序号：{i}\n积分：{score}\n昵称：{nickName}");
@@ -144,7 +176,29 @@ namespace HotUpdate
         /// </summary>
         public void OnAuthClick()
         {
-            SdkManager.Instance.RequestPlatformUserInfoAuth((RectTransform)m_btnAuth.transform);
+            SdkManager.Instance.RequestPlatformUserInfoAuth((RectTransform)m_btnAuth.transform, OnAuthResult);
+        }
+
+        /// <summary>
+        /// 平台授权结果回调，成功后上报一次排行榜数据
+        /// </summary>
+        private void OnAuthResult(bool success)
+        {
+            if (!success || m_hasReportedRank)
+            {
+                return;
+            }
+
+            m_hasReportedRank = true;
+
+            string scoreText = SdkManager.Instance.GetCloudData("Score", "0");
+
+            if (!double.TryParse(scoreText, out double score))
+            {
+                return;
+            }
+
+            CloudManager.Instance.ReportRankScore("Score", score);
         }
     }
 }

@@ -62,7 +62,7 @@ Assets/Scripts/Invariable/Manager/SdkManager.cs
 | 侧边栏复访 | 无 | 无 | 有（跳转成功写入本地 IsGetReward=1） |
 | 游戏圈按钮 | 无 | 有 | 无 |
 | 分享 | `GameLog.Info` | WX.ShareAppMessage | TT.ShareAppMessage（成功/失败/取消回调） |
-| 用户信息授权/获取 | `SyncPlatformUserInfo` 直接回调 false | 已授权 `WX.GetUserInfo`；未授权 `WX.CreateUserInfoButton` | 同步时 `GetUserInfoAuth` 检查，已授权 `TT.GetUserInfo`；未授权锚点按钮触发 `RequestPlatformUserInfoAuth`（`TT.Authorize`） |
+| 用户信息授权/获取 | `SyncPlatformUserInfo` 直接 `userInfoCallBack` 回 false | 已授权 `WX.GetUserInfo`；未授权 `WX.CreateUserInfoButton` | 同步时 `GetUserInfoAuth` 检查，已授权 `TT.GetUserInfo`；未授权锚点按钮触发 `RequestPlatformUserInfoAuth`（`TT.Authorize`） |
 | 环境判断 | IsWeChat/IsDouYin 均返回 false | IsWeChat 返回 true | IsDouYin 返回 true |
 | YooAsset 文件系统 | 不走此接口 | 微信 FS | 抖音 FS |
 

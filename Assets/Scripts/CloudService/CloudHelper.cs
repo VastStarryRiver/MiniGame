@@ -46,11 +46,20 @@ namespace CloudService
         private class RankSnapshot
         {
             public string saveId;
-            public List<PlayerSaveData> entries;
+            public string rankDate;
+            public List<PlayerCloudData> entries;
         }
 
-        private const string RankSnapshotUserId = "sys";
+        private class RankSnapshotPayload
+        {
+            public string rankDate;
+            public List<PlayerCloudData> entries;
+        }
+
+        private const string WorldRankSnapshotUserId = "rank_world";
+        private const string DayRankSnapshotUserId = "rank_day";
         private const int LeaderboardCapacity = 100;
+        private const int DayRankFreezeEndHour = 5;
 
         // GameId 必须与客户端 CloudManager.CloudSaveGameId 一致，并填入微信/抖音 AppID/AppSecret
         private static readonly GameSecrets Secrets = new GameSecrets
@@ -162,10 +171,10 @@ namespace CloudService
         }
 
         /// <summary>
-        /// 读取排行榜快照，依 rankKey 数值降序取前 maxCount 名
+        /// 读取指定类型排行榜快照，截取前 maxCount 名
         /// </summary>
         [CloudFunc]
-        public async Task<List<PlayerSaveData>> GetAllCloudData(string gameId, string rankKey, int maxCount, string platform)
+        public async Task<List<PlayerCloudData>> GetRankList(string gameId, string rankKey, int maxCount, string platform, string rankType)
         {
             // 禁止客户端直接指定命名空间，避免共享 UOS App 时跨游戏拉取
             if (!TryGetGameSecrets(gameId, out _))
@@ -175,21 +184,28 @@ namespace CloudService
 
             if (!IsValidPlatform(platform))
             {
-                Debug.LogError("GetAllCloudData: platform 无效");
+                Debug.LogError("GetRankList: platform 无效");
 
-                return new List<PlayerSaveData>();
+                return new List<PlayerCloudData>();
+            }
+
+            if (!IsValidRankType(rankType))
+            {
+                Debug.LogError("GetRankList: rankType 无效");
+
+                return new List<PlayerCloudData>();
             }
 
             if (string.IsNullOrEmpty(rankKey))
             {
-                Debug.LogError("GetAllCloudData: rankKey 不能为空");
+                Debug.LogError("GetRankList: rankKey 不能为空");
 
                 return null;
             }
 
             if (maxCount <= 0)
             {
-                return new List<PlayerSaveData>();
+                return new List<PlayerCloudData>();
             }
 
             try
@@ -197,8 +213,14 @@ namespace CloudService
                 using (HttpClient client = new HttpClient())
                 {
                     ApplyBasicAuth(client);
-                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId, platform);
-                    List<PlayerSaveData> results = snapshot.entries;
+                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId, platform, GetRankSnapshotUserId(rankType));
+
+                    if (rankType == CloudRankTypes.Day && snapshot.rankDate != GetDayRankViewDate())
+                    {
+                        return new List<PlayerCloudData>();
+                    }
+
+                    List<PlayerCloudData> results = snapshot.entries;
 
                     if (results.Count > maxCount)
                     {
@@ -210,14 +232,52 @@ namespace CloudService
             }
             catch (Exception error)
             {
-                Debug.LogError($"GetAllCloudData 异常: {error.Message}");
+                Debug.LogError($"GetRankList 异常: {error.Message}");
 
                 return null;
             }
         }
 
         /// <summary>
-        /// 上报排行分数，增量维护 Top100 快照，返回本次是否上榜或更新
+        /// 定时任务，每天 5 点清空微信与抖音日榜快照
+        /// </summary>
+        [CloudFunc(CronJob = true)]
+        public async Task ResetDayRank()
+        {
+            string gameId = Secrets.GameId;
+            string writeDate = GetDayRankWriteDate();
+            string[] platforms = { "wx", "dy" };
+
+            using (HttpClient client = new HttpClient())
+            {
+                ApplyBasicAuth(client);
+
+                for (int i = 0; i < platforms.Length; i++)
+                {
+                    string platform = platforms[i];
+
+                    try
+                    {
+                        RankSnapshot snapshot = await LoadRankSnapshot(client, gameId, platform, DayRankSnapshotUserId);
+                        List<PlayerCloudData> entries = snapshot.entries ?? new List<PlayerCloudData>();
+
+                        if (snapshot.rankDate == writeDate && entries.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        await SaveRankSnapshot(client, gameId, platform, DayRankSnapshotUserId, CloudRankTypes.Day, snapshot.saveId, new List<PlayerCloudData>(), writeDate);
+                    }
+                    catch (Exception error)
+                    {
+                        Debug.LogError($"ResetDayRank {platform} 失败: {error.Message}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 上报排行分数，同时维护世界榜与日榜，返回本次是否至少更新一榜
         /// </summary>
         [CloudFunc]
         public async Task<bool> ReportRankScore(string gameId, string userId, string rankKey, double score, string platform, string nickName, string avatarUrl)
@@ -246,61 +306,15 @@ namespace CloudService
                 using (HttpClient client = new HttpClient())
                 {
                     ApplyBasicAuth(client);
-                    RankSnapshot snapshot = await LoadRankSnapshot(client, gameId, platform);
-                    List<PlayerSaveData> entries = snapshot.entries;
-                    SortRankEntries(entries, rankKey);
-                    int existingIndex = FindRankEntryIndex(entries, userId);
+                    bool worldUpdated = await TryUpdateRankSnapshot(client, gameId, platform, CloudRankTypes.World, userId, rankKey, score, nickName, avatarUrl);
+                    bool dayUpdated = false;
 
-                    if (existingIndex >= 0)
+                    if (IsDayRankWritable())
                     {
-                        if (entries[existingIndex].data == null)
-                        {
-                            entries[existingIndex].data = new Dictionary<string, string>();
-                        }
-
-                        entries[existingIndex].data[rankKey] = score.ToString(CultureInfo.InvariantCulture);
-                        ApplyProfileData(entries[existingIndex].data, nickName, avatarUrl);
-                    }
-                    else
-                    {
-                        if (entries.Count >= LeaderboardCapacity)
-                        {
-                            double lastScore = GetRankScore(entries[entries.Count - 1].data, rankKey);
-
-                            if (score <= lastScore)
-                            {
-                                return false;
-                            }
-
-                            entries.RemoveAt(entries.Count - 1);
-                        }
-                        else if (score <= 0)
-                        {
-                            return false; // 榜不满 100 时，rankKey 数据需大于 0 才上榜
-                        }
-
-                        Dictionary<string, string> data = new Dictionary<string, string>
-                        {
-                            { rankKey, score.ToString(CultureInfo.InvariantCulture) }
-                        };
-                        ApplyProfileData(data, nickName, avatarUrl);
-                        entries.Add(new PlayerSaveData
-                        {
-                            userId = userId,
-                            data = data
-                        });
+                        dayUpdated = await TryUpdateRankSnapshot(client, gameId, platform, CloudRankTypes.Day, userId, rankKey, score, nickName, avatarUrl);
                     }
 
-                    SortRankEntries(entries, rankKey);
-
-                    if (entries.Count > LeaderboardCapacity)
-                    {
-                        entries.RemoveRange(LeaderboardCapacity, entries.Count - LeaderboardCapacity);
-                    }
-
-                    await SaveRankSnapshot(client, gameId, platform, snapshot.saveId, entries);
-
-                    return true;
+                    return worldUpdated || dayUpdated;
                 }
             }
             catch (Exception error)
@@ -314,17 +328,18 @@ namespace CloudService
 
 
         /// <summary>
-        /// 读取排行榜快照，不存在时返回空列表
+        /// 按快照用户读取排行榜，不存在时返回空列表
         /// </summary>
-        private async Task<RankSnapshot> LoadRankSnapshot(HttpClient client, string gameId, string platform)
+        private async Task<RankSnapshot> LoadRankSnapshot(HttpClient client, string gameId, string platform, string snapshotUserId)
         {
             RankSnapshot snapshot = new RankSnapshot
             {
                 saveId = null,
-                entries = new List<PlayerSaveData>()
+                rankDate = null,
+                entries = new List<PlayerCloudData>()
             };
             string namespaces = GetRankNamespace(gameId, platform);
-            string listUrl = $"https://save.unity.cn/v1/saves?namespaces={Uri.EscapeDataString(namespaces)}&userId={Uri.EscapeDataString(RankSnapshotUserId)}&start=0&count=1&skipTotal=true";
+            string listUrl = $"https://save.unity.cn/v1/saves?namespaces={Uri.EscapeDataString(namespaces)}&userId={Uri.EscapeDataString(snapshotUserId)}&start=0&count=1&skipTotal=true";
             HttpResponseMessage listResponse = await client.GetAsync(listUrl);
 
             if (!listResponse.IsSuccessStatusCode)
@@ -379,7 +394,7 @@ namespace CloudService
                 return snapshot;
             }
 
-            snapshot.entries = JsonConvert.DeserializeObject<List<PlayerSaveData>>(fileText) ?? new List<PlayerSaveData>();
+            FillSnapshotFromFile(snapshot, fileText);
 
             return snapshot;
         }
@@ -387,11 +402,11 @@ namespace CloudService
         /// <summary>
         /// 将排行榜快照写回独立 namespace
         /// </summary>
-        private async Task SaveRankSnapshot(HttpClient client, string gameId, string platform, string saveId, List<PlayerSaveData> entries)
+        private async Task SaveRankSnapshot(HttpClient client, string gameId, string platform, string snapshotUserId, string rankType, string saveId, List<PlayerCloudData> entries, string rankDate)
         {
             UploadTokenRequest tokenRequest = new UploadTokenRequest
             {
-                userId = RankSnapshotUserId,
+                userId = snapshotUserId,
                 saveId = saveId,
                 fileUploadRequest = new FileUploadSpec
                 {
@@ -432,25 +447,18 @@ namespace CloudService
                 return;
             }
 
-            byte[] fileBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(entries));
+            RankSnapshotPayload payload = new RankSnapshotPayload
+            {
+                rankDate = rankDate,
+                entries = entries
+            };
+            byte[] fileBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload));
             await UploadObjectToCos(tokenResult.fileUploadToken, fileBytes);
-
-            string snapshotName = "排行榜";
-
-            if (platform == "wx")
-            {
-                snapshotName = "微信排行榜";
-            }
-            else if (platform == "dy")
-            {
-                snapshotName = "抖音排行榜";
-            }
-
             CreateSaveRequest createRequest = new CreateSaveRequest
             {
-                userId = RankSnapshotUserId,
+                userId = snapshotUserId,
                 saveId = resolvedSaveId,
-                name = snapshotName,
+                name = GetRankSnapshotName(platform, rankType),
                 saveNamespace = GetRankNamespace(gameId, platform),
                 progressType = "LINEAR",
                 fileUploadRequest = new FileUploadConfirmation
@@ -548,12 +556,12 @@ namespace CloudService
         /// <summary>
         /// 按 rankKey 数值降序排列快照条目
         /// </summary>
-        private static void SortRankEntries(List<PlayerSaveData> entries, string rankKey)
+        private static void SortRankEntries(List<PlayerCloudData> entries, string rankKey)
         {
             entries.Sort((left, right) =>
             {
-                double leftScore = GetRankScore(left?.data, rankKey);
-                double rightScore = GetRankScore(right?.data, rankKey);
+                double leftScore = GetRankScore(left?.Data, rankKey);
+                double rightScore = GetRankScore(right?.Data, rankKey);
 
                 return rightScore.CompareTo(leftScore);
             });
@@ -562,11 +570,11 @@ namespace CloudService
         /// <summary>
         /// 查找指定用户在快照中的下标，未找到返回 -1
         /// </summary>
-        private static int FindRankEntryIndex(List<PlayerSaveData> entries, string userId)
+        private static int FindRankEntryIndex(List<PlayerCloudData> entries, string userId)
         {
             for (int i = 0; i < entries.Count; i++)
             {
-                if (entries[i] != null && entries[i].userId == userId)
+                if (entries[i] != null && entries[i].UserId == userId)
                 {
                     return i;
                 }
@@ -576,23 +584,23 @@ namespace CloudService
         }
 
         /// <summary>
-        /// 非空昵称头像写入排行榜条目，空值保留旧资料
+        /// 非空昵称头像写入排行榜条目顶层，空值保留旧资料
         /// </summary>
-        private static void ApplyProfileData(Dictionary<string, string> data, string nickName, string avatarUrl)
+        private static void ApplyProfileData(PlayerCloudData entry, string nickName, string avatarUrl)
         {
-            if (data == null)
+            if (entry == null)
             {
                 return;
             }
 
             if (!string.IsNullOrEmpty(nickName))
             {
-                data[CloudDataKeys.ProfileNickName] = nickName;
+                entry.NickName = nickName;
             }
 
             if (!string.IsNullOrEmpty(avatarUrl))
             {
-                data[CloudDataKeys.ProfileAvatarUrl] = avatarUrl;
+                entry.AvatarUrl = avatarUrl;
             }
         }
 
@@ -610,6 +618,207 @@ namespace CloudService
         private static string GetRankNamespace(string gameId, string platform)
         {
             return $"kv_{gameId}_rank_{platform}";
+        }
+
+        /// <summary>
+        /// 校验排行榜类型是否为 world 或 day
+        /// </summary>
+        private static bool IsValidRankType(string rankType)
+        {
+            return rankType == CloudRankTypes.World || rankType == CloudRankTypes.Day;
+        }
+
+        /// <summary>
+        /// 按排行榜类型返回快照归属用户
+        /// </summary>
+        private static string GetRankSnapshotUserId(string rankType)
+        {
+            if (rankType == CloudRankTypes.Day)
+            {
+                return DayRankSnapshotUserId;
+            }
+
+            return WorldRankSnapshotUserId;
+        }
+
+        /// <summary>
+        /// 后台显示名，仅展示不参与定位
+        /// </summary>
+        private static string GetRankSnapshotName(string platform, string rankType)
+        {
+            bool isDay = rankType == CloudRankTypes.Day;
+
+            if (platform == "wx")
+            {
+                return isDay ? "微信每日排行榜" : "微信世界排行榜";
+            }
+
+            if (platform == "dy")
+            {
+                return isDay ? "抖音每日排行榜" : "抖音世界排行榜";
+            }
+
+            return isDay ? "每日排行榜" : "世界排行榜";
+        }
+
+        /// <summary>
+        /// 以 UTC+8 计算当前时间
+        /// </summary>
+        private static DateTime GetChinaNow()
+        {
+            return DateTime.UtcNow.AddHours(8);
+        }
+
+        /// <summary>
+        /// 日榜 5 点后才允许写入
+        /// </summary>
+        private static bool IsDayRankWritable()
+        {
+            return GetChinaNow().Hour >= DayRankFreezeEndHour;
+        }
+
+        /// <summary>
+        /// 日榜读取日期，0-5 点取前一天
+        /// </summary>
+        private static string GetDayRankViewDate()
+        {
+            DateTime chinaNow = GetChinaNow();
+            DateTime viewDate = chinaNow.Date;
+
+            if (chinaNow.Hour < DayRankFreezeEndHour)
+            {
+                viewDate = viewDate.AddDays(-1);
+            }
+
+            return viewDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// 日榜写入日期，仅在可写窗口使用
+        /// </summary>
+        private static string GetDayRankWriteDate()
+        {
+            return GetChinaNow().Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// 解析快照文件，兼容旧版纯列表格式
+        /// </summary>
+        private static void FillSnapshotFromFile(RankSnapshot snapshot, string fileText)
+        {
+            if (string.IsNullOrEmpty(fileText))
+            {
+                return;
+            }
+
+            string trimmed = fileText.TrimStart();
+
+            if (trimmed.StartsWith("["))
+            {
+                snapshot.entries = JsonConvert.DeserializeObject<List<PlayerCloudData>>(fileText) ?? new List<PlayerCloudData>();
+
+                return;
+            }
+
+            RankSnapshotPayload payload = JsonConvert.DeserializeObject<RankSnapshotPayload>(fileText);
+
+            if (payload == null)
+            {
+                snapshot.entries = new List<PlayerCloudData>();
+
+                return;
+            }
+
+            snapshot.rankDate = payload.rankDate;
+            snapshot.entries = payload.entries ?? new List<PlayerCloudData>();
+        }
+
+        /// <summary>
+        /// 加载并按 Top100 规则更新指定类型快照
+        /// </summary>
+        private async Task<bool> TryUpdateRankSnapshot(HttpClient client, string gameId, string platform, string rankType, string userId, string rankKey, double score, string nickName, string avatarUrl)
+        {
+            string snapshotUserId = GetRankSnapshotUserId(rankType);
+            RankSnapshot snapshot = await LoadRankSnapshot(client, gameId, platform, snapshotUserId);
+            string rankDate = snapshot.rankDate;
+
+            if (rankType == CloudRankTypes.Day)
+            {
+                string writeDate = GetDayRankWriteDate();
+
+                if (snapshot.rankDate != writeDate)
+                {
+                    snapshot.entries = new List<PlayerCloudData>();
+                    rankDate = writeDate;
+                }
+            }
+
+            if (!TryApplyRankEntries(snapshot.entries, userId, rankKey, score, nickName, avatarUrl))
+            {
+                return false;
+            }
+
+            await SaveRankSnapshot(client, gameId, platform, snapshotUserId, rankType, snapshot.saveId, snapshot.entries, rankDate);
+
+            return true;
+        }
+
+        /// <summary>
+        /// 按现有上榜规则写入条目，返回本次是否更新
+        /// </summary>
+        private static bool TryApplyRankEntries(List<PlayerCloudData> entries, string userId, string rankKey, double score, string nickName, string avatarUrl)
+        {
+            SortRankEntries(entries, rankKey);
+            int existingIndex = FindRankEntryIndex(entries, userId);
+
+            if (existingIndex >= 0)
+            {
+                if (entries[existingIndex].Data == null)
+                {
+                    entries[existingIndex].Data = new Dictionary<string, string>();
+                }
+
+                entries[existingIndex].Data[rankKey] = score.ToString(CultureInfo.InvariantCulture);
+                ApplyProfileData(entries[existingIndex], nickName, avatarUrl);
+            }
+            else
+            {
+                if (entries.Count >= LeaderboardCapacity)
+                {
+                    double lastScore = GetRankScore(entries[entries.Count - 1].Data, rankKey);
+
+                    if (score <= lastScore)
+                    {
+                        return false;
+                    }
+
+                    entries.RemoveAt(entries.Count - 1);
+                }
+                else if (score <= 0)
+                {
+                    return false;
+                }
+
+                PlayerCloudData entry = new PlayerCloudData
+                {
+                    UserId = userId,
+                    Data = new Dictionary<string, string>
+                    {
+                        { rankKey, score.ToString(CultureInfo.InvariantCulture) }
+                    }
+                };
+                ApplyProfileData(entry, nickName, avatarUrl);
+                entries.Add(entry);
+            }
+
+            SortRankEntries(entries, rankKey);
+
+            if (entries.Count > LeaderboardCapacity)
+            {
+                entries.RemoveRange(LeaderboardCapacity, entries.Count - LeaderboardCapacity);
+            }
+
+            return true;
         }
 
         /// <summary>

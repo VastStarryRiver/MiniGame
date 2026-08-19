@@ -251,27 +251,27 @@ namespace Invariable
 
         #region 平台用户信息
         /// <summary>
-        /// 同步平台昵称与头像，已授权则刷新，未授权则走首次授权入口
+        /// 同步平台昵称与头像，已授权则刷新，未授权则走首次授权入口，authCallBack 仅在本次发生授权动作时触发
         /// </summary>
-        public void SyncPlatformUserInfo(RectTransform authAnchor, Action<bool> callBack = null)
+        public void SyncPlatformUserInfo(RectTransform authAnchor, Action<bool> authCallBack = null, Action<bool> userInfoCallBack = null)
         {
             if (m_platformUserInfoLoading)
             {
-                callBack?.Invoke(false);
+                userInfoCallBack?.Invoke(false);
 
                 return;
             }
 
 #if UNITY_EDITOR
-            callBack?.Invoke(false);
+            userInfoCallBack?.Invoke(false);
 
 #elif MINIGAME_SUBPLATFORM_WEIXIN
             m_platformUserInfoLoading = true;
-            RequestWeChatUserInfo(callBack, authAnchor);
+            RequestWeChatUserInfo(authCallBack, userInfoCallBack, authAnchor);
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
             m_platformUserInfoLoading = true;
-            RequestDouYinUserInfo(callBack, authAnchor);
+            RequestDouYinUserInfo(userInfoCallBack, authAnchor);
 #endif
         }
 
@@ -287,10 +287,9 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 授权按钮点击后发起平台授权，无论同意或拒绝锚点按钮都消失
-        /// 微信由原生按钮接管，调用方无需处理
+        /// 发起平台授权，authCallBack 返回授权结果，userInfoCallBack 返回资料获取结果
         /// </summary>
-        public void RequestPlatformUserInfoAuth(RectTransform authAnchor = null, Action<bool> callBack = null)
+        public void RequestPlatformUserInfoAuth(RectTransform authAnchor, Action<bool> authCallBack = null, Action<bool> userInfoCallBack = null)
         {
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_DOUYIN
             if (m_platformUserInfoLoading)
@@ -307,8 +306,9 @@ namespace Invariable
                     return;
                 }
 
-                HideAuthAnchor(authAnchor);
-                RequestDouYinUserInfoDirect(callBack, authAnchor, false);
+                authAnchor.gameObject.SetActive(false);
+                authCallBack?.Invoke(true);
+                RequestDouYinUserInfoDirect(userInfoCallBack, authAnchor, false);
             }, (msg, err) =>
             {
                 if (requestId != m_douYinUserInfoRequestId)
@@ -317,9 +317,9 @@ namespace Invariable
                 }
 
                 m_platformUserInfoLoading = false;
-                HideAuthAnchor(authAnchor);
+                authAnchor.gameObject.SetActive(false);
                 GameLog.Info("抖音用户信息授权未完成");
-                callBack?.Invoke(false);
+                authCallBack?.Invoke(false);
             });
 #endif
         }
@@ -343,13 +343,13 @@ namespace Invariable
         /// <summary>
         /// 写入平台资料缓存并同步到云存档键
         /// </summary>
-        private void ApplyPlatformUserInfo(string nickName, string avatarUrl, Action<bool> callBack)
+        private void ApplyPlatformUserInfo(string nickName, string avatarUrl, Action<bool> userInfoCallBack)
         {
             m_platformUserInfoLoading = false;
 
             if (string.IsNullOrEmpty(nickName) && string.IsNullOrEmpty(avatarUrl))
             {
-                callBack?.Invoke(false);
+                userInfoCallBack?.Invoke(false);
 
                 return;
             }
@@ -359,38 +359,22 @@ namespace Invariable
 
             if (!string.IsNullOrEmpty(nickName))
             {
-                SetCloudData(CloudDataKeys.ProfileNickName, nickName);
+                SetCloudData(CloudDataKeys.NickName, nickName);
             }
 
             if (!string.IsNullOrEmpty(avatarUrl))
             {
-                SetCloudData(CloudDataKeys.ProfileAvatarUrl, avatarUrl);
+                SetCloudData(CloudDataKeys.AvatarUrl, avatarUrl);
             }
 
-            callBack?.Invoke(true);
-        }
-
-        /// <summary>
-        /// 显示授权锚点按钮，空引用安全
-        /// </summary>
-        private static void ShowAuthAnchor(RectTransform authAnchor)
-        {
-            authAnchor.gameObject.SetActive(true);
-        }
-
-        /// <summary>
-        /// 隐藏授权锚点按钮，空引用安全
-        /// </summary>
-        private static void HideAuthAnchor(RectTransform authAnchor)
-        {
-            authAnchor.gameObject.SetActive(false);
+            userInfoCallBack?.Invoke(true);
         }
 
 #if !UNITY_EDITOR && MINIGAME_SUBPLATFORM_WEIXIN
         /// <summary>
         /// 微信已授权则直接取资料，未授权则创建用户信息按钮
         /// </summary>
-        private void RequestWeChatUserInfo(Action<bool> callBack, RectTransform authAnchor)
+        private void RequestWeChatUserInfo(Action<bool> authCallBack, Action<bool> userInfoCallBack, RectTransform authAnchor)
         {
             int requestId = m_wxUserInfoRequestId;
             WX.GetSetting(new GetSettingOption
@@ -408,11 +392,11 @@ namespace Invariable
 
                     if (authorized)
                     {
-                        RequestWeChatUserInfoDirect(callBack);
+                        RequestWeChatUserInfoDirect(userInfoCallBack);
                     }
                     else
                     {
-                        CreateWeChatUserInfoButton(callBack, authAnchor);
+                        CreateWeChatUserInfoButton(authCallBack, userInfoCallBack, authAnchor);
                     }
                 },
                 fail = err =>
@@ -423,7 +407,7 @@ namespace Invariable
                     }
 
                     GameLog.Error($"微信 GetSetting 失败: {err.errMsg}");
-                    CreateWeChatUserInfoButton(callBack, authAnchor);
+                    CreateWeChatUserInfoButton(authCallBack, userInfoCallBack, authAnchor);
                 }
             });
         }
@@ -431,7 +415,7 @@ namespace Invariable
         /// <summary>
         /// 微信已授权后直接拉取最新昵称头像
         /// </summary>
-        private void RequestWeChatUserInfoDirect(Action<bool> callBack)
+        private void RequestWeChatUserInfoDirect(Action<bool> userInfoCallBack)
         {
             WX.GetUserInfo(new GetUserInfoOption
             {
@@ -441,13 +425,13 @@ namespace Invariable
                 {
                     string nickName = res.userInfo.nickName;
                     string avatarUrl = res.userInfo.avatarUrl;
-                    ApplyPlatformUserInfo(nickName, avatarUrl, callBack);
+                    ApplyPlatformUserInfo(nickName, avatarUrl, userInfoCallBack);
                 },
                 fail = err =>
                 {
                     m_platformUserInfoLoading = false;
                     GameLog.Error($"微信 GetUserInfo 失败: {err.errMsg}");
-                    callBack?.Invoke(false);
+                    userInfoCallBack?.Invoke(false);
                 }
             });
         }
@@ -455,10 +439,10 @@ namespace Invariable
         /// <summary>
         /// 创建微信用户信息授权按钮，点击后取资料并销毁按钮
         /// </summary>
-        private void CreateWeChatUserInfoButton(Action<bool> callBack, RectTransform authAnchor)
+        private void CreateWeChatUserInfoButton(Action<bool> authCallBack, Action<bool> userInfoCallBack, RectTransform authAnchor)
         {
             int requestId = m_wxUserInfoRequestId;
-            ShowAuthAnchor(authAnchor);
+            authAnchor.gameObject.SetActive(true);
             DestroyWeChatUserInfoButton();
             GetScreenRectByNodePos(authAnchor, out Rect rect);
             int x = Mathf.RoundToInt(rect.x);
@@ -474,7 +458,7 @@ namespace Invariable
                 }
 
                 DestroyWeChatUserInfoButton();
-                HideAuthAnchor(authAnchor);
+                authAnchor.gameObject.SetActive(false);
 
                 bool ok = res != null
                     && !string.IsNullOrEmpty(res.errMsg)
@@ -484,14 +468,15 @@ namespace Invariable
                 {
                     m_platformUserInfoLoading = false;
                     GameLog.Info("微信用户信息授权未完成");
-                    callBack?.Invoke(false);
+                    authCallBack?.Invoke(false);
 
                     return;
                 }
 
+                authCallBack?.Invoke(true);
                 string nickName = res.userInfo.nickName;
                 string avatarUrl = res.userInfo.avatarUrl;
-                ApplyPlatformUserInfo(nickName, avatarUrl, callBack);
+                ApplyPlatformUserInfo(nickName, avatarUrl, userInfoCallBack);
             });
         }
 
@@ -514,7 +499,7 @@ namespace Invariable
         /// <summary>
         /// 抖音已授权则直接取资料，未授权则显示授权锚点等玩家点击
         /// </summary>
-        private void RequestDouYinUserInfo(Action<bool> callBack, RectTransform authAnchor)
+        private void RequestDouYinUserInfo(Action<bool> userInfoCallBack, RectTransform authAnchor)
         {
             int requestId = m_douYinUserInfoRequestId;
             TT.GetUserInfoAuth(auth =>
@@ -526,13 +511,13 @@ namespace Invariable
 
                 if (auth)
                 {
-                    RequestDouYinUserInfoDirect(callBack, authAnchor, true);
+                    RequestDouYinUserInfoDirect(userInfoCallBack, authAnchor, true);
                 }
                 else
                 {
                     m_platformUserInfoLoading = false;
-                    ShowAuthAnchor(authAnchor);
-                    callBack?.Invoke(false);
+                    authAnchor.gameObject.SetActive(true);
+                    userInfoCallBack?.Invoke(false);
                 }
             }, err =>
             {
@@ -543,15 +528,15 @@ namespace Invariable
 
                 m_platformUserInfoLoading = false;
                 GameLog.Error($"抖音 GetUserInfoAuth 失败: {err}");
-                ShowAuthAnchor(authAnchor);
-                callBack?.Invoke(false);
+                authAnchor.gameObject.SetActive(true);
+                userInfoCallBack?.Invoke(false);
             });
         }
 
         /// <summary>
         /// 抖音已授权后直接拉取最新昵称头像，showAnchorOnFail 控制失败时是否显示授权锚点
         /// </summary>
-        private void RequestDouYinUserInfoDirect(Action<bool> callBack, RectTransform authAnchor, bool showAnchorOnFail)
+        private void RequestDouYinUserInfoDirect(Action<bool> userInfoCallBack, RectTransform authAnchor, bool showAnchorOnFail)
         {
             int requestId = m_douYinUserInfoRequestId;
             TT.GetUserInfo(false, userInfo =>
@@ -563,7 +548,7 @@ namespace Invariable
 
                 string nickName = userInfo != null ? userInfo.nickName : null;
                 string avatarUrl = userInfo != null ? userInfo.avatarUrl : null;
-                ApplyPlatformUserInfo(nickName, avatarUrl, callBack);
+                ApplyPlatformUserInfo(nickName, avatarUrl, userInfoCallBack);
             }, err =>
             {
                 if (requestId != m_douYinUserInfoRequestId)
@@ -576,10 +561,10 @@ namespace Invariable
 
                 if (showAnchorOnFail)
                 {
-                    ShowAuthAnchor(authAnchor);
+                    authAnchor.gameObject.SetActive(true);
                 }
 
-                callBack?.Invoke(false);
+                userInfoCallBack?.Invoke(false);
             });
         }
 #endif

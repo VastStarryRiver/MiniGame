@@ -191,9 +191,11 @@ private const string CloudSaveGameId = "{新GameId}"; // 必须与 CloudHelper.S
 | 存档 | 显示名 |
 |---|---|
 | 玩家存档 | 微信玩家数据 / 抖音玩家数据 |
-| 排行榜快照 | 微信排行榜 / 抖音排行榜 |
+| 排行榜快照 | 微信世界排行榜 / 微信每日排行榜 / 抖音世界排行榜 / 抖音每日排行榜 |
 
-微信需配置隐私协议；抖音需在开放平台开通 `scope.userInfo`。头像 URL 的实际域名必须加入对应 MP 后台 downloadFile 合法域名，不进 UOS 白名单。
+玩家资料字段统一为 `UserId` / `NickName` / `AvatarUrl`：玩家数据云存档直接写在 JSON 内容里；排行榜条目写在顶层，与 `UserId`、`Data` 并列（`Data` 只保留排行分数等业务数据）。世界榜快照 `userId` 为 `rank_world`，日榜为 `rank_day`。
+
+微信需配置隐私协议。抖音需在开放平台开通 `scope.userInfo`。头像 URL 的实际域名必须加入对应 MP 后台 downloadFile 合法域名，不进 UOS 白名单。
 
 > `CloudService` 程序集**不可热更**，以上改动只能随**基础包**生效。`CloudHelper.Secrets` 含平台 AppSecret 且随 `Assets/Scripts` 进入版本控制，注意仓库可见性。
 
@@ -337,7 +339,8 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 - [ ] `InvariableConst.EncryptKey` / `EncryptIv` 已填合法长度（key 16/24/32 字节、iv 16 字节）
 - [ ] UOS Launcher 显示已绑定新 App
 - [ ] Func Stateless 面板：云函数已上传且为远程模式
-- [ ] 微信隐私协议已配置；抖音开放平台已开通 `scope.userInfo`
+- [ ] UOS 控制台已给 `ResetDayRank` 配置日榜定时触发器 cron `0 5 * * *`（需正式用户）
+- [ ] 微信隐私协议已配置（含 `scope.userInfo`）；抖音开放平台已开通 `scope.userInfo`
 - [ ] 头像实际域名已加入微信/抖音 MP 后台 downloadFile 合法域名
 - [ ] 微信/抖音 Build Profile AppID、输出路径已更新
 - [ ] Console 无编译错误
@@ -350,7 +353,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 有旧缓存启动 | 必测 | 必测 |
 | 平台登录 → 云函数换取云存档令牌 | 必测 | 必测 |
 | 云存档读写（`kv_{新GameId}_player`） | 必测 | 必测 |
-| 排行榜上报/拉取（`kv_{新GameId}_rank_wx` / `kv_{新GameId}_rank_dy`，分榜不混） | 必测 | 必测 |
+| 世界榜/日榜上报/拉取（`kv_{新GameId}_rank_wx` / `kv_{新GameId}_rank_dy`，分榜不混） | 必测 | 必测 |
 | CDN 热更资源下载（`{CDN}/yoo`） | 必测 | 必测 |
 | DLL 加载与主界面 | 必测 | 必测 |
 | 本地存档 | 必测 | 必测 |

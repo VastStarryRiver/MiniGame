@@ -115,21 +115,21 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 按排名字段获取前 N 名玩家云数据
+        /// 按排名字段拉取指定类型排行榜
         /// </summary>
-        public void GetAllCloudData(string rankKey, Action<List<PlayerCloudData>> callBack)
+        public void GetRankList(string rankKey, string rankType, Action<List<PlayerCloudData>> callBack = null)
         {
 #if UNITY_EDITOR
             callBack?.Invoke(new List<PlayerCloudData>());
 #else
-            _ = GetAllCloudDataAsync(rankKey, callBack);
+            _ = GetRankListAsync(rankKey, rankType, callBack);
 #endif
         }
 
         /// <summary>
-        /// 异步按排名字段拉取前 N 名玩家云数据
+        /// 异步按排名字段拉取指定类型排行榜
         /// </summary>
-        private async Task GetAllCloudDataAsync(string rankKey, Action<List<PlayerCloudData>> callBack)
+        private async Task GetRankListAsync(string rankKey, string rankType, Action<List<PlayerCloudData>> callBack)
         {
             var result = new List<PlayerCloudData>();
 
@@ -153,35 +153,36 @@ namespace Invariable
 
                 if (platform == null)
                 {
-                    GameLog.Error("获取全部云数据失败: 当前环境不是微信或抖音");
+                    GameLog.Error("获取排行榜失败: 当前环境不是微信或抖音");
 
                     return;
                 }
 
-                List<PlayerSaveData> saveList = await CloudHelper.GetAllCloudData(CloudSaveGameId, rankKey, CloudGetAllMaxCount, platform);
+                List<PlayerCloudData> saveList = await CloudHelper.GetRankList(CloudSaveGameId, rankKey, CloudGetAllMaxCount, platform, rankType);
 
                 if (saveList != null)
                 {
                     for (int i = 0; i < saveList.Count; i++)
                     {
-                        PlayerSaveData save = saveList[i];
+                        PlayerCloudData save = saveList[i];
 
                         if (save == null)
                         {
                             continue;
                         }
 
-                        result.Add(new PlayerCloudData
+                        if (save.Data == null)
                         {
-                            UserId = save.userId,
-                            Data = save.data ?? new Dictionary<string, string>()
-                        });
+                            save.Data = new Dictionary<string, string>();
+                        }
+
+                        result.Add(save);
                     }
                 }
             }
             catch (Exception error)
             {
-                GameLog.Error($"获取全部云数据失败: {error}");
+                GameLog.Error($"获取排行榜失败: {error}");
                 result = new List<PlayerCloudData>();
             }
             finally
@@ -191,7 +192,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 上报排行分数
+        /// 上报排行分数，云函数同时维护世界榜与日榜
         /// </summary>
         public void ReportRankScore(string rankKey, double score, Action<bool> callBack = null)
         {
@@ -203,7 +204,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 异步上报排行分数
+        /// 异步上报排行分数，云函数同时维护世界榜与日榜
         /// </summary>
         private async Task ReportRankScoreAsync(string rankKey, double score, Action<bool> callBack)
         {
@@ -304,16 +305,21 @@ namespace Invariable
 
             Dictionary<string, string> uploadData = new Dictionary<string, string>(m_cloudDataCache);
 
+            if (!string.IsNullOrEmpty(m_userId))
+            {
+                uploadData[CloudDataKeys.UserId] = m_userId;
+            }
+
             if (SdkManager.Instance.TryGetPlatformUserInfo(out string nickName, out string avatarUrl))
             {
                 if (!string.IsNullOrEmpty(nickName))
                 {
-                    uploadData[CloudDataKeys.ProfileNickName] = nickName;
+                    uploadData[CloudDataKeys.NickName] = nickName;
                 }
 
                 if (!string.IsNullOrEmpty(avatarUrl))
                 {
-                    uploadData[CloudDataKeys.ProfileAvatarUrl] = avatarUrl;
+                    uploadData[CloudDataKeys.AvatarUrl] = avatarUrl;
                 }
             }
 

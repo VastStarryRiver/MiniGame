@@ -34,7 +34,7 @@
 | UI 系统 | 优 | 打开页面单一入口且加载中去重；UIPanel / UIPopup 职责切分；FloatText 内部 item 对象池复用、播完自动隐藏与对称清理 | `Utils.OpenUIPrefabPanel`、`UIPanel` / `UIPopup`、`FloatTextPanel` |
 | 音频系统 | 优 | BGM 单通道串行化，SFX 每名一源；音量经平台层本地持久化，读写与平台解耦 | `AudioManager`、`SdkManager` |
 | 资源与性能 | 优 | 同地址在途去重；闲置句柄 180s / 30s 扫描逐出并白名单兜底；配置分帧物化、字符串缓存、对象池降峰值 | `YooAssetManager`、`ConfigManagerCore`、`TryUnloadUnusedAsset` |
-| 云服务 | 优 | 密钥走环境变量分层；写后 2s 防抖 + 串行上传 + dirty 重标记；排行榜快照增量维护 Top100，查看只读 3 次请求；命名空间服务端自拼 | `CloudHelper` / `CloudManager`、`ReportRankScore` / `GetAllCloudData` |
+| 云服务 | 优 | 密钥走环境变量分层；写后 2s 防抖 + 串行上传 + dirty 重标记；世界榜/日榜快照增量维护 Top100，查看只读 3 次请求；命名空间服务端自拼 | `CloudHelper` / `CloudManager` / `SdkManager`、`ReportRankScore` / `GetRankList` |
 | 编辑器工具链 | 优 | Excel→bytes→生成代码→运行时校验→独立回读闭环；菜单 priority 编码流水线顺序；生成代码 UTF-8 无 BOM + LF + 防注入 | `ConfigImporter` / `CodeGenerator` / `DllTool` / `AssetBundleTool` |
 
 ## 3. 项目一句话架构
@@ -183,6 +183,6 @@ BUG 出现前的操作、实际结果、预期结果、日志或截图
   - `MINIGAME_SUBPLATFORM_WEIXIN`
   - `MINIGAME_SUBPLATFORM_DOUYIN`
 - 安全区为固定偏移，不是根据设备实时安全区计算。
-- UOS：Launcher / CloudSave / Func Stateless；玩家存档 namespace 为 `kv_{CloudManager.CloudSaveGameId}_player`，排行榜快照为 `kv_{CloudManager.CloudSaveGameId}_rank_{平台}`（`wx` / `dy` 分榜），须与 `CloudHelper.Secrets.GameId` 一致。后台显示名（仅展示）：玩家存档「微信玩家数据」/「抖音玩家数据」，快照「微信排行榜」/「抖音排行榜」。资料键 `CloudDataKeys.ProfileNickName` / `ProfileAvatarUrl` 存昵称与头像 URL；授权入口 `SdkManager.RequestPlatformUserInfoAuth`；微信首次需 `createUserInfoButton`，抖音需 `scope.userInfo` 授权；未授权不阻塞存档。
+- UOS：Launcher / CloudSave / Func Stateless；玩家存档 namespace 为 `kv_{CloudManager.CloudSaveGameId}_player`，排行榜快照为 `kv_{CloudManager.CloudSaveGameId}_rank_{平台}`（`wx` / `dy` 分榜），须与 `CloudHelper.Secrets.GameId` 一致。后台显示名（仅展示）：玩家存档「微信玩家数据」/「抖音玩家数据」，快照「微信世界排行榜」/「微信每日排行榜」/「抖音世界排行榜」/「抖音每日排行榜」。玩家存档 JSON 含 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`；排行榜条目为 `UserId` / `NickName` / `AvatarUrl` / `Data` 并列（`Data` 只保留排行分数等业务数据）；授权入口 `SdkManager.RequestPlatformUserInfoAuth`；微信首次需 `createUserInfoButton`，抖音需 `scope.userInfo` 授权；未授权不阻塞存档。
 - `HotUpdate` 引用 `Invariable` 与 `CloudService`（消费 Model DTO，如 `PlayerCloudData`）；项目内程序集统一名称引用，第三方包继续用 GUID。
 - 云读写业务入口：`SdkManager.SetCloudData` / `GetCloudData`；云初始化：`CloudManager.InitCloudData`。

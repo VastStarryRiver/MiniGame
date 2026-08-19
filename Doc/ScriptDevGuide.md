@@ -333,14 +333,23 @@ GameManager.Instance.InvokeEventCallBack<object>(InvariableConst.Event_Launcher_
 - 对外部输入、资源加载结果和可能为空的对象进行必要校验；
 - 注册的事件、计时器和 SDK 回调应在对应生命周期中解除；按钮监听：Inspector UnityEvent 持久化绑定和代码 `AddClickListener` 等等五个注册的监听都会在GameObject销毁的时候自动失效所以无需代码清理。
 
-`MainPanel.Start` 的组织方式是推荐写法（生命周期只组织调用）。当前 MainPanel 按钮监听走 Prefab 上 `UIButton` 的 UnityEvent 字段绑定；代码 `AddClickListener` 方式仍合法（见 §5.1 模板）：
+`MainPanel` 的生命周期组织方式是推荐写法（生命周期只组织调用）。当前 MainPanel 按钮监听走 Prefab 上 `UIButton` 的 UnityEvent 字段绑定；代码 `AddClickListener` 方式仍合法（见 §5.1 模板）：
 
 ```csharp
+private void OnEnable()
+{
+    ShowAuthButton();
+}
+
 private void Start()
 {
     PlayBGM();
     PlayBtnAnim();
-    SdkManager.Instance.SyncPlatformUserInfo((RectTransform)m_btnAuth.transform);
+}
+
+private void OnDisable()
+{
+    HideAuthButton();
 }
 ```
 
@@ -484,11 +493,6 @@ namespace HotUpdate
         private void Start()
         {
             m_btnClose.AddClickListener(OnCloseClick);
-        }
-
-        private void OnDestroy()
-        {
-            m_btnClose?.ReleaseClickListener();
         }
 
 
@@ -996,7 +1000,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 | Editor | 转发 `SetLocalData` / `GetLocalData` |
 | 微信/抖音 | 转发 `CloudManager` 云缓存；写后异步上传 |
 
-云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜：数据变化时调用 `CloudManager.Instance.ReportRankScore(rankKey, score)`（上榜判断由云函数以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0）；拉取用 `CloudManager.Instance.GetAllCloudData(rankKey, callBack)`（读 `kv_{GameId}_rank_{平台}` 快照，快照由 `ReportRankScore` 写入时维护降序，读取仅截取前 100，微信与抖音分榜）。编辑器桩：`GetAllCloudData` 回空列表、`ReportRankScore` 回 true。玩家存档与排行榜条目默认带 `CloudDataKeys.ProfileNickName` / `ProfileAvatarUrl`；未授权 fail-soft，不阻塞存档且不清空旧资料。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要走 `Utils.SetImage`。上传前校验令牌有效性、临期/过期自动重签，401 自动重签并重试一次。云函数/密钥约束见 `cloud-service` 规则。
+云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜：数据变化时调用 `CloudManager.Instance.ReportRankScore(rankKey, score)`（云函数同时维护世界榜 `rank_world` 与日榜 `rank_day`，上榜判断以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0；日榜 0-5 点 UTC+8 停止写入，5 点由云函数定时任务 `ResetDayRank` 主动清空，5 点后日榜立即为空，写入侧惰性清空兜底）；世界榜/日榜拉取用 `CloudManager.Instance.GetRankList(rankKey, rankType, callBack)`（`rankType` 必填，世界榜传 `CloudRankTypes.World`，日榜传 `CloudRankTypes.Day`；读 `kv_{GameId}_rank_{平台}` 下对应 userId 快照，写入时维护降序，读取仅截取前 100，微信与抖音分榜；日榜 0-5 点返回前一天完整数据，5 点后日榜立即为空）。编辑器桩：`GetRankList` 回空列表、`ReportRankScore` 回 true。玩家存档 JSON 写入 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`；排行榜条目为 `UserId` / `NickName` / `AvatarUrl` / `Data` 并列，资料不进 `Data`；未授权 fail-soft，不阻塞存档且不清空旧资料。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要走 `Utils.SetImage`。上传前校验令牌有效性、临期/过期自动重签，401 自动重签并重试一次。云函数/密钥约束见 `cloud-service` 规则。
 
 存档修改应考虑：
 
@@ -1010,7 +1014,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 
 推荐做法：
 
-1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`、云读写 `SetCloudData/GetCloudData`、用户信息 `SyncPlatformUserInfo` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`），避免重复实现；云存档/云函数能力见 `CloudManager` 与 `cloud-service` 规则；
+1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`、云读写 `SetCloudData/GetCloudData`、用户信息 `SyncPlatformUserInfo(authAnchor, authCallBack, userInfoCallBack)` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth(authAnchor, authCallBack, userInfoCallBack)` / `DestroyPlatformUserInfoButton`，`authCallBack` 仅授权动作、`userInfoCallBack` 仅资料结果），避免重复实现；云存档/云函数与世界榜/日榜见 `CloudManager` 与 `cloud-service` 规则；
 2. 在 `SdkManager` 添加平台无关的公共方法；
 3. 方法内部使用平台宏分支；
 4. Editor 分支提供可预测的模拟结果；
@@ -1085,7 +1089,7 @@ public void DoPlatformAction(Action<bool> callBack)
 ### 16.3 热更新
 
 - [ ] `HotUpdate.asmdef` 引用足够（项目内程序集统一名称引用 `Invariable` / `CloudService`）；
-- [ ] 云资料键使用 `CloudDataKeys`，未散落 `Profile_NickName` / `Profile_AvatarUrl` 字面量；
+- [ ] 云资料键使用 `CloudDataKeys`，未散落 `UserId` / `NickName` / `AvatarUrl` 字面量；
 - [ ] 新类型可被 HybridCLR 加载；
 - [ ] AOT 泛型和反射类型已验证；
 - [ ] DLL 已重新生成、加密并构建到 YooAsset；
