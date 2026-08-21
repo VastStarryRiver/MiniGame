@@ -19,7 +19,7 @@ MonoBehaviour:
   wasmMemorySize: 128
   isWebGL2: 1
   needCompress: 1
-  symbolMode: 1
+  symbolMode: 0
   profiling: 0
   clearStreamingAssets: 0
   buildOptions: 0

@@ -27,7 +27,7 @@ UNITY_WEBGL
 UNITY_WEBGL + 对应 MINIGAME_SUBPLATFORM 宏
 ```
 
-当前 Build Profile：
+Build Profile：
 
 ```text
 Assets/Settings/Build Profiles/
@@ -35,7 +35,7 @@ Assets/Settings/Build Profiles/
 └─ DouYin Profile.asset
 ```
 
-当前 `EditorBuildSettings.asset` 中微信 Profile 为启用状态，抖音 Profile 为未启用状态。切平台时应通过团结引擎 Build Profile 正确激活，而不是只改宏文本。
+`EditorBuildSettings.asset` 中微信 Profile 为启用状态，抖音 Profile 为未启用状态。切平台时应通过团结引擎 Build Profile 正确激活，而不是只改宏文本。
 
 > Profile 中包含 AppID、绝对构建路径等环境相关信息。CDN 字段由打包菜单按 `InvariableConst.CDNPath` 自动写入，无需手填。文档不重复记录具体值；修改或分享时应注意凭据和环境隔离。
 
@@ -127,7 +127,7 @@ TiktokFileSystem
 
 `InvariableConst.CDNPath` 属 `Invariable`，修改后必须重新构建基础包。
 
-当前未启用微信 Instant Game AutoStreaming；若开启，Build Profile 路径可能用 SDK 的 AutoStreaming CDN 覆盖 `ProjectConf.CDN`，需单独确认。
+工程未启用微信 Instant Game AutoStreaming；若开启，Build Profile 路径可能用 SDK 的 AutoStreaming CDN 覆盖 `ProjectConf.CDN`，需单独确认。
 
 ## 5. Excel 配置导出
 
@@ -234,7 +234,7 @@ EditorUserBuildSettings.activeBuildTarget.ToString()
 LoadMetadataForAOTAssemblies("MiniGame", ...)
 ```
 
-因此当前构建目标字符串必须产生目录 `MiniGame`，资源地址才会匹配：
+因此构建目标字符串必须产生目录 `MiniGame`，资源地址才会匹配：
 
 ```text
 MiniGame_HotUpdate.dll
@@ -242,9 +242,9 @@ MiniGame_System.dll
 ...
 ```
 
-若引擎升级后 BuildTarget 名变化，需同步修改运行时或生成路径。
+若 BuildTarget 名变化，需同步修改运行时或生成路径。
 
-若重建或重命名 `HotUpdate.asmdef`，需在 HybridCLR 设置面板确认热更程序集引用仍然有效（静态检查可能出现设置内引用与当前 `.meta` 标识编码不一致，以编辑器面板为准）。项目内程序集（`Invariable` / `CloudService` / `MyTools` / `HotUpdate`）之间的引用统一写名称；第三方包继续用 GUID。
+若重建或重命名 `HotUpdate.asmdef`，需在 HybridCLR 设置面板确认热更程序集引用仍然有效（静态检查可能出现设置内引用与 `.meta` 标识编码不一致，以编辑器面板为准）。项目内程序集（`Invariable` / `CloudService` / `MyTools` / `HotUpdate`）之间的引用统一写名称；第三方包继续用 GUID。
 
 ## 7. YooAsset 构建
 
@@ -265,11 +265,11 @@ AssetBundleTool.cs
 - Pipeline：`ScriptableBuildPipeline`
 - Package：`MyPackage`
 - Bundle 类型：AssetBundle
-- BuildTarget：当前激活目标
+- BuildTarget：已激活目标
 - 版本号：`yyyyMMddHHmmss` 风格的数字字符串
 - 共享打包：开启
 - 构建结果校验：开启
-- 压缩 / 文件名样式 / 加密服务：取自 YooAsset Builder Settings（EditorPrefs）；当前默认为 LZ4、HashName、不加密
+- 压缩 / 文件名样式 / 加密服务：取自 YooAsset Builder Settings（EditorPrefs）；默认为 LZ4、HashName、不加密
 
 输出路径：
 
@@ -277,7 +277,7 @@ AssetBundleTool.cs
 <项目根>/Bundles/{构建目标}/MyPackage/{数字版本}
 ```
 
-最新输出路径通过遍历版本目录并选择最大数字版本得到。内置资源根为 `Assets/StreamingAssets/yoo`，当前工程不存在该目录（首包不内置 Bundle）。
+最新输出路径通过遍历版本目录并选择最大数字版本得到。内置资源根为 `Assets/StreamingAssets/yoo`，工程不存在该目录（首包不内置 Bundle）。
 
 ## 8. 复制资源到 CDN
 

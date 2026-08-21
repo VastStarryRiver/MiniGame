@@ -1,7 +1,5 @@
-using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
 
 
@@ -13,7 +11,6 @@ namespace Invariable
         private static GameManager m_instance = null;
 
         private Dictionary<string, List<Delegate>> m_event = null;
-        private Dictionary<string, CancellationTokenSource> m_cancellationTokenSources = null;
         private Dictionary<string, TimerNode> m_timerMap = null;
         private List<TimerNode> m_secondHeap = null;
         private List<TimerNode> m_frameHeap = null;
@@ -60,7 +57,6 @@ namespace Invariable
         private void Awake()
         {
             m_event = new Dictionary<string, List<Delegate>>();
-            m_cancellationTokenSources = new Dictionary<string, CancellationTokenSource>();
             m_timerMap = new Dictionary<string, TimerNode>();
             m_secondHeap = new List<TimerNode>();
             m_frameHeap = new List<TimerNode>();
@@ -90,16 +86,6 @@ namespace Invariable
         private void OnDestroy()
         {
             CloudManager.Instance.FlushCloudData();
-
-            if (m_cancellationTokenSources != null && m_cancellationTokenSources.Count > 0)
-            {
-                List<string> delayKeys = new List<string>(m_cancellationTokenSources.Keys);
-
-                for (int i = 0; i < delayKeys.Count; i++)
-                {
-                    CancelInvokeByKey(delayKeys[i]);
-                }
-            }
 
             if (m_timerMap != null && m_timerMap.Count > 0)
             {
@@ -166,69 +152,91 @@ namespace Invariable
                 return;
             }
 
-            Delegate[] snapshot = list.ToArray();
+            List<Delegate> snapshot = PoolUtils.Get<List<Delegate>>();
 
-            for (int i = 0; i < snapshot.Length; i++)
+            try
             {
-                try
+                for (int i = 0; i < list.Count; i++)
                 {
-                    ((Action<T>)snapshot[i]).Invoke(arg);
+                    snapshot.Add(list[i]);
                 }
-                catch (Exception error)
+
+                for (int i = 0; i < snapshot.Count; i++)
                 {
-                    GameLog.Error($"Event callback error [{key}]: {error}");
+                    try
+                    {
+                        ((Action<T>)snapshot[i]).Invoke(arg);
+                    }
+                    catch (Exception error)
+                    {
+                        GameLog.Error($"Event callback error [{key}]: {error}");
+                    }
                 }
+            }
+            finally
+            {
+                PoolUtils.Release(snapshot);
             }
         }
 
         /// <summary>
         /// 延迟指定帧后执行一次回调
         /// </summary>
-        public async void DelayCallFrames(string key, Action callBack, int frame)
+        public void DelayCallFrames(string key, Action callBack, int frame)
         {
-            if (HasInvokeKey(key))
+            if (HasInvokeKey(key) || callBack == null)
             {
                 return;
             }
 
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            m_cancellationTokenSources.Add(key, cancellationTokenSource);
-
-            bool isCanceled = await UniTask.DelayFrame(frame, cancellationToken: cancellationTokenSource.Token).SuppressCancellationThrow();
-
-            DisposeDelayToken(key, cancellationTokenSource);
-
-            if (isCanceled)
+            if (frame < 0)
             {
-                return;
+                frame = 0;
             }
 
-            callBack.Invoke();
+            TimerNode node = new TimerNode
+            {
+                Key = key,
+                CallBack = callBack,
+                IsRepeating = false,
+                IsFrameBased = true,
+                IntervalFrames = frame,
+                NextDueFrame = Time.frameCount + frame,
+                IsAlive = true,
+            };
+
+            m_timerMap.Add(key, node);
+            HeapPushFrame(node);
         }
 
         /// <summary>
         /// 延迟指定秒后执行一次回调
         /// </summary>
-        public async void DelayCallSeconds(string key, Action callBack, float time)
+        public void DelayCallSeconds(string key, Action callBack, float time)
         {
-            if (HasInvokeKey(key))
+            if (HasInvokeKey(key) || callBack == null)
             {
                 return;
             }
 
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            m_cancellationTokenSources.Add(key, cancellationTokenSource);
-
-            bool isCanceled = await UniTask.Delay(TimeSpan.FromSeconds(time), cancellationToken: cancellationTokenSource.Token).SuppressCancellationThrow();
-
-            DisposeDelayToken(key, cancellationTokenSource);
-
-            if (isCanceled)
+            if (time < 0f)
             {
-                return;
+                time = 0f;
             }
 
-            callBack.Invoke();
+            TimerNode node = new TimerNode
+            {
+                Key = key,
+                CallBack = callBack,
+                IsRepeating = false,
+                IsFrameBased = false,
+                IntervalSeconds = time,
+                NextDueTime = Time.time + time,
+                IsAlive = true,
+            };
+
+            m_timerMap.Add(key, node);
+            HeapPushSecond(node);
         }
 
         /// <summary>
@@ -318,14 +326,6 @@ namespace Invariable
         /// </summary>
         public void CancelInvokeByKey(string key)
         {
-            if (m_cancellationTokenSources.TryGetValue(key, out CancellationTokenSource cancellationTokenSource))
-            {
-                cancellationTokenSource.Cancel();
-                cancellationTokenSource.Dispose();
-                m_cancellationTokenSources.Remove(key);
-                GameLog.Info(key + "取消调用");
-            }
-
             if (m_timerMap.TryGetValue(key, out TimerNode node))
             {
                 node.IsAlive = false;
@@ -339,20 +339,7 @@ namespace Invariable
         /// </summary>
         private bool HasInvokeKey(string key)
         {
-            return m_cancellationTokenSources.ContainsKey(key) || m_timerMap.ContainsKey(key);
-        }
-
-        /// <summary>
-        /// 释放并移除延迟调用的取消令牌
-        /// </summary>
-        private void DisposeDelayToken(string key, CancellationTokenSource cancellationTokenSource)
-        {
-            if (m_cancellationTokenSources.TryGetValue(key, out CancellationTokenSource current) && current == cancellationTokenSource)
-            {
-                m_cancellationTokenSources.Remove(key);
-            }
-
-            cancellationTokenSource.Dispose();
+            return m_timerMap.ContainsKey(key);
         }
 
         /// <summary>
@@ -379,6 +366,12 @@ namespace Invariable
                 }
 
                 HeapPopSecond();
+
+                if (!node.IsRepeating)
+                {
+                    m_timerMap.Remove(node.Key);
+                }
+
                 node.CallBack.Invoke();
 
                 if (!node.IsAlive || !node.IsRepeating || !m_timerMap.ContainsKey(node.Key))
@@ -415,6 +408,12 @@ namespace Invariable
                 }
 
                 HeapPopFrame();
+
+                if (!node.IsRepeating)
+                {
+                    m_timerMap.Remove(node.Key);
+                }
+
                 node.CallBack.Invoke();
 
                 if (!node.IsAlive || !node.IsRepeating || !m_timerMap.ContainsKey(node.Key))

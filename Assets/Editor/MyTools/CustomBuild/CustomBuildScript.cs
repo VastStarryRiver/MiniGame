@@ -110,6 +110,79 @@ namespace MyTools
 #endif
         }
 
+        /// <summary>
+        /// 复制最新 bundle 到 CDN 目录
+        /// </summary>
+        [MenuItem("VastStarryRiver/打包/复制bundle到CDN目录", false, 32)]
+        public static void MoveBundleFileToCDN()
+        {
+            string path2 = ConfigUtils.CdnPath + "/yoo";
+
+            if (Directory.Exists(path2))
+            {
+                Directory.Delete(path2, true);
+            }
+
+            ConfigUtils.InitDirectory(path2);
+
+            string path = AssetBundleTool.GetOutPath();
+
+            if (!Directory.Exists(path))
+            {
+                return;
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+
+            FileInfo[] fileInfos = directoryInfo.GetFiles();
+
+            foreach (FileInfo item in fileInfos)
+            {
+                string sourceFilePath = item.FullName.Replace("\\", "/");
+                string targetFilePath = $"{path2}/{Path.GetFileName(sourceFilePath)}";
+                File.Copy(sourceFilePath, targetFilePath);
+            }
+        }
+
+        /// <summary>
+        /// 复制 unityweb.bin 到 CDN 目录
+        /// </summary>
+        [MenuItem("VastStarryRiver/打包/复制unityweb.bin到CDN目录", false, 33)]
+        public static void MoveCodeFileToCDN()
+        {
+            string path = "";
+
+#if MINIGAME_SUBPLATFORM_WEIXIN
+            path = $"{ConfigUtils.MiniBuildPath}/WeChat/webgl";
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+            path = $"{ConfigUtils.MiniBuildPath}/DouYin/webgl";
+#endif
+
+            if (!Directory.Exists(path))
+            {
+                return;
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+
+            FileInfo[] fileInfos = directoryInfo.GetFiles();
+
+            foreach (FileInfo item in fileInfos)
+            {
+                if (!item.FullName.Contains(".webgl.data.unityweb.bin.br") && !item.FullName.Contains(".webgl.data.unityweb.bin.txt"))
+                {
+                    continue;
+                }
+
+                string sourceFilePath = item.FullName.Replace("\\", "/");
+                string targetFilePath = $"{ConfigUtils.CdnPath}/{Path.GetFileName(sourceFilePath)}";
+                File.Copy(sourceFilePath, targetFilePath);
+
+                break;
+            }
+        }
+
 
 
         /// <summary>
@@ -226,79 +299,6 @@ namespace MyTools
 
             return false;
 #endif
-        }
-
-        /// <summary>
-        /// 复制最新 bundle 到 CDN 目录
-        /// </summary>
-        [MenuItem("VastStarryRiver/打包/复制bundle到CDN目录", false, 32)]
-        public static void MoveBundleFileToCDN()
-        {
-            string path2 = ConfigUtils.CdnPath + "/yoo";
-
-            if (Directory.Exists(path2))
-            {
-                Directory.Delete(path2, true);
-            }
-
-            ConfigUtils.InitDirectory(path2);
-
-            string path = AssetBundleTool.GetOutPath();
-
-            if (!Directory.Exists(path))
-            {
-                return;
-            }
-
-            DirectoryInfo directoryInfo = new DirectoryInfo(path);
-
-            FileInfo[] fileInfos = directoryInfo.GetFiles();
-
-            foreach (FileInfo item in fileInfos)
-            {
-                string sourceFilePath = item.FullName.Replace("\\", "/");
-                string targetFilePath = $"{path2}/{Path.GetFileName(sourceFilePath)}";
-                File.Copy(sourceFilePath, targetFilePath);
-            }
-        }
-
-        /// <summary>
-        /// 复制 unityweb.bin 到 CDN 目录
-        /// </summary>
-        [MenuItem("VastStarryRiver/打包/复制unityweb.bin到CDN目录", false, 33)]
-        public static void MoveCodeFileToCDN()
-        {
-            string path = "";
-
-#if MINIGAME_SUBPLATFORM_WEIXIN
-            path = $"{ConfigUtils.MiniBuildPath}/WeChat/webgl";
-
-#elif MINIGAME_SUBPLATFORM_DOUYIN
-            path = $"{ConfigUtils.MiniBuildPath}/DouYin/webgl";
-#endif
-
-            if (!Directory.Exists(path))
-            {
-                return;
-            }
-
-            DirectoryInfo directoryInfo = new DirectoryInfo(path);
-
-            FileInfo[] fileInfos = directoryInfo.GetFiles();
-
-            foreach (FileInfo item in fileInfos)
-            {
-                if (!item.FullName.Contains(".webgl.data.unityweb.bin.br") && !item.FullName.Contains(".webgl.data.unityweb.bin.txt"))
-                {
-                    continue;
-                }
-
-                string sourceFilePath = item.FullName.Replace("\\", "/");
-                string targetFilePath = $"{ConfigUtils.CdnPath}/{Path.GetFileName(sourceFilePath)}";
-                File.Copy(sourceFilePath, targetFilePath);
-
-                break;
-            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +13,7 @@ namespace Invariable
         private int m_totalCount;
         private Action<int, RectTransform> m_updateFunc = null;
         private Action<Vector2> m_onValueChangedFunc = null;
+        private Dictionary<RectTransform, LoopScrollItem> m_itemCache = null;
         private float m_lastOffset;
 
 
@@ -126,7 +128,7 @@ namespace Invariable
             for (int i = 0; i < content.childCount; i++)
             {
                 RectTransform tsItem = content.GetChild(i) as RectTransform;
-                LoopScrollItem item = tsItem.GetComponent<LoopScrollItem>();
+                LoopScrollItem item = GetCachedItem(tsItem);
 
                 if (item == null)
                 {
@@ -240,7 +242,7 @@ namespace Invariable
         /// </summary>
         private int GetItemIndex(RectTransform tsItem)
         {
-            LoopScrollItem item = tsItem.GetComponent<LoopScrollItem>();
+            LoopScrollItem item = GetCachedItem(tsItem);
 
             if (item == null)
             {
@@ -251,19 +253,58 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 写入列表项索引（无组件时自动挂载）
+        /// 写入列表项索引
         /// </summary>
         private void SetItemIndex(RectTransform tsItem, int index)
         {
-            LoopScrollItem item = tsItem.GetComponent<LoopScrollItem>();
-
-            if (item == null)
-            {
-                item = tsItem.gameObject.AddComponent<LoopScrollItem>();
-            }
-
+            LoopScrollItem item = GetOrAddItem(tsItem);
             item.m_index = index;
             tsItem.name = "Ts_Item" + index;
+        }
+
+        /// <summary>
+        /// 读取已缓存的列表项组件
+        /// </summary>
+        private LoopScrollItem GetCachedItem(RectTransform tsItem)
+        {
+            if (tsItem == null)
+            {
+                return null;
+            }
+
+            m_itemCache ??= new Dictionary<RectTransform, LoopScrollItem>();
+
+            if (m_itemCache.TryGetValue(tsItem, out LoopScrollItem item) && item != null)
+            {
+                return item;
+            }
+
+            item = tsItem.GetComponent<LoopScrollItem>();
+
+            if (item != null)
+            {
+                m_itemCache[tsItem] = item;
+            }
+
+            return item;
+        }
+
+        /// <summary>
+        /// 获取或挂载列表项组件并缓存
+        /// </summary>
+        private LoopScrollItem GetOrAddItem(RectTransform tsItem)
+        {
+            LoopScrollItem item = GetCachedItem(tsItem);
+
+            if (item != null)
+            {
+                return item;
+            }
+
+            item = tsItem.gameObject.AddComponent<LoopScrollItem>();
+            m_itemCache[tsItem] = item;
+
+            return item;
         }
     }
 }

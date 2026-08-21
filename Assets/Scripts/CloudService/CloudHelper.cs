@@ -239,7 +239,7 @@ namespace CloudService
         }
 
         /// <summary>
-        /// 定时任务，每天 5 点清空微信与抖音日榜快照
+        /// 定时任务，每天 5 点（UTC+8）清空微信与抖音日榜快照
         /// </summary>
         [CloudFunc(CronJob = true)]
         public async Task ResetDayRank()

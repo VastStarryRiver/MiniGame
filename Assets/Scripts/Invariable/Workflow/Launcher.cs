@@ -14,6 +14,9 @@ namespace Invariable
 
         private void Awake()
         {
+            Application.targetFrameRate = 60;
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
+
 #if UNITY_EDITOR
             m_playMode = EPlayMode.EditorSimulateMode;
 #else

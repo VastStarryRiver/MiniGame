@@ -4,7 +4,7 @@
 
 ## 1. 首次打开与环境恢复
 
-1. 用与源工程**相同版本**的团结引擎打开新工程目录。当前源工程版本见 `ProjectSettings/ProjectVersion.txt`（示例：`2022.3.61t9` / Tuanjie `1.6.8`）。版本不一致可能导致 HybridCLR、小游戏转换器、UOS 包行为差异。
+1. 用与源工程**相同版本**的团结引擎打开新工程目录。源工程版本见 `ProjectSettings/ProjectVersion.txt`（示例：`2022.3.61t9` / Tuanjie `1.6.8`）。版本不一致可能导致 HybridCLR、小游戏转换器、UOS 包行为差异。
 2. 首次打开会重建 `Library/`，耗时较长，等待完成。
 3. Package Manager 会按 `Packages/manifest.json` 拉取依赖（含 UOS CDN / CloudSave / Func Stateless / Launcher、YooAsset、HybridCLR、微信小游戏 SDK、抖音 SDK、NuGetForUnity 等）。若有 git 包拉取失败，检查网络与凭据后重试。
 4. 使用 NuGetForUnity 还原 `Newtonsoft.Json`（与云函数、云存档 JSON 序列化相关）。
@@ -268,7 +268,9 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 ### 6.2 动态资源
 
 - 替换 `Assets/GameAssets` 下预制体、图集、音频等
-- 需要重建 **TMP 表情包图集** 时使用工程内 AtlasBuilder（`Assets/Editor/MyTools/AtlasBuilder/`，ContextMenu `BuildAtlas`；输出在 Editor 目录，与 YooAsset 收集的 `GameAssets/Atlas` UI 图集无关）
+- 需要合并多图为 Multiple Sprite PNG 时使用工程内 AtlasBuilder（`Assets/Editor/MyTools/AtlasBuilder/`，ContextMenu `BuildAtlas`；输出在 Editor 目录，与 YooAsset 收集的 `GameAssets/Atlas` UI 图集无关）
+- 新增音频或图集资源后，执行 `VastStarryRiver/资源处理` 对应菜单批量设置导入参数
+- TMP 表情由 `Assets/ToolPackage/TextMesh Pro/Resources/Sprite Assets/emoji.asset` 提供（TMP Settings 默认表情图集），与 AtlasBuilder 无关
 
 ### 6.3 首包资源与启动内容
 
@@ -291,7 +293,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 1. 菜单：`UOS/Func Stateless/Open Panel`
 2. 上传 `CloudHelper` 所在云函数工程（`Assets/Scripts/CloudService/`）
 3. **切换为远程调用模式**
-4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户，注意控制台时区）
+4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户；控制台 cron 时区已确认为 UTC+8（北京时间），每天凌晨 5 点触发）
 5. 打包微信/抖音小游戏前确认仍为远程模式；**禁止**以本地调用模式出正式包
 
 提醒：
@@ -340,7 +342,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 - [ ] `InvariableConst.EncryptKey` / `EncryptIv` 已填合法长度（key 16/24/32 字节、iv 16 字节）
 - [ ] UOS Launcher 显示已绑定新 App
 - [ ] Func Stateless 面板：云函数已上传且为远程模式
-- [ ] UOS 控制台已给 `ResetDayRank` 配置日榜定时触发器 cron `0 5 * * *`（需正式用户）
+- [ ] UOS 控制台已给 `ResetDayRank` 配置日榜定时触发器 cron `0 5 * * *`（需正式用户，cron 时区 UTC+8）
 - [ ] 微信隐私协议已配置（含 `scope.userInfo`）；抖音开放平台已开通 `scope.userInfo`
 - [ ] 头像实际域名已加入微信/抖音 MP 后台 downloadFile 合法域名
 - [ ] 微信/抖音 Build Profile AppID、输出路径已更新
@@ -395,6 +397,8 @@ VastStarryRiver/打包/打包微信小游戏
 VastStarryRiver/打包/打包抖音小游戏
 VastStarryRiver/打包/复制bundle到CDN目录
 VastStarryRiver/打包/复制unityweb.bin到CDN目录
+VastStarryRiver/资源处理/设置音频资源
+VastStarryRiver/资源处理/设置图片和图集
 ```
 
 ## 附录 C：准备进度勾选（可选）

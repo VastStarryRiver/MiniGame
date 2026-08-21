@@ -103,7 +103,7 @@ namespace Invariable
                 {
                     if (data == null)
                     {
-                        GameLog.Error($"AOT DLL 加载失败: {platform}_{aotDllName}.dll");
+                        GameLog.Error($"AOT DLL 加载失败: {platform}_{aotDllName}.dll，请核对 InvariableConst.AotDllNames 手工清单是否漏配");
 
                         return;
                     }

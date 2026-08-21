@@ -7,7 +7,7 @@ namespace Invariable
 {
     public class UIManager : Singleton<UIManager>
     {
-        private static readonly HashSet<string> m_pooledPanelNames = new HashSet<string>
+        private static readonly HashSet<string> PooledPanelNames = new HashSet<string>
         {
             "TipsPanel",
         };
@@ -42,7 +42,7 @@ namespace Invariable
         /// </summary>
         public bool IsPooledPanel(string name)
         {
-            return m_pooledPanelNames.Contains(name);
+            return PooledPanelNames.Contains(name);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Invariable
                 return;
             }
 
-            if (m_pooledPanelNames.Contains(name))
+            if (PooledPanelNames.Contains(name))
             {
                 panel.gameObject.SetActive(false);
 

@@ -29,11 +29,11 @@
 | 架构与热更 | 优 | 单向依赖零反向引用，AOT↔热更仅 3 处反射触点；热更 DLL / 配置 bytes / UI Prefab 全走 YooAsset，可纯热更发布；HybridCLR AOT 元数据并行加载 | `HotUpdateOver` / `Utils` / `YooAssetManager` |
 | 平台适配 | 优 | 微信 / 抖音 / 编辑器三分支 `#if` 隔离；登录、键盘、安全区、广告、分享、侧边栏等能力统一入口封装 | `SdkManager`、`MINIGAME_SUBPLATFORM_*` |
 | 启动流程 | 优 | 状态机串行驱动启动链，各节点职责单一，失败可定位到具体节点 | `Launcher`、`StateMachine`、`InitializeYooAsset` → `HotUpdateOver` |
-| 事件与计时 | 优 | 泛型事件总线触发快照并逐 listener 隔离；双最小堆计时器配合 UniTask 延迟；事件 / 计时器 key 全常量化 | `GameManager`、`InvariableConst` / `HotUpdateConst` |
+| 事件与计时 | 优 | 泛型事件总线触发快照（快照列表经 `PoolUtils` 池化复用）并逐 listener 隔离；秒/帧双最小堆计时器由 `Update` 驱动；事件 / 计时器 key 全常量化 | `GameManager`、`InvariableConst` / `HotUpdateConst` |
 | 配置表系统 | 优 | CFGT magic + schemaHash 三处同源；导表严格失败保证一致性；三层缓存与大表分帧物化；独立回读交叉验证 | `ConfigReader` / `ConfigManagerCore` / `ConfigValidator`、schemaHash |
 | UI 系统 | 优 | 打开页面单一入口且加载中去重；UIPanel / UIPopup 职责切分；FloatText 内部 item 对象池复用、播完自动隐藏与对称清理 | `Utils.OpenUIPrefabPanel`、`UIPanel` / `UIPopup`、`FloatTextPanel` |
 | 音频系统 | 优 | BGM 单通道串行化，SFX 每名一源；音量经平台层本地持久化，读写与平台解耦 | `AudioManager`、`SdkManager` |
-| 资源与性能 | 优 | 同地址在途去重；闲置句柄 180s / 30s 扫描逐出并白名单兜底；配置分帧物化、字符串缓存、对象池降峰值 | `YooAssetManager`、`ConfigManagerCore`、`TryUnloadUnusedAsset` |
+| 资源与性能 | 优 | 同地址在途去重；闲置句柄 180s / 30s 扫描逐出并白名单兜底；配置分帧物化、字符串缓存、`PoolUtils` 对象池降峰值 | `YooAssetManager`、`ConfigManagerCore`、`TryUnloadUnusedAsset` |
 | 云服务 | 优 | 密钥走环境变量分层；写后 2s 防抖 + 串行上传 + dirty 重标记；世界榜/日榜快照增量维护 Top100，查看只读 3 次请求；命名空间服务端自拼 | `CloudHelper` / `CloudManager` / `SdkManager`、`ReportRankScore` / `GetRankList` |
 | 编辑器工具链 | 优 | Excel→bytes→生成代码→运行时校验→独立回读闭环；菜单 priority 编码流水线顺序；生成代码 UTF-8 无 BOM + LF + 防注入 | `ConfigImporter` / `CodeGenerator` / `DllTool` / `AssetBundleTool` |
 
@@ -91,7 +91,8 @@ Assets/
 │  ├─ AssetBundle/         # YooAsset Bundle 构建
 │  ├─ CustomBuild/         # 微信/抖音打包与 CDN 复制
 │  ├─ AssetImporter/       # .bin 导入为 BinAsset
-│  └─ AtlasBuilder/        # TMP 表情包图集构建（ContextMenu BuildAtlas，输出在 Editor 目录）
+│  ├─ AssetProcess/        # 音频/图集导入设置（VastStarryRiver/资源处理 菜单）
+│  └─ AtlasBuilder/        # 通用纹理打包（多图合 Multiple Sprite PNG，ContextMenu BuildAtlas，输出在 Editor 目录）
 ├─ ToolPackage/            # 本地第三方源码
 │  ├─ DOTween/
 │  ├─ TextMesh Pro/
@@ -129,7 +130,7 @@ Excel/                     # 配置源文件（Player.xlsx、RoleRune.xlsx）
 
 1. **业务需求优先写入 `HotUpdate`。**
 2. 只有“热更新 DLL 加载前必须执行”或“直接依赖平台 SDK”的代码才放入 `Invariable`。
-3. `Invariable` 不得直接编译引用 `HotUpdate`，当前通过反射跨越程序集边界。
+3. `Invariable` 不得直接编译引用 `HotUpdate`，通过反射跨越程序集边界。
 4. `HotUpdate/Config/Generated/Config_*.cs` 是生成文件，数值修改应改 Excel 后重新导出；底座在 `Invariable/Config`。
 5. 不要直接修改 `Assets/GameAssets/DLL/MiniGame/*.dll.bin`；它们由 DLL 工具生成。
 
@@ -170,7 +171,7 @@ BUG 出现前的操作、实际结果、预期结果、日志或截图
 6. 尽可能进行静态检查或引擎编译验证；
 7. 汇报改动文件和内容、发布平台类型、仍需在编辑器/真机完成的验证。
 
-## 8. 当前框架状态摘要
+## 8. 框架状态摘要
 
 - 引擎：团结引擎 `1.6.8`，对应 Unity `2022.3.61t9`。
 - 唯一构建场景：`Assets/Scenes/Start.scene`。

@@ -9,7 +9,7 @@
 | 资源系统 | YooAsset 2.3.19 | Bundle、清单、下载、缓存和异步资源加载 | UPM 包；小游戏文件系统在 `Assets/ToolPackage/YooAsset` |
 | 微信平台 | `com.qq.weixin.minigame` + `Assets/WX-WASM-SDK-V2` + `cn.tuanjie.wx-uploader` | 小游戏转换、运行时 API 与上传 | UPM 转换工具 + Assets 内运行时 SDK + 上传器 |
 | 抖音平台 | StarkSDK 6.9.0 | 抖音小游戏构建与运行时 API | `LocalPackages/com.bytedance.starksdk@6.9.0` 本地包 |
-| 异步 | UniTask 2.5.10 | 延迟和重复调用 | `Assets/ToolPackage/UniTask` 本地源码 |
+| 异步 | UniTask 2.5.10 | 异步方法（`CloudManager` 云存档链路 async/await） | `Assets/ToolPackage/UniTask` 本地源码 |
 | UI | UGUI + TextMeshPro | 页面和文本 | TextMeshPro 在 `Assets/ToolPackage/TextMesh Pro` |
 | 动画 | DOTween | UI 补间 | `Assets/ToolPackage/DOTween` 本地源码 |
 | 配置 | ExcelDataReader + 自定义生成器 | Excel 转 bytes 与生成代码 | `Assets/Plugins/ExcelDataReader.dll` 预编译库 |
@@ -63,7 +63,7 @@
 - 可以引用 `Invariable` 的公共能力（名称引用）；
 - 引用 `CloudService`（名称引用，消费 Model DTO 如 `PlayerCloudData`、`CloudDataKeys`）；
 - 发布时作为加密 `.dll.bin` 放入 YooAsset 资源；
-- 当前入口必须保持为 `HotUpdate.StartGame.Play()`，除非同时修改反射入口。
+- 入口必须保持为 `HotUpdate.StartGame.Play()`，除非同时修改反射入口。
 
 主要命名空间：`HotUpdate`。
 
@@ -98,6 +98,7 @@
 - HybridCLR DLL 生成与复制；
 - YooAsset Bundle 构建；
 - 微信/抖音小游戏构建；
+- 音频/图集导入设置（`AssetProcess`）；
 - 图集和 `.bin` 导入。
 
 仅包含 Editor 平台，不进入运行时。引用 `Invariable` 用名称引用。
@@ -114,7 +115,7 @@
 
 ## 3. 启动场景结构
 
-构建场景列表当前只有：
+构建场景列表只有：
 
 ```text
 Assets/Scenes/Start.scene
@@ -156,10 +157,10 @@ UI_Root/
 
 约定层级：
 
-| layer 参数 | 典型用途 | 当前示例 |
+| layer 参数 | 典型用途 | 示例 |
 |---:|---|---|
 | 0 | 主界面/普通页面 | `MainPanel` |
-| 1 | 较高普通界面 | 暂无明确示例 |
+| 1 | 较高普通界面 | 无示例 |
 | 2 | 对话框/弹窗 | `TipsPanel` |
 | 3 | 顶层提示 | `FloatTextPanel` |
 
@@ -171,10 +172,11 @@ UI_Root/
 
 行为：
 
-1. 编辑器使用 `EPlayMode.EditorSimulateMode`；
-2. 非编辑器使用 `EPlayMode.WebPlayMode`；
-3. 创建常驻 `GameManager`；
-4. 创建常驻 `AudioManager`，并附加 `AudioListener`。
+1. 设置 `Application.targetFrameRate = 60` 与 `Screen.sleepTimeout = NeverSleep`；
+2. 编辑器使用 `EPlayMode.EditorSimulateMode`；
+3. 非编辑器使用 `EPlayMode.WebPlayMode`；
+4. 创建常驻 `GameManager`；
+5. 创建常驻 `AudioManager`，并附加 `AudioListener`。
 
 Manager 创建依赖：
 
@@ -240,9 +242,8 @@ EditorSimulateModeHelper.SimulateBuild("MyPackage")
 CDN 根地址 = InvariableConst.CDNPath + "/yoo"
 defaultHostServer = fallbackHostServer（主备同址，备线未单独配置）
 WebPlayModeParameters
-  -> SdkManager.InitializeYooAsset
-  -> RemoteServices
-  -> 微信或抖音自定义文件系统
+  -> RemoteServices（IRemoteServices 实现，提供主/备 URL 拼接）
+  -> SdkManager.InitializeYooAsset 按平台创建微信或抖音自定义文件系统
 ```
 
 失败时仅提示「资源加载失败，请检查网络后重启游戏」，无重试，状态机停在本节点。
@@ -305,7 +306,7 @@ method.Invoke(null, null);
 
 ### 4.8 `HotUpdate.StartGame.Play`
 
-当前行为：
+行为：
 
 ```csharp
 Utils.OpenUIPrefabPanel("MainPanel", 0);
@@ -370,7 +371,7 @@ Assets/GameAssets/DLL/MiniGame/
 
 这些文件不是普通 DLL 原文，而是经 `ConfigUtils.SaveSafeFile` 序列化、GZip 压缩并 AES 加密后的 `.bin`。
 
-任一 AOT / HotUpdate DLL 异步加载失败时，`GameLog.Error` 输出具体 DLL 名；失败路径不再继续加载 `HotUpdate.dll`，启动停在当前阶段。
+任一 AOT / HotUpdate DLL 异步加载失败时，`GameLog.Error` 输出具体 DLL 名；失败路径停止后续加载 `HotUpdate.dll`，启动停在该阶段。
 
 ## 6. YooAsset 资源架构
 
@@ -400,7 +401,7 @@ Assets/AssetBundleCollectorSetting.asset
 | Config | `GameAssets/Config` | Group + FileName | PackGroup |
 | DLL | `GameAssets/DLL` | Folder + FileName | PackGroup |
 
-当前代码中的地址示例：
+代码中的地址示例：
 
 | 资源 | 地址 |
 |---|---|
@@ -418,9 +419,10 @@ Assets/AssetBundleCollectorSetting.asset
 图集构建工具：
 
 - 位置：`Assets/Editor/MyTools/AtlasBuilder/`（`AtlasBuilder.cs` + `AtlasBuilder.asset`）；
-- 用途：**TMP 表情包图集**专用（TextMesh Pro Sprite Asset 流水线），不是 YooAsset UI 图集构建器；
+- 用途：通用纹理打包器，将配置目录下的图片合并为一张 Multiple Sprite PNG 并生成 spritesheet；不是 YooAsset UI 图集构建器；
 - 无顶部菜单；在 `AtlasBuilder.asset` 的 Inspector 中配置 `m_atlasName`、`m_directorys` 后，通过 ContextMenu `BuildAtlas` 触发；
-- 输出到 `Assets/Editor/MyTools/AtlasBuilder/{图集名}/`（Editor 目录）；按 TMP 表情包工作流接入，与 `GameAssets/Atlas` 的 YooAsset 收集路径相互独立。
+- 输出到 `Assets/Editor/MyTools/AtlasBuilder/{图集名}/`（Editor 目录），与 `GameAssets/Atlas` 的 YooAsset 收集路径相互独立；
+- TMP 表情由 `Assets/ToolPackage/TextMesh Pro/Resources/Sprite Assets/emoji.asset` 提供（TMP Settings 默认表情图集），与该工具无关。
 
 ### 6.1 资源句柄
 
@@ -441,13 +443,14 @@ Assets/AssetBundleCollectorSetting.asset
 闲置逐出（与配置表 `ConfigFormat` 节奏对齐）：
 
 - 闲置阈值 `180s`，清扫周期 `30s`（计时器 key `InvariableConst.Timer_YooAsset_TickEvict`）；
+- 逐出计时器在首次 `AsyncLoadAsset` 时惰性注册（`EnsureEvictTimer`，注册后不立即执行）；
 - 白名单前缀不释放：`Audios_`、`Config_`、`MiniGame_`（音频/配置秒回/程序集无释放价值）；
 - 其余地址闲置超时后调用 `ReleaseAsset`；已实例化的 Prefab 实例不受句柄释放影响（YooAsset 引用计数）。
 
 资源释放：
 
 - `ReleaseAsset(address)`：按地址释放句柄，并清理对应图集 Sprite 缓存；
-- `UnLoadAsset()`：释放当前缓存中的全部普通资源，并清空 Sprite 缓存；
+- `UnLoadAsset()`：释放已缓存的全部普通资源，并清空 Sprite 缓存；
 - `UnloadUnusedAssets(callBack)`：调用 YooAsset 卸载未使用资源；
 - `UnLoadScene(address)`：仅释放对应场景句柄，不连带释放普通资源。
 
@@ -457,7 +460,7 @@ Assets/AssetBundleCollectorSetting.asset
 
 | Manager | 创建方式 | 用途 |
 |---|---|---|
-| `GameManager` | `Launcher.Awake` 创建常驻对象 | 事件、延迟计时（UniTask）、循环计时（秒/帧最小堆）；`OnApplicationPause` / `OnApplicationQuit` / `OnDestroy` 调用 `CloudManager.FlushCloudData` |
+| `GameManager` | `Launcher.Awake` 创建常驻对象 | 事件、延迟/循环计时（秒/帧双最小堆，`Update` 驱动）；`Awake` 注册配置逐出计时器，`OnDestroy` 取消全部计时器；`OnApplicationPause` / `OnApplicationQuit` / `OnDestroy` 调用 `CloudManager.FlushCloudData` |
 | `AudioManager` | `Launcher.Awake` 创建常驻对象 | BGM/SFX 通道、音量/静音（本地持久化）、加载排队、同名 SFX 打断重播 |
 
 二者使用私有静态字段 `m_instance`，在 `Awake` 赋值；对外暴露 `Instance`（为空时打 Error）与 `HasInstance`（判空不打日志）。
@@ -478,6 +481,15 @@ Singleton<T> where T : new()
 ```
 
 它们不是 Unity 组件，没有 `Update`、`OnDestroy` 等生命周期。
+
+### 7.3 静态工具类
+
+`PoolUtils`（`Assets/Scripts/Invariable/Utils/PoolUtils.cs`）为 `public static class`，提供类型池与 GameObject 池，不继承 `Singleton<T>`。
+
+- 类型池：`Get<T>()` / `Release<T>(item)`，上限 `DefaultMaxSize` = 128；`IList` 归还时自动 `Clear`
+- GameObject 池：`GetGameObject(key, prefab, parent)` / `ReleaseGameObject(key, instance)`，按 key 隔离，单 key 上限 `DefaultGameObjectMaxSize` = 32，超出上限则销毁；取出时激活并挂到 parent，归还时隐藏
+- 池 key 使用 `HotUpdateConst` `#region 对象池` 常量，禁止调用处散落字面量
+- 现有示例：`FloatTextPanel`（`HotUpdateConst.Pool_FloatTextItem`）
 
 ## 8. 事件系统
 
@@ -512,7 +524,7 @@ InvokeEventCallBack<object>(key, null);
 
 ## 9. 计时与重复调用
 
-实现：`GameManager` + UniTask。
+实现：`GameManager` 秒/帧双最小堆，`Update` 驱动。
 
 API：
 
@@ -555,7 +567,7 @@ Tips/FloatText 业务封装走 `HotUpdateUtils.OpenTipsPanel` / `ShowFloatText`�
 3. 若同名页面正在加载中则忽略本次打开；
 4. 加载地址 `Prefabs_{页面名}`；
 5. 实例化到 `UI_Root/Canvas_{layer}/Ts_Panel`；
-6. 通过类型名查找或动态添加组件（解析顺序覆盖 `Invariable` / `HotUpdate` / 热更程序集）；
+6. 通过类型名查找或动态添加组件（解析顺序：无名空间 → `Invariable.` → `HotUpdate.` → `FindTypeTool` 内置 UGUI 映射表 → 热更 DLL 程序集反射）；
 7. 将其作为 `UIPanel` 注册；
 8. 调用回调。
 
@@ -567,19 +579,23 @@ Tips/FloatText 业务封装走 `HotUpdateUtils.OpenTipsPanel` / `ShowFloatText`�
 public class UIPanel : MonoBehaviour
 ```
 
+基类无虚拟生命周期，子面板直接写 Unity 原生生命周期（Awake/OnEnable/Start/OnDisable）。
+
 调用 `Close()`：
 
 - 带 `UIPopup`：先播放关闭动画，再走关闭流程；
 - `TipsPanel`（`UIManager` 池化名单）：隐藏复用，不从字典移除；
 - 其余页面：从 UIManager 移除并 `Destroy`。
 
-### 10.3 当前页面
+### 10.3 已有页面
 
 | 页面 | 脚本 | 层级 | 用途 |
 |---|---|---:|---|
-| MainPanel | `HotUpdate.UI/MainPanel/MainPanel.cs` | 0 | 当前主界面（云功能测试：云存档读写 / 排行榜上报 / 配置读取 / 排行榜拉取+头像 / 授权入口） |
+| MainPanel | `HotUpdate.UI/MainPanel/MainPanel.cs` | 0 | 主界面（含云功能测试按钮） |
 | TipsPanel | `HotUpdate.UI/Popup/TipsPanel.cs` | 2 | 单/双按钮提示 |
 | FloatTextPanel | `HotUpdate.UI/Popup/FloatTextPanel.cs` | 3 | 可复用飘字提示 |
+
+MainPanel 含 4 个测试点击方法（OnTestClick1-4）与授权按钮演示逻辑，属模板演示代码。
 
 辅助接口：
 
@@ -592,7 +608,7 @@ HotUpdateUtils.ShowFloatText(...);
 
 | 组件 | 用途 |
 |---|---|
-| `UIButton` | 单击、双击、按下、抬起、长按、缩放反馈；每类监听覆盖赋值（非追加）；5 个 public UnityEvent 字段（`m_clickEvent` 等）可在 Inspector 绑定监听；`m_isNotChangeScale` / `m_changeScale`（默认 1.1f）；双击判定窗口 0.15s；长按阈值 0.2s；注册双击后单击会延迟 0.15s 且可能被双击吞掉 |
+| `UIButton` | 单击、双击、按下、抬起、长按、缩放反馈；每类监听覆盖赋值（非追加）；5 个 public UnityEvent 字段（`m_clickEvent` 等）可在 Inspector 绑定监听；`m_isNotChangeScale`（默认 false）、`m_changeScale`（默认 1.1f）；双击判定窗口 0.15s；长按阈值 0.2s；注册双击后单击会延迟 0.15s 且可能被双击吞掉；双击/单击分发由全局 `UIButtonDriver` 驱动；长按触发后吞掉本次单击 |
 | `UIPanel` | 页面基类 |
 | `UIPopup` | 弹窗开关动画；入场动画在 `OnEnable`（每次激活重播并重置缩放）；`m_tsTrans` 所在物体须同时挂 `CanvasGroup`；DOTween 使用 `SetTarget` / `DOKill` |
 | `LoopScrollList` | 横向/纵向循环列表；列表项缓存索引 |
@@ -612,7 +628,7 @@ HotUpdateUtils.ShowFloatText(...);
 
 ```csharp
 AudioManager.Instance.PlayBGM("bgm");
-AudioManager.Instance.PlaySFX("click");
+AudioManager.Instance.PlaySFX("score");
 AudioManager.Instance.PauseAudio("bgm");
 AudioManager.Instance.StopAudio("bgm");
 AudioManager.Instance.PauseAudio(); // 空名或省略参数：暂停全部
@@ -628,6 +644,8 @@ AudioManager.Instance.SetMute(false); // 音量设置经 SdkManager 本地存储
 ```text
 Audios_{name}
 ```
+
+音频文件按 `Audios/Bgm` 与 `Audios/Sfx` 子目录分放。`VastStarryRiver/资源处理/设置音频资源` 菜单按子目录批量设置导入参数：Bgm 用 CompressedInMemory，Sfx 用 DecompressOnLoad 且强制单声道。地址仍按文件名生成为 `Audios_{name}`，与子目录无关。
 
 BGM 为单通道循环（子物体 `BGM`）；SFX 按名各自维护独立 `AudioSource`，同名打断重播；音量/静音经 `SdkManager` 本地存储持久化；BGM 加载中切歌会排队到加载完成后播放。
 
@@ -732,7 +750,7 @@ int, float, string,
 - 纯数值改动只需导表 + 构建 AssetBundle；表结构变更才需重导 HybridCLR DLL；改底座需重发基础包；
 - 不应手工修改生成文件。
 
-当前生成表：
+生成表：
 
 - `Config_Player`
 - `Config_RoleRune`
@@ -756,7 +774,7 @@ int, float, string,
 
 ## 14. 工具类
 
-`Utils` 为工具类，成员均为静态。
+`Utils` 为普通类，成员均为静态。
 
 主要能力：
 
@@ -809,9 +827,9 @@ int, float, string,
 
 云函数部署：
 
-1. 在 `CloudHelper.Secrets` 填入当前游戏的 `GameId` 与平台 AppID/AppSecret；`CloudManager.CloudSaveGameId` 必须与其一致；
+1. 在 `CloudHelper.Secrets` 填入本游戏的 `GameId` 与平台 AppID/AppSecret；`CloudManager.CloudSaveGameId` 必须与其一致；
 2. 菜单 `UOS/Func Stateless/Open Panel` 上传；
 3. 切换为远程调用模式；
-4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户，注意控制台时区）。
+4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户；控制台 cron 时区已确认为 UTC+8（北京时间），每天凌晨 5 点触发）。
 
 微信/抖音 MP 后台白名单：`https://a.unity.cn`、`https://a.unity3dcloud.cn`、`https://a2.unity3dcloud.cn`、`https://a3.unity3dcloud.cn`（CDN 资源）；`https://save.unity.cn`、`https://uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com`、`https://stateless.unity.cn`、`https://p.unity.cn`。

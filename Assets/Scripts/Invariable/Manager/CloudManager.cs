@@ -1,10 +1,10 @@
 using CloudService;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Unity.UOS.Auth;
 using Unity.UOS.CloudSave;
 using Unity.UOS.CloudSave.Exception;
@@ -64,14 +64,14 @@ namespace Invariable
 #if UNITY_EDITOR
             callBack?.Invoke();
 #else
-            _ = InitCloudDataAsync(callBack);
+            InitCloudDataAsync(callBack).Forget();
 #endif
         }
 
         /// <summary>
         /// 异步初始化云存档并登录平台
         /// </summary>
-        private async Task InitCloudDataAsync(Action callBack)
+        private async UniTask InitCloudDataAsync(Action callBack)
         {
             try
             {
@@ -122,16 +122,16 @@ namespace Invariable
 #if UNITY_EDITOR
             callBack?.Invoke(new List<PlayerCloudData>());
 #else
-            _ = GetRankListAsync(rankKey, rankType, callBack);
+            GetRankListAsync(rankKey, rankType, callBack).Forget();
 #endif
         }
 
         /// <summary>
         /// 异步按排名字段拉取指定类型排行榜
         /// </summary>
-        private async Task GetRankListAsync(string rankKey, string rankType, Action<List<PlayerCloudData>> callBack)
+        private async UniTask GetRankListAsync(string rankKey, string rankType, Action<List<PlayerCloudData>> callBack)
         {
-            var result = new List<PlayerCloudData>();
+            List<PlayerCloudData> result = new List<PlayerCloudData>();
 
             try
             {
@@ -199,14 +199,14 @@ namespace Invariable
 #if UNITY_EDITOR
             callBack?.Invoke(true);
 #else
-            _ = ReportRankScoreAsync(rankKey, score, callBack);
+            ReportRankScoreAsync(rankKey, score, callBack).Forget();
 #endif
         }
 
         /// <summary>
         /// 异步上报排行分数，云函数同时维护世界榜与日榜
         /// </summary>
-        private async Task ReportRankScoreAsync(string rankKey, double score, Action<bool> callBack)
+        private async UniTask ReportRankScoreAsync(string rankKey, double score, Action<bool> callBack)
         {
             string platform = null;
 
@@ -242,7 +242,7 @@ namespace Invariable
         /// <summary>
         /// 上传本地云缓存到远程存档
         /// </summary>
-        private async Task UploadCloudData()
+        private async UniTask UploadCloudData()
         {
             await CloudUploadLock.WaitAsync();
 
@@ -290,7 +290,7 @@ namespace Invariable
         /// <summary>
         /// 将本地云缓存序列化并写入远程存档
         /// </summary>
-        private async Task SaveCloudDataInternal()
+        private async UniTask SaveCloudDataInternal()
         {
             string saveName = "玩家数据";
 
@@ -339,7 +339,7 @@ namespace Invariable
         /// <summary>
         /// 平台登录并换取云存档令牌后写入 AuthTokenManager
         /// </summary>
-        private async Task<bool> LoginAndSaveToken()
+        private async UniTask<bool> LoginAndSaveToken()
         {
             string code = await SdkManager.Instance.PlatformLogin();
 
@@ -382,7 +382,7 @@ namespace Invariable
         /// <summary>
         /// 令牌有效则直接返回，临期或过期则重新登录签新令牌
         /// </summary>
-        private async Task<bool> EnsureTokenValid()
+        private async UniTask<bool> EnsureTokenValid()
         {
             TimeSpan remain = m_tokenExpiresAt - DateTime.UtcNow;
 
@@ -502,7 +502,7 @@ namespace Invariable
                 GameManager.Instance.CancelInvokeByKey(InvariableConst.Timer_CloudManager_UploadDebounce);
             }
 
-            _ = FlushCloudDataAsync();
+            FlushCloudDataAsync().Forget();
         }
 
         /// <summary>
@@ -512,7 +512,7 @@ namespace Invariable
         {
             if (!GameManager.HasInstance)
             {
-                _ = FlushCloudDataAsync();
+                FlushCloudDataAsync().Forget();
 
                 return;
             }
@@ -520,14 +520,14 @@ namespace Invariable
             GameManager.Instance.CancelInvokeByKey(InvariableConst.Timer_CloudManager_UploadDebounce);
             GameManager.Instance.DelayCallSeconds(InvariableConst.Timer_CloudManager_UploadDebounce, () =>
             {
-                _ = FlushCloudDataAsync();
+                FlushCloudDataAsync().Forget();
             }, UploadDebounceSeconds);
         }
 
         /// <summary>
         /// 异步上传脏数据；上传期间再次写入会重新标记 dirty
         /// </summary>
-        private async Task FlushCloudDataAsync()
+        private async UniTask FlushCloudDataAsync()
         {
             if (!m_cloudDataDirty || m_cloudDataCache == null)
             {

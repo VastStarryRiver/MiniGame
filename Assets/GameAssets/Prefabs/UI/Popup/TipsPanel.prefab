@@ -157,6 +157,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_isNotChangeScale: 0
   m_changeScale: 1.1
+  m_clickEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_doubleClickEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_downEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_upEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_longPressEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &3804237545994513096
 GameObject:
   m_ObjectHideFlags: 0
@@ -271,7 +286,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.52632725, g: 0.899371, b: 0.2799928, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -347,7 +362,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -547,7 +562,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -683,7 +698,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -819,7 +834,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1026,7 +1041,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.8039216, g: 0.35365567, b: 0.2117647, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1210,3 +1225,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_isNotChangeScale: 0
   m_changeScale: 1.1
+  m_clickEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_doubleClickEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_downEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_upEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_longPressEvent:
+    m_PersistentCalls:
+      m_Calls: []

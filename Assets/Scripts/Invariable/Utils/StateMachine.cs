@@ -11,6 +11,8 @@ namespace Invariable
         private Dictionary<string, IStateNode> m_nodes = new Dictionary<string, IStateNode>();
         private IStateNode m_curNode = null;
         private IStateNode m_preNode = null;
+        private string m_curNodeName = "";
+        private string m_preNodeName = "";
 
         /// <summary>
         /// 状态机持有者
@@ -28,7 +30,7 @@ namespace Invariable
         {
             get
             {
-                return m_curNode != null ? m_curNode.GetType().FullName : "";
+                return m_curNodeName;
             }
         }
 
@@ -39,7 +41,7 @@ namespace Invariable
         {
             get
             {
-                return m_preNode != null ? m_preNode.GetType().FullName : "";
+                return m_preNodeName;
             }
         }
 
@@ -92,7 +94,6 @@ namespace Invariable
         public void Play(string entryNode)
         {
             m_curNode = TryGetNode(entryNode);
-            m_preNode = m_curNode;
 
             if (m_curNode == null)
             {
@@ -101,6 +102,9 @@ namespace Invariable
                 return;
             }
 
+            m_preNode = m_curNode;
+            m_curNodeName = entryNode;
+            m_preNodeName = entryNode;
             m_curNode.OnEnter();
         }
 
@@ -177,6 +181,7 @@ namespace Invariable
             }
 
             m_preNode = m_curNode;
+            m_preNodeName = m_curNodeName;
 
             if (m_curNode != null)
             {
@@ -184,6 +189,7 @@ namespace Invariable
             }
 
             m_curNode = node;
+            m_curNodeName = nodeName;
             m_curNode.OnEnter();
         }
 

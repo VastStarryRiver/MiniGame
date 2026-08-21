@@ -15,6 +15,7 @@ namespace HotUpdate
 
         private List<string> m_content = null;
         private List<RectTransform> m_items = null;
+        private List<string> m_timerKeys = null;
         private Dictionary<RectTransform, TextMeshProUGUI> m_textCache = null;
         private int m_index1;
         private int m_index2;
@@ -25,7 +26,9 @@ namespace HotUpdate
         {
             m_content = new List<string>();
             m_items = new List<RectTransform>();
+            m_timerKeys = new List<string>();
             m_textCache = new Dictionary<RectTransform, TextMeshProUGUI>();
+            EnsureTimerKeys(8);
         }
 
         private void OnEnable()
@@ -49,15 +52,19 @@ namespace HotUpdate
                     }
 
                     m_items[i].DOKill();
-                    m_items[i].gameObject.SetActive(false);
+                    PoolUtils.ReleaseGameObject(HotUpdateConst.Pool_FloatTextItem, m_items[i].gameObject);
                 }
+
+                m_items.Clear();
             }
 
             if (GameManager.HasInstance)
             {
+                EnsureTimerKeys(m_index2 - 1);
+
                 for (int i = 1; i < m_index2; i++)
                 {
-                    GameManager.Instance.CancelInvokeByKey($"{HotUpdateConst.Timer_FloatTextPanel_Prefix}{i}");
+                    GameManager.Instance.CancelInvokeByKey(GetTimerKey(i));
                 }
             }
         }
@@ -74,15 +81,22 @@ namespace HotUpdate
             m_content.Add(content);
 
             RectTransform trans = GetItem();
+
+            if (trans == null)
+            {
+                return;
+            }
+
             GetItemText(trans).text = content;
             trans.gameObject.SetActive(true);
             LayoutRebuilder.ForceRebuildLayoutImmediate(trans);
             trans.anchoredPosition = new Vector2(0, 200);
             trans.DOAnchorPos(new Vector2(0, 300), 0.5f).SetTarget(trans).OnComplete(() =>
             {
-                GameManager.Instance.DelayCallSeconds($"{HotUpdateConst.Timer_FloatTextPanel_Prefix}{m_index2}", () =>
+                string timerKey = GetTimerKey(m_index2);
+                GameManager.Instance.DelayCallSeconds(timerKey, () =>
                 {
-                    trans.gameObject.SetActive(false);
+                    RecycleItem(trans);
 
                     m_index1++;
 
@@ -97,22 +111,40 @@ namespace HotUpdate
         }
 
         /// <summary>
-        /// 获取可复用的浮动文本条目
+        /// 从对象池取出浮动文本条目
         /// </summary>
         private RectTransform GetItem()
         {
-            for (int i = 0; i < m_items.Count; i++)
+            GameObject go = PoolUtils.GetGameObject(HotUpdateConst.Pool_FloatTextItem, m_objItem, transform);
+
+            if (go == null)
             {
-                if (!m_items[i].gameObject.activeSelf)
-                {
-                    return m_items[i];
-                }
+                return null;
             }
 
-            RectTransform trans = GameObject.Instantiate(m_objItem, Vector3.zero, Quaternion.identity, transform).GetComponent<RectTransform>();
-            m_items.Add(trans);
+            RectTransform trans = go.transform as RectTransform;
+
+            if (!m_items.Contains(trans))
+            {
+                m_items.Add(trans);
+            }
 
             return trans;
+        }
+
+        /// <summary>
+        /// 归还浮动文本条目到对象池
+        /// </summary>
+        private void RecycleItem(RectTransform trans)
+        {
+            if (trans == null)
+            {
+                return;
+            }
+
+            trans.DOKill();
+            m_items.Remove(trans);
+            PoolUtils.ReleaseGameObject(HotUpdateConst.Pool_FloatTextItem, trans.gameObject);
         }
 
         /// <summary>
@@ -130,6 +162,29 @@ namespace HotUpdate
             m_textCache[trans] = text;
 
             return text;
+        }
+
+        /// <summary>
+        /// 预生成飘字计时器 key，避免运行时插值分配
+        /// </summary>
+        private void EnsureTimerKeys(int maxIndex)
+        {
+            m_timerKeys ??= new List<string>();
+
+            while (m_timerKeys.Count < maxIndex)
+            {
+                m_timerKeys.Add(HotUpdateConst.Timer_FloatTextPanel_Prefix + (m_timerKeys.Count + 1));
+            }
+        }
+
+        /// <summary>
+        /// 按序号取预生成的计时器 key
+        /// </summary>
+        private string GetTimerKey(int index)
+        {
+            EnsureTimerKeys(index);
+
+            return m_timerKeys[index - 1];
         }
     }
 }

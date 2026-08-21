@@ -50,7 +50,7 @@ Editor 代码不能被运行时程序集引用。
 
 ## 2. 命名和结构约定
 
-当前代码约定：
+代码约定：
 
 | 内容 | 约定 |
 |---|---|
@@ -67,7 +67,7 @@ Editor 代码不能被运行时程序集引用。
 | 图集地址 | `Atlas_{图集名}` |
 | DLL 地址 | `MiniGame_{DLL文件名}` |
 | UI 挂载节点 | `UI_Root/Canvas_{layer}/Ts_Panel` |
-| 事件名 | 当前为字符串，建议使用 `模块_动作` |
+| 事件名 | 字符串，建议使用 `模块_动作` |
 | 计时器 key | 必须全局唯一，建议 `类名_对象ID_用途` |
 
 新增类时建议保持：
@@ -279,7 +279,7 @@ private RectTransform CreateItem()
   - 生命周期/Unity 事件接口组 → 业务方法组；
   - 入口方法组（菜单函数/`[ContextMenu]` 等）→ 私有辅助方法组；
 - 多行方法体的 `return` 前空 **1 行**；方法体内逻辑块之间允许 1 空行，不出现连续空行；
-- **文件末尾不保留空行**：以最后一个 `}` 结束，不写末尾换行符；生成文件由 `CodeGenerator` 输出，以换行符结尾，属生成器例外。
+- **文件末尾不保留空行**：以最后一个 `}` 结束，不写末尾换行符；生成文件同样以 `}` 结束、无尾部换行。
 
 ### 3.7 缩进、花括号与空格
 
@@ -335,7 +335,7 @@ GameManager.Instance.InvokeEventCallBack<object>(InvariableConst.Event_Launcher_
 - 对外部输入、资源加载结果和可能为空的对象进行必要校验；
 - 注册的事件、计时器和 SDK 回调应在对应生命周期中解除；按钮监听：Inspector UnityEvent 持久化绑定和代码 `AddClickListener` 等等五个注册的监听都会在GameObject销毁的时候自动失效所以无需代码清理。
 
-`MainPanel` 的生命周期组织方式是推荐写法（生命周期只组织调用）。当前 MainPanel 按钮监听走 Prefab 上 `UIButton` 的 UnityEvent 字段绑定；代码 `AddClickListener` 方式仍合法（见 §5.1 模板）：
+`MainPanel` 的生命周期组织方式是推荐写法（生命周期只组织调用）。MainPanel 按钮监听走 Prefab 上 `UIButton` 的 UnityEvent 字段绑定；代码 `AddClickListener` 方式仍合法（见 §5.1 模板）：
 
 ```csharp
 private void OnEnable()
@@ -424,7 +424,7 @@ m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetEase(Ease.InSine).OnComplete(() =>
 - [ ] 方法参数列表保持一行，不换行；
 - [ ] `if`/`for`/`switch` 等一律花括号；`return` 前空行；`//` 前后空格；
 - [ ] Lambda 参数带括号且花括号换行；空字符串 `""`；`public static readonly` 顺序；
-- [ ] 同组同级别方法之间 1 空行，3 空行仅用于大组边界；文件末尾无空行（不以换行符结束；生成文件例外）；
+- [ ] 同组同级别方法之间 1 空行，3 空行仅用于大组边界；文件末尾无空行（不以换行符结束）；
 - [ ] 固定组件引用均为 `public` 并已拖拽赋值（预制体脚本）；
 - [ ] 生命周期按执行序；预制体脚本 public 绑定字段在前；
 - [ ] 事件、计时器和 SDK 回调已对称清理；按钮监听：Inspector UnityEvent 持久化绑定和代码 `AddClickListener` 等等五个注册的监听都会在GameObject销毁的时候自动失效所以无需代码清理；
@@ -659,7 +659,7 @@ GameManager.Instance.InvokeEventCallBack<object>(HotUpdateConst.Event_ExampleFea
 
 ```text
 Assets/Scripts/Invariable/Utils/InvariableConst.cs   # 跨层契约（事件/计时器/UI 路径/AOT 列表/广告与分享/音频本地 key 等）
-Assets/Scripts/HotUpdate/Utils/HotUpdateConst.cs     # HotUpdate 业务 key（业务计时器前缀等）
+Assets/Scripts/HotUpdate/Utils/HotUpdateConst.cs     # HotUpdate 业务 key（业务计时器前缀、对象池 key 等）
 ```
 
 禁止在调用处散落魔法字符串。
@@ -703,12 +703,12 @@ GameManager.Instance.RepeatingCallSeconds(
 GameManager.Instance.CancelInvokeByKey(HotUpdateConst.Timer_Battle_Countdown);
 ```
 
-### 8.3 必须注意的当前行为
+### 8.3 必须注意的行为
 
 - 相同 key 已存在时不会启动新计时；
 - 一次性延迟完成后会移除对应 key；
 - 页面禁用/销毁必须主动调用取消；
-- 延迟接口为 `async void`；循环计时由 `Update` 驱动最小堆；
+- 延迟与循环计时均由 `Update` 驱动秒/帧双最小堆；
 - `DelayCallSeconds` 与 `RepeatingCallSeconds` 均受 `Time.timeScale` 影响；
 - `CancelInvokeByKey` 仅当 key 存在时输出 `GameLog.Info(key + "取消调用")`，key 不存在直接返回；
 - 循环调用支持 `immediately`（默认 true）：注册后是否立即执行一次；
@@ -821,8 +821,11 @@ AudioManager.Instance.PauseAudio(); // 空名或省略参数：暂停全部
 文件应位于：
 
 ```text
-Assets/GameAssets/Audios/bgm.*
+Assets/GameAssets/Audios/Bgm/bgm.*   # 背景音乐
+Assets/GameAssets/Audios/Sfx/xxx.*   # 音效
 ```
+
+子目录是导入设置依据（`VastStarryRiver/资源处理/设置音频资源`：Bgm 用 CompressedInMemory，Sfx 用 DecompressOnLoad 且强制单声道）；地址仍按文件名生成为 `Audios_{name}`，与子目录无关。
 
 地址由代码生成：
 
@@ -1055,7 +1058,7 @@ public void DoPlatformAction(Action<bool> callBack)
 6. 确保异步回调不会在状态退出后错误切换；
 7. 确保加载面板事件仍在 Launcher 销毁前有效。
 
-状态机不会自动调用 `Update()`；当前启动节点都以协程/回调驱动，因此没有依赖 `OnUpdate()`。若新节点需要每帧更新，还必须让宿主持有状态机并在 Unity `Update` 中调用它。
+状态机不会自动调用 `Update()`；启动节点都以协程/回调驱动，因此没有依赖 `OnUpdate()`。若新节点需要每帧更新，还必须让宿主持有状态机并在 Unity `Update` 中调用它。
 
 ## 15. Prefab 和脚本绑定注意事项
 
@@ -1104,3 +1107,46 @@ public void DoPlatformAction(Action<bool> callBack)
 - [ ] SDK 初始化完成后才调用；
 - [ ] 成功、失败、关闭、取消均会回调（含用户信息授权）；
 - [ ] 真机生命周期切后台/回前台已验证。
+
+## 17. 使用对象池
+
+实现：`PoolUtils`（`Assets/Scripts/Invariable/Utils/PoolUtils.cs`），`public static class`。
+
+类型池：
+
+```csharp
+List<Delegate> snapshot = PoolUtils.Get<List<Delegate>>();
+// 使用 snapshot
+PoolUtils.Release(snapshot);
+```
+
+- 上限 `DefaultMaxSize` = 128
+- 池空时 `new T()`
+- `IList` 归还时自动 `Clear`
+
+GameObject 池：
+
+```csharp
+GameObject go = PoolUtils.GetGameObject(
+    HotUpdateConst.Pool_FloatTextItem,
+    m_objItem,
+    transform
+);
+// 使用 go
+PoolUtils.ReleaseGameObject(HotUpdateConst.Pool_FloatTextItem, go);
+```
+
+- 按 key 隔离，单 key 上限 `DefaultGameObjectMaxSize` = 32
+- 池空时按预制体实例化；取出时激活并挂到 parent，归还时隐藏
+- 超出上限则销毁
+
+池 key 必须先在 `HotUpdateConst` 的 `#region 对象池` 定义为常量后再引用，禁止在调用处散落字面量：
+
+```csharp
+// HotUpdateConst.cs
+#region 对象池
+public const string Pool_FloatTextItem = "FloatTextItem";
+#endregion
+```
+
+现有示例：`FloatTextPanel`。
