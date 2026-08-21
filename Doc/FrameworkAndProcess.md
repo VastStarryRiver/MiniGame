@@ -175,8 +175,9 @@ UI_Root/
 1. 设置 `Application.targetFrameRate = 60` 与 `Screen.sleepTimeout = NeverSleep`；
 2. 编辑器使用 `EPlayMode.EditorSimulateMode`；
 3. 非编辑器使用 `EPlayMode.WebPlayMode`；
-4. 创建常驻 `GameManager`；
-5. 创建常驻 `AudioManager`，并附加 `AudioListener`。
+4. `InitPoolParent`：查找或创建名为 `PoolParent` 的常驻节点（`InvariableConst.PoolParentName`），`DontDestroyOnLoad` 后调用 `PoolUtils.SetPoolParent` 注入为对象池根节点；
+5. 创建常驻 `GameManager`；
+6. 创建常驻 `AudioManager`，并附加 `AudioListener`。
 
 Manager 创建依赖：
 
@@ -440,6 +441,13 @@ Assets/AssetBundleCollectorSetting.asset
 - 首次异步加载并缓存句柄，成功后刷新访问时间；
 - 失败写 `GameLog.Error`，并对全部等待回调传入 `null`。
 
+`AsyncLoadScene`：
+
+- `Additive` 模式直接加载目标场景；
+- `Single` 模式先逐个卸载其他已缓存场景，再加载目标场景；加载完成后调用 `PoolUtils.ClearAllGameObjectPools()` 清空 GameObject 池；
+- 缓存句柄对应场景已卸载时释放旧句柄并重新加载；
+- 加载失败释放句柄并回调 `default`。
+
 闲置逐出（与配置表 `ConfigFormat` 节奏对齐）：
 
 - 闲置阈值 `180s`，清扫周期 `30s`（计时器 key `InvariableConst.Timer_YooAsset_TickEvict`）；
@@ -452,7 +460,7 @@ Assets/AssetBundleCollectorSetting.asset
 - `ReleaseAsset(address)`：按地址释放句柄，并清理对应图集 Sprite 缓存；
 - `UnLoadAsset()`：释放已缓存的全部普通资源，并清空 Sprite 缓存；
 - `UnloadUnusedAssets(callBack)`：调用 YooAsset 卸载未使用资源；
-- `UnLoadScene(address)`：仅释放对应场景句柄，不连带释放普通资源。
+- `UnLoadScene(address, callBack = null)`：仅释放对应场景句柄，不连带释放普通资源；回调可选，成功失败均触发。
 
 ## 7. 全局管理器
 
@@ -486,8 +494,10 @@ Singleton<T> where T : new()
 
 `PoolUtils`（`Assets/Scripts/Invariable/Utils/PoolUtils.cs`）为 `public static class`，提供类型池与 GameObject 池，不继承 `Singleton<T>`。
 
-- 类型池：`Get<T>()` / `Release<T>(item)`，上限 `DefaultMaxSize` = 128；`IList` 归还时自动 `Clear`
-- GameObject 池：`GetGameObject(key, prefab, parent)` / `ReleaseGameObject(key, instance)`，按 key 隔离，单 key 上限 `DefaultGameObjectMaxSize` = 32，超出上限则销毁；取出时激活并挂到 parent，归还时隐藏
+- 类型池：`Get<T>()` / `Release<T>(item)` / `ClearPool<T>()`，每类型上限 `DefaultMaxSize` = 30；`IList` 归还时自动 `Clear`
+- GameObject 池：`GetGameObject(key, prefab, parent)` / `ReleaseGameObject(key, instance)`，按 key 隔离，默认单 key 上限 `DefaultGameObjectMaxSize` = 50；`SetGameObjectPoolMaxSize(key, maxSize)` 可按 key 自定义上限（≤0 回落默认）；超限销毁并输出 `GameLog.Info` 提示
+- 池根节点：`Launcher.Awake` 调用 `SetPoolParent` 注入 `PoolParent` 常驻节点，归还的 GameObject 统一挂入并隐藏；取出时激活并挂到指定 parent
+- 清池：`ClearGameObjectPool(key)` 销毁指定 key 全部实例、`ClearAllGameObjectPools()` 清空全部，均保留自定义上限；`Single` 模式场景加载完成后自动调用后者
 - 池 key 使用 `HotUpdateConst` `#region 对象池` 常量，禁止调用处散落字面量
 - 现有示例：`FloatTextPanel`（`HotUpdateConst.Pool_FloatTextItem`）
 

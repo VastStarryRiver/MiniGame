@@ -784,7 +784,7 @@ YooAssetManager.Instance.AsyncLoadScene(
 YooAssetManager.Instance.UnLoadScene("Scenes_Battle");
 ```
 
-注意：`UnLoadScene` 仅释放对应场景句柄，不连带释放普通资源。按地址释放资源使用 `ReleaseAsset`；批量卸载未使用资源使用 `UnloadUnusedAssets`。
+注意：`UnLoadScene` 仅释放对应场景句柄，不连带释放普通资源，支持可选回调（成功失败均触发）。`Single` 模式加载会先卸载其他已缓存场景，完成后调用 `PoolUtils.ClearAllGameObjectPools()` 清空全部 GameObject 池（池中对象随之销毁，业务需自行重建）。按地址释放资源使用 `ReleaseAsset`；批量卸载未使用资源使用 `UnloadUnusedAssets`。
 
 ### 9.5 资源加载检查清单
 
@@ -1120,9 +1120,10 @@ List<Delegate> snapshot = PoolUtils.Get<List<Delegate>>();
 PoolUtils.Release(snapshot);
 ```
 
-- 上限 `DefaultMaxSize` = 128
+- 上限 `DefaultMaxSize` = 30
 - 池空时 `new T()`
 - `IList` 归还时自动 `Clear`
+- `ClearPool<T>()` 清空指定类型池，下次取出时自动重建
 
 GameObject 池：
 
@@ -1136,9 +1137,13 @@ GameObject go = PoolUtils.GetGameObject(
 PoolUtils.ReleaseGameObject(HotUpdateConst.Pool_FloatTextItem, go);
 ```
 
-- 按 key 隔离，单 key 上限 `DefaultGameObjectMaxSize` = 32
-- 池空时按预制体实例化；取出时激活并挂到 parent，归还时隐藏
-- 超出上限则销毁
+- 按 key 隔离，默认单 key 上限 `DefaultGameObjectMaxSize` = 50
+- `SetGameObjectPoolMaxSize(key, maxSize)` 可按 key 自定义上限（≤0 回落默认）
+- 池空时按预制体实例化；取出时激活并挂到业务 parent
+- 归还统一挂入 `PoolParent`（`Launcher` 启动时调用 `SetPoolParent` 注入）并隐藏
+- 超出上限则销毁并输出 `GameLog.Info` 提示
+- `ClearGameObjectPool(key)` 销毁指定 key 全部实例；`ClearAllGameObjectPools()` 清空全部；均保留自定义上限
+- `Single` 模式场景加载完成后自动调用 `ClearAllGameObjectPools()`
 
 池 key 必须先在 `HotUpdateConst` 的 `#region 对象池` 定义为常量后再引用，禁止在调用处散落字面量：
 

@@ -28,7 +28,7 @@ namespace HotUpdate
             m_items = new List<RectTransform>();
             m_timerKeys = new List<string>();
             m_textCache = new Dictionary<RectTransform, TextMeshProUGUI>();
-            EnsureTimerKeys(8);
+            EnsureTimerKeys(10);
         }
 
         private void OnEnable()
@@ -58,14 +58,11 @@ namespace HotUpdate
                 m_items.Clear();
             }
 
-            if (GameManager.HasInstance)
-            {
-                EnsureTimerKeys(m_index2 - 1);
+            EnsureTimerKeys(m_index2 - 1);
 
-                for (int i = 1; i < m_index2; i++)
-                {
-                    GameManager.Instance.CancelInvokeByKey(GetTimerKey(i));
-                }
+            for (int i = 1; i < m_index2; i++)
+            {
+                GameManager.Instance.CancelInvokeByKey(GetTimerKey(i));
             }
         }
 
@@ -148,7 +145,7 @@ namespace HotUpdate
         }
 
         /// <summary>
-        /// 获取条目文本组件（字典缓存）
+        /// 获取条目文本组件
         /// </summary>
         private TextMeshProUGUI GetItemText(RectTransform trans)
         {

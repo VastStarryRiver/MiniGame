@@ -23,6 +23,8 @@ namespace Invariable
             m_playMode = EPlayMode.WebPlayMode;
 #endif
 
+            InitPoolParent();
+
             Utils.CreateManagerInstance("GameManager");
             Utils.CreateManagerInstance("AudioManager", new string[] { "AudioListener" });
         }
@@ -45,19 +47,9 @@ namespace Invariable
 
             stateMachine.SetBlackboardValue("EPlayMode", m_playMode);
 
-            InitStartGameObject(InvariableConst.UIRootPath);
+            SetDontDestroyOnLoad(InvariableConst.UIRootPath);
 
-            GameObject go = GameObject.Find(InvariableConst.HotUpdatePanelPath);
-
-            if (go == null)
-            {
-                Transform parent = GameObject.Find(InvariableConst.UIPanelPath_0).transform;
-                GameObject asset = Resources.Load<GameObject>("LocalAssets/HotUpdatePanel");
-                go = GameObject.Instantiate<GameObject>(asset, Vector3.zero, Quaternion.identity, parent);
-                go.name = "HotUpdatePanel";
-            }
-
-            m_hotUpdatePanel = go.GetComponent<GameLoadingPanel>();
+            ShowHotUpdatePanel();
 
             stateMachine.Play<InitializeYooAsset>();
         }
@@ -72,9 +64,43 @@ namespace Invariable
 
 
         /// <summary>
-        /// 将启动根节点设为跨场景常驻
+        /// 初始化对象池根节点
         /// </summary>
-        private void InitStartGameObject(string name)
+        private void InitPoolParent()
+        {
+            GameObject go = GameObject.Find(InvariableConst.PoolParentName);
+
+            if (go == null)
+            {
+                go = new GameObject(InvariableConst.PoolParentName);
+                SetDontDestroyOnLoad(InvariableConst.PoolParentName);
+            }
+
+            PoolUtils.SetPoolParent(go.transform);
+        }
+
+        /// <summary>
+        /// 展示热更新面板
+        /// </summary>
+        private void ShowHotUpdatePanel()
+        {
+            GameObject go = GameObject.Find(InvariableConst.HotUpdatePanelPath);
+
+            if (go == null)
+            {
+                Transform parent = GameObject.Find(InvariableConst.UIPanelPath_0).transform;
+                GameObject asset = Resources.Load<GameObject>("LocalAssets/HotUpdatePanel");
+                go = GameObject.Instantiate<GameObject>(asset, Vector3.zero, Quaternion.identity, parent);
+                go.name = "HotUpdatePanel";
+            }
+
+            m_hotUpdatePanel = go.GetComponent<GameLoadingPanel>();
+        }
+
+        /// <summary>
+        /// 设置跨场景常驻
+        /// </summary>
+        private void SetDontDestroyOnLoad(string name)
         {
             GameObject go = GameObject.Find(name);
 

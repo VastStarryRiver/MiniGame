@@ -9,11 +9,13 @@ namespace Invariable
 {
     public static class PoolUtils
     {
-        public const int DefaultMaxSize = 128;
-        public const int DefaultGameObjectMaxSize = 32;
+        public const int DefaultMaxSize = 30; // C#对象池对于每个class的上限，一种class可以有DefaultMaxSize个实例对象，List<int>和List<float>算两种class
+        public const int DefaultGameObjectMaxSize = 50; // GameObject对象池对于每个key的上限，一个key可以有DefaultGameObjectMaxSize个GameObject
 
         private static Dictionary<Type, object> m_typedPools = null;
         private static Dictionary<string, Stack<GameObject>> m_gameObjectPools = null;
+        private static Dictionary<string, int> m_gameObjectMaxSizes = null;
+        private static Transform m_poolParent = null;
 
         public class ObjectPool<T> where T : class, new()
         {
@@ -83,6 +85,19 @@ namespace Invariable
         }
 
         /// <summary>
+        /// 清空指定类型的对象池，下次取出时自动重建
+        /// </summary>
+        public static void ClearPool<T>() where T : class, new()
+        {
+            if (m_typedPools == null)
+            {
+                return;
+            }
+
+            m_typedPools.Remove(typeof(T));
+        }
+
+        /// <summary>
         /// 从 GameObject 池取出实例，池空时按预制体实例化
         /// </summary>
         public static GameObject GetGameObject(string key, GameObject prefab, Transform parent)
@@ -130,15 +145,90 @@ namespace Invariable
 
             Stack<GameObject> stack = GetGameObjectStack(key);
 
-            if (stack.Count >= DefaultGameObjectMaxSize)
+            if (stack.Count >= GetGameObjectMaxSize(key))
             {
+                GameLog.Info($"PoolUtils 池 [{key}] 超限销毁，可考虑 SetGameObjectPoolMaxSize 调大上限");
                 UnityEngine.Object.Destroy(instance);
 
                 return;
             }
 
+            if (m_poolParent != null)
+            {
+                instance.transform.SetParent(m_poolParent, false);
+            }
+
             instance.SetActive(false);
             stack.Push(instance);
+        }
+
+        /// <summary>
+        /// 设置指定 key 的 GameObject 池上限，小于等于 0 时回落默认上限
+        /// </summary>
+        public static void SetGameObjectPoolMaxSize(string key, int maxSize)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+
+            if (maxSize <= 0)
+            {
+                if (m_gameObjectMaxSizes != null)
+                {
+                    m_gameObjectMaxSizes.Remove(key);
+                }
+
+                return;
+            }
+
+            m_gameObjectMaxSizes ??= new Dictionary<string, int>();
+            m_gameObjectMaxSizes[key] = maxSize;
+        }
+
+        /// <summary>
+        /// 注入对象池根节点，归还时统一挂到该节点下
+        /// </summary>
+        public static void SetPoolParent(Transform parent)
+        {
+            m_poolParent = parent;
+        }
+
+        /// <summary>
+        /// 清空指定 key 的 GameObject 池并销毁实例，保留该 key 的自定义上限
+        /// </summary>
+        public static void ClearGameObjectPool(string key)
+        {
+            if (string.IsNullOrEmpty(key) || m_gameObjectPools == null)
+            {
+                return;
+            }
+
+            if (!m_gameObjectPools.TryGetValue(key, out Stack<GameObject> stack))
+            {
+                return;
+            }
+
+            DestroyStackItems(stack);
+            m_gameObjectPools.Remove(key);
+        }
+
+        /// <summary>
+        /// 清空全部 GameObject 池并销毁实例，保留各 key 的自定义上限
+        /// </summary>
+        public static void ClearAllGameObjectPools()
+        {
+            if (m_gameObjectPools == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, Stack<GameObject>> pair in m_gameObjectPools)
+            {
+                DestroyStackItems(pair.Value);
+            }
+
+            m_gameObjectPools.Clear();
         }
 
         /// <summary>
@@ -187,6 +277,35 @@ namespace Invariable
             }
 
             return stack;
+        }
+
+        /// <summary>
+        /// 获取指定 key 的 GameObject 池上限，未自定义时回落默认值
+        /// </summary>
+        private static int GetGameObjectMaxSize(string key)
+        {
+            if (m_gameObjectMaxSizes != null && m_gameObjectMaxSizes.TryGetValue(key, out int maxSize))
+            {
+                return maxSize;
+            }
+
+            return DefaultGameObjectMaxSize;
+        }
+
+        /// <summary>
+        /// 销毁堆栈内全部 GameObject 实例
+        /// </summary>
+        private static void DestroyStackItems(Stack<GameObject> stack)
+        {
+            while (stack.Count > 0)
+            {
+                GameObject item = stack.Pop();
+
+                if (item != null)
+                {
+                    UnityEngine.Object.Destroy(item);
+                }
+            }
         }
     }
 }

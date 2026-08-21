@@ -198,7 +198,7 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 异步加载场景
+        /// 异步加载场景，Single 模式先卸载其他场景并在完成后清空 GameObject 池
         /// </summary>
         /// <param name="address">场景地址</param>
         /// <param name="loadSceneMode">场景加载模式</param>
@@ -207,27 +207,91 @@ namespace Invariable
         {
             m_sceneHandles ??= new Dictionary<string, SceneHandle>();
 
-            if (m_sceneHandles.ContainsKey(address))
+            bool isSingle = loadSceneMode == LoadSceneMode.Single;
+
+            Action loadScene = () =>
             {
-                SceneHandle handle = m_sceneHandles[address];
-                callBack(handle.SceneObject);
-            }
-            else
-            {
+                if (m_sceneHandles.TryGetValue(address, out SceneHandle cachedHandle))
+                {
+                    Scene scene = cachedHandle.SceneObject;
+
+                    if (scene.isLoaded)
+                    {
+                        if (isSingle)
+                        {
+                            PoolUtils.ClearAllGameObjectPools();
+                        }
+
+                        callBack?.Invoke(scene);
+
+                        return;
+                    }
+
+                    cachedHandle.Release();
+                    m_sceneHandles.Remove(address);
+                }
+
                 SceneHandle handle = Package.LoadSceneAsync(address, loadSceneMode);
 
                 handle.Completed += (operation) =>
                 {
-                    if (operation.Status == EOperationStatus.Succeed)
-                    {
-                        m_sceneHandles[address] = operation;
-                        callBack(operation.SceneObject);
-                    }
-                    else
+                    if (operation.Status != EOperationStatus.Succeed)
                     {
                         GameLog.Error($"异步加载场景失败！address:{address}");
+                        operation.Release();
+                        callBack?.Invoke(default);
+
+                        return;
                     }
+
+                    m_sceneHandles[address] = operation;
+
+                    if (isSingle)
+                    {
+                        PoolUtils.ClearAllGameObjectPools();
+                    }
+
+                    callBack?.Invoke(operation.SceneObject);
                 };
+            };
+
+            if (!isSingle)
+            {
+                loadScene();
+
+                return;
+            }
+
+            List<string> otherAddresses = new List<string>();
+
+            foreach (KeyValuePair<string, SceneHandle> item in m_sceneHandles)
+            {
+                if (item.Key != address)
+                {
+                    otherAddresses.Add(item.Key);
+                }
+            }
+
+            if (otherAddresses.Count <= 0)
+            {
+                loadScene();
+
+                return;
+            }
+
+            int pendingUnloadCount = otherAddresses.Count;
+
+            for (int i = 0; i < otherAddresses.Count; i++)
+            {
+                UnLoadScene(otherAddresses[i], () =>
+                {
+                    pendingUnloadCount--;
+
+                    if (pendingUnloadCount <= 0)
+                    {
+                        loadScene();
+                    }
+                });
             }
         }
 
@@ -286,33 +350,51 @@ namespace Invariable
         /// 卸载场景（仅释放场景句柄，不连带释放全部资源）
         /// </summary>
         /// <param name="address">场景地址</param>
-        public void UnLoadScene(string address)
+        /// <param name="callBack">卸载完成回调，成功失败均触发</param>
+        public void UnLoadScene(string address, Action callBack = null)
         {
             if (m_sceneHandles == null || m_sceneHandles.Count <= 0 || !m_sceneHandles.ContainsKey(address))
             {
+                callBack?.Invoke();
+
                 return;
             }
 
-            AsyncOperation handle1 = SceneManager.UnloadSceneAsync(m_sceneHandles[address].SceneObject);
+            SceneHandle sceneHandle = m_sceneHandles[address];
+            Action finishUnload = () =>
+            {
+                sceneHandle.Release();
+                m_sceneHandles.Remove(address);
+                callBack?.Invoke();
+            };
+            AsyncOperation handle1 = SceneManager.UnloadSceneAsync(sceneHandle.SceneObject);
+
+            if (handle1 == null)
+            {
+                UnloadSceneOperation handle2 = sceneHandle.UnloadAsync();
+
+                handle2.Completed += (_) =>
+                {
+                    finishUnload();
+                };
+
+                return;
+            }
 
             handle1.completed += (operation) =>
             {
                 if (!operation.isDone)
                 {
+                    finishUnload();
+
                     return;
                 }
 
-                UnloadSceneOperation handle2 = m_sceneHandles[address].UnloadAsync();
+                UnloadSceneOperation handle2 = sceneHandle.UnloadAsync();
 
-                handle2.Completed += (unloadOperation) =>
+                handle2.Completed += (_) =>
                 {
-                    if (unloadOperation.Status != EOperationStatus.Succeed)
-                    {
-                        return;
-                    }
-
-                    m_sceneHandles[address].Release();
-                    m_sceneHandles.Remove(address);
+                    finishUnload();
                 };
             };
         }

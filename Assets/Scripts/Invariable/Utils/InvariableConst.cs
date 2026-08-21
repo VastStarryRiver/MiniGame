@@ -36,6 +36,7 @@ namespace Invariable
         public const string UIPanelPath_2 = "UI_Root/Canvas_2/Ts_Panel";
         public const string UIPanelPath_3 = "UI_Root/Canvas_3/Ts_Panel";
         public const string HotUpdatePanelPath = "UI_Root/Canvas_0/Ts_Panel/HotUpdatePanel";
+        public const string PoolParentName = "PoolParent";
         #endregion
 
         #region 游戏配置
