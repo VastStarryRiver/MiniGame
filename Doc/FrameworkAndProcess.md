@@ -16,6 +16,7 @@
 | JSON | Newtonsoft.Json | 云存档序列化等 | NuGetForUnity；亦为 AOT 元数据 DLL 之一 |
 | 其他 | Spine、UIParticle、UOS CDN | 动画、UI 粒子和 CDN | UPM |
 | UOS 服务 | UOS Launcher / CloudSave / Func Stateless | 云存档与云函数 | UPM；另有 `Assets/UOSLauncherEncrypt`（Launcher 自带加密模块，勿改） |
+| 开发环境 | Unity MCP + Cursor IDE 集成 | 编辑器 AI 操作与 MCP 自测 | UPM git 包，仅编辑器 |
 
 ## 2. 程序集架构
 
