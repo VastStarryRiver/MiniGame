@@ -32,7 +32,7 @@
 | 事件与计时 | 优 | 泛型事件总线触发快照（快照列表经 `PoolUtils` 池化复用）并逐 listener 隔离；秒/帧双最小堆计时器由 `Update` 驱动；事件 / 计时器 key 全常量化 | `GameManager`、`InvariableConst` / `HotUpdateConst` |
 | 配置表系统 | 优 | CFGT magic + schemaHash 三处同源；导表严格失败保证一致性；三层缓存与大表分帧物化；独立回读交叉验证 | `ConfigReader` / `ConfigManagerCore` / `ConfigValidator`、schemaHash |
 | UI 系统 | 优 | 打开页面单一入口且加载中去重；UIPanel / UIPopup 职责切分；FloatText 内部 item 对象池复用、播完自动隐藏与对称清理 | `Utils.OpenUIPrefabPanel`、`UIPanel` / `UIPopup`、`FloatTextPanel` |
-| 音频系统 | 优 | BGM 单通道串行化，SFX 每名一源；音量经平台层本地持久化，读写与平台解耦 | `AudioManager`、`SdkManager` |
+| 音频系统 | 优 | BGM 单通道循环，SFX 每 clip 一源打断重播；仅挂载播放；音量经平台层本地持久化 | `AudioManager`、`SdkManager` |
 | 资源与性能 | 优 | 同地址在途去重；闲置句柄 180s / 30s 扫描逐出并白名单兜底；配置分帧物化、字符串缓存、`PoolUtils` 对象池降峰值 | `YooAssetManager`、`ConfigManagerCore`、`TryUnloadUnusedAsset` |
 | 云服务 | 优 | 密钥走环境变量分层；写后 2s 防抖 + 串行上传 + dirty 重标记；世界榜/日榜快照增量维护 Top100，查看只读 3 次请求；命名空间服务端自拼 | `CloudHelper` / `CloudManager` / `SdkManager`、`ReportRankScore` / `GetRankList` |
 | 编辑器工具链 | 优 | Excel→bytes→生成代码→运行时校验→独立回读闭环；菜单 priority 编码流水线顺序；生成代码 UTF-8 无 BOM + LF + 防注入 | `ConfigImporter` / `CodeGenerator` / `DllTool` / `AssetBundleTool` |
@@ -91,10 +91,11 @@ Assets/
 │  ├─ AssetBundle/         # YooAsset Bundle 构建
 │  ├─ CustomBuild/         # 微信/抖音打包与 CDN 复制
 │  ├─ AssetImporter/       # .bin 导入为 BinAsset
-│  ├─ AssetProcess/        # 音频/图集导入设置（VastStarryRiver/资源处理 菜单）
-│  └─ AtlasBuilder/        # 通用纹理打包（多图合 Multiple Sprite PNG，ContextMenu BuildAtlas，输出在 Editor 目录）
-├─ ToolPackage/            # 本地第三方源码
-│  ├─ DOTween/
+│  ├─ AssetProcess/        # 音频/图片/图集导入设置（VastStarryRiver/资源处理 菜单）
+│  ├─ AtlasBuilder/        # 通用纹理打包（多图合 Multiple Sprite PNG，ContextMenu BuildAtlas，输出在 Editor 目录）
+│  └─ UIButtonEditor.cs    # UIButton 自定义 Inspector
+├─ ToolPackage/            # 本地第三方库
+│  ├─ DOTween/             # 预编译 DLL + Modules 源码
 │  ├─ TextMesh Pro/
 │  ├─ UniTask/
 │  └─ YooAsset/            # 微信/抖音 YooAsset 自定义文件系统

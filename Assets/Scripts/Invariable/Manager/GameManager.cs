@@ -16,7 +16,7 @@ namespace Invariable
         private List<TimerNode> m_frameHeap = null;
 
         /// <summary>
-        /// 实例是否存在（判空检查用，不触发错误日志）
+        /// 实例是否存在
         /// </summary>
         public static bool HasInstance
         {
@@ -97,8 +97,8 @@ namespace Invariable
                 }
             }
 
-            m_secondHeap?.Clear();
-            m_frameHeap?.Clear();
+            ReleaseHeapNodes(m_secondHeap);
+            ReleaseHeapNodes(m_frameHeap);
 
             if (m_instance == this)
             {
@@ -194,16 +194,14 @@ namespace Invariable
                 frame = 0;
             }
 
-            TimerNode node = new TimerNode
-            {
-                Key = key,
-                CallBack = callBack,
-                IsRepeating = false,
-                IsFrameBased = true,
-                IntervalFrames = frame,
-                NextDueFrame = Time.frameCount + frame,
-                IsAlive = true,
-            };
+            TimerNode node = PoolUtils.Get<TimerNode>();
+            node.Key = key;
+            node.CallBack = callBack;
+            node.IsRepeating = false;
+            node.IsFrameBased = true;
+            node.IntervalFrames = frame;
+            node.NextDueFrame = Time.frameCount + frame;
+            node.IsAlive = true;
 
             m_timerMap.Add(key, node);
             HeapPushFrame(node);
@@ -224,16 +222,14 @@ namespace Invariable
                 time = 0f;
             }
 
-            TimerNode node = new TimerNode
-            {
-                Key = key,
-                CallBack = callBack,
-                IsRepeating = false,
-                IsFrameBased = false,
-                IntervalSeconds = time,
-                NextDueTime = Time.time + time,
-                IsAlive = true,
-            };
+            TimerNode node = PoolUtils.Get<TimerNode>();
+            node.Key = key;
+            node.CallBack = callBack;
+            node.IsRepeating = false;
+            node.IsFrameBased = false;
+            node.IntervalSeconds = time;
+            node.NextDueTime = Time.time + time;
+            node.IsAlive = true;
 
             m_timerMap.Add(key, node);
             HeapPushSecond(node);
@@ -255,15 +251,13 @@ namespace Invariable
                 frame = 1;
             }
 
-            TimerNode node = new TimerNode
-            {
-                Key = key,
-                CallBack = callBack,
-                IsRepeating = true,
-                IsFrameBased = true,
-                IntervalFrames = frame,
-                IsAlive = true,
-            };
+            TimerNode node = PoolUtils.Get<TimerNode>();
+            node.Key = key;
+            node.CallBack = callBack;
+            node.IsRepeating = true;
+            node.IsFrameBased = true;
+            node.IntervalFrames = frame;
+            node.IsAlive = true;
 
             if (immediately)
             {
@@ -271,6 +265,8 @@ namespace Invariable
 
                 if (!node.IsAlive)
                 {
+                    ReleaseTimerNode(node);
+
                     return;
                 }
             }
@@ -296,15 +292,13 @@ namespace Invariable
                 time = 0f;
             }
 
-            TimerNode node = new TimerNode
-            {
-                Key = key,
-                CallBack = callBack,
-                IsRepeating = true,
-                IsFrameBased = false,
-                IntervalSeconds = time,
-                IsAlive = true,
-            };
+            TimerNode node = PoolUtils.Get<TimerNode>();
+            node.Key = key;
+            node.CallBack = callBack;
+            node.IsRepeating = true;
+            node.IsFrameBased = false;
+            node.IntervalSeconds = time;
+            node.IsAlive = true;
 
             if (immediately)
             {
@@ -312,6 +306,8 @@ namespace Invariable
 
                 if (!node.IsAlive)
                 {
+                    ReleaseTimerNode(node);
+
                     return;
                 }
             }
@@ -356,6 +352,7 @@ namespace Invariable
                 if (!node.IsAlive)
                 {
                     HeapPopSecond();
+                    ReleaseTimerNode(node);
 
                     continue;
                 }
@@ -376,6 +373,8 @@ namespace Invariable
 
                 if (!node.IsAlive || !node.IsRepeating || !m_timerMap.ContainsKey(node.Key))
                 {
+                    ReleaseTimerNode(node);
+
                     continue;
                 }
 
@@ -398,6 +397,7 @@ namespace Invariable
                 if (!node.IsAlive)
                 {
                     HeapPopFrame();
+                    ReleaseTimerNode(node);
 
                     continue;
                 }
@@ -418,12 +418,54 @@ namespace Invariable
 
                 if (!node.IsAlive || !node.IsRepeating || !m_timerMap.ContainsKey(node.Key))
                 {
+                    ReleaseTimerNode(node);
+
                     continue;
                 }
 
                 node.NextDueFrame = Time.frameCount + node.IntervalFrames;
                 HeapPushFrame(node);
             }
+        }
+
+        /// <summary>
+        /// 清空计时节点字段后归还对象池
+        /// </summary>
+        private void ReleaseTimerNode(TimerNode node)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            node.Key = null;
+            node.CallBack = null;
+            node.IsRepeating = false;
+            node.IsFrameBased = false;
+            node.IntervalSeconds = 0f;
+            node.IntervalFrames = 0;
+            node.NextDueTime = 0f;
+            node.NextDueFrame = 0;
+            node.IsAlive = false;
+            PoolUtils.Release(node);
+        }
+
+        /// <summary>
+        /// 归还堆内全部计时节点并清空堆
+        /// </summary>
+        private void ReleaseHeapNodes(List<TimerNode> heap)
+        {
+            if (heap == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < heap.Count; i++)
+            {
+                ReleaseTimerNode(heap[i]);
+            }
+
+            heap.Clear();
         }
 
         /// <summary>

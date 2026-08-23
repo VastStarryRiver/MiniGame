@@ -92,7 +92,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_isNotChangeScale: 0
-  m_changeScale: 1.1
+  m_scaleType: 1
+  m_audioClip: {fileID: 0}
   m_clickEvent:
     m_PersistentCalls:
       m_Calls:
@@ -530,7 +531,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_isNotChangeScale: 0
-  m_changeScale: 1.1
+  m_scaleType: 1
+  m_audioClip: {fileID: 0}
   m_clickEvent:
     m_PersistentCalls:
       m_Calls:
@@ -749,6 +751,7 @@ MonoBehaviour:
   m_textTest: {fileID: 6924746067627747952}
   m_imgTest: {fileID: 3655807644413992499}
   m_btnAuth: {fileID: 558795878963470162}
+  m_audioBGM: {fileID: 8300000, guid: 10ec53dbd89fc6848ab9787ca0b0f087, type: 3}
 --- !u!1 &5663123384023888738
 GameObject:
   m_ObjectHideFlags: 0
@@ -840,7 +843,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_isNotChangeScale: 0
-  m_changeScale: 1.1
+  m_scaleType: 1
+  m_audioClip: {fileID: 0}
   m_clickEvent:
     m_PersistentCalls:
       m_Calls:
@@ -1231,7 +1235,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_isNotChangeScale: 0
-  m_changeScale: 1.1
+  m_scaleType: 1
+  m_audioClip: {fileID: 0}
   m_clickEvent:
     m_PersistentCalls:
       m_Calls:
@@ -1699,7 +1704,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_isNotChangeScale: 1
-  m_changeScale: 1.1
+  m_scaleType: 1
+  m_audioClip: {fileID: 0}
   m_clickEvent:
     m_PersistentCalls:
       m_Calls:

@@ -16,6 +16,7 @@ namespace HotUpdate
         public TextMeshProUGUI m_textTest;
         public Image m_imgTest;
         public UIButton m_btnAuth;
+        public AudioClip m_audioBGM;
 
         private bool m_hasReportedRank;
 
@@ -50,7 +51,7 @@ namespace HotUpdate
         /// </summary>
         private void PlayBGM()
         {
-            AudioManager.Instance.PlayBGM("bgm");
+            AudioManager.Instance.PlayBGM(m_audioBGM);
         }
 
         /// <summary>

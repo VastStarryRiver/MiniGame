@@ -11,7 +11,7 @@
 | 抖音平台 | StarkSDK 6.9.0 | 抖音小游戏构建与运行时 API | `LocalPackages/com.bytedance.starksdk@6.9.0` 本地包 |
 | 异步 | UniTask 2.5.10 | 异步方法（`CloudManager` 云存档链路 async/await） | `Assets/ToolPackage/UniTask` 本地源码 |
 | UI | UGUI + TextMeshPro | 页面和文本 | TextMeshPro 在 `Assets/ToolPackage/TextMesh Pro` |
-| 动画 | DOTween | UI 补间 | `Assets/ToolPackage/DOTween` 本地源码 |
+| 动画 | DOTween | UI 补间 | `Assets/ToolPackage/DOTween` 预编译 `DOTween.dll` + `Modules/` 源码模块（`DOTweenModule.asmdef`） |
 | 配置 | ExcelDataReader + 自定义生成器 | Excel 转 bytes 与生成代码 | `Assets/Plugins/ExcelDataReader.dll` 预编译库 |
 | JSON | Newtonsoft.Json | 云存档序列化等 | NuGetForUnity；亦为 AOT 元数据 DLL 之一 |
 | 其他 | Spine、UIParticle、UOS CDN | 动画、UI 粒子和 CDN | UPM |
@@ -100,7 +100,8 @@
 - YooAsset Bundle 构建；
 - 微信/抖音小游戏构建；
 - 音频/图集导入设置（`AssetProcess`）；
-- 图集和 `.bin` 导入。
+- 图集和 `.bin` 导入；
+- UIButton 自定义 Inspector（`UIButtonEditor.cs`，位于 MyTools 根下）。
 
 仅包含 Editor 平台，不进入运行时。引用 `Invariable` 用名称引用。
 
@@ -391,17 +392,17 @@ Assets/AssetBundleCollectorSetting.asset
 
 收集组：
 
-| 组 | 目录 | 地址规则 | 打包规则 |
-|---|---|---|---|
-| Animation | `GameAssets/Animation` | Group + FileName | PackGroup |
-| Atlas | `GameAssets/Atlas/Atlas01`、`Atlas02`、`Atlas03`（逐目录注册，非通配；新图集目录需手动加收集器） | Group + FileName | PackCollector |
-| Audios | `GameAssets/Audios` | Group + FileName | PackGroup |
-| Materials | `GameAssets/Materials` | Group + FileName | PackGroup |
-| Png | `GameAssets/Png` | Group + FileName | PackGroup |
-| Prefabs | `GameAssets/Prefabs/UI` | Group + FileName | PackCollector |
-| Scenes | `GameAssets/Scenes` | Group + FileName | PackGroup |
-| Config | `GameAssets/Config` | Group + FileName | PackGroup |
-| DLL | `GameAssets/DLL` | Folder + FileName | PackGroup |
+| 组 | 目录 | 收集器 | 地址规则 | 打包规则 |
+|---|---|---|---|---|
+| Animation | `GameAssets/Animation` | Depend | 无独立地址 | PackGroup |
+| Atlas | `GameAssets/Atlas/Atlas01`、`Atlas02`、`Atlas03`（逐目录注册，非通配；新图集目录需手动加收集器） | Depend | 无独立地址 | PackCollector |
+| Audios | `GameAssets/Audios` | Depend | 无独立地址 | PackGroup |
+| Materials | `GameAssets/Materials` | Main | Group + FileName | PackGroup |
+| Png | `GameAssets/Png` | Depend | 无独立地址 | PackGroup |
+| Prefabs | `GameAssets/Prefabs/UI` | Main | Group + FileName | PackCollector |
+| Scenes | `GameAssets/Scenes` | Main | Group + FileName | PackGroup |
+| Config | `GameAssets/Config` | Main | Group + FileName | PackGroup |
+| DLL | `GameAssets/DLL` | Main | Folder + FileName | PackGroup |
 
 代码中的地址示例：
 
@@ -410,13 +411,12 @@ Assets/AssetBundleCollectorSetting.asset
 | 主页面 Prefab | `Prefabs_MainPanel` |
 | 提示弹窗 | `Prefabs_TipsPanel` |
 | 飘字面板 | `Prefabs_FloatTextPanel` |
-| BGM | `Audios_bgm` |
 | 灰度材质 | `Materials_GrayscaleMaterial` |
 | 遮罩灰度材质 | `Materials_UIMaskGrayscaleMaterial` |
-| 独立图片 | `Png_{文件名}` |
-| 图集 | `Atlas_{图集名}` |
 | 配置表 bytes | `Config_{表名}`（如 `Config_Player`） |
 | 热更新 DLL | `MiniGame_HotUpdate.dll` |
+
+图集为 Depend 模式，仅作 Prefab 依赖进包，无独立地址。业务脚本声明 `public SpriteAtlas` 并在 Inspector 挂载，按名 `GetSprite` 后直接赋值。单张图片声明 `public Sprite` 挂载，直接赋值。动画挂载到 Animation 组件，代码 `animation.Play("animName")`。`VastStarryRiver/资源处理/设置图片和图集` 菜单批量设置导入参数：图集压缩并关可读，Atlas 源图与 Png 散图统一最佳模式（强制 Sprite、关可读、关 mipmap、压缩）。
 
 图集构建工具：
 
@@ -453,13 +453,13 @@ Assets/AssetBundleCollectorSetting.asset
 
 - 闲置阈值 `180s`，清扫周期 `30s`（计时器 key `InvariableConst.Timer_YooAsset_TickEvict`）；
 - 逐出计时器在首次 `AsyncLoadAsset` 时惰性注册（`EnsureEvictTimer`，注册后不立即执行）；
-- 白名单前缀不释放：`Audios_`、`Config_`、`MiniGame_`（音频/配置秒回/程序集无释放价值）；
+- 白名单前缀不释放：`Config_`、`MiniGame_`（配置秒回/程序集无释放价值）；
 - 其余地址闲置超时后调用 `ReleaseAsset`；已实例化的 Prefab 实例不受句柄释放影响（YooAsset 引用计数）。
 
 资源释放：
 
-- `ReleaseAsset(address)`：按地址释放句柄，并清理对应图集 Sprite 缓存；
-- `UnLoadAsset()`：释放已缓存的全部普通资源，并清空 Sprite 缓存；
+- `ReleaseAsset(address)`：按地址释放句柄；
+- `UnLoadAsset()`：释放已缓存的全部普通资源；
 - `UnloadUnusedAssets(callBack)`：调用 YooAsset 卸载未使用资源；
 - `UnLoadScene(address, callBack = null)`：仅释放对应场景句柄，不连带释放普通资源；回调可选，成功失败均触发。
 
@@ -470,7 +470,7 @@ Assets/AssetBundleCollectorSetting.asset
 | Manager | 创建方式 | 用途 |
 |---|---|---|
 | `GameManager` | `Launcher.Awake` 创建常驻对象 | 事件、延迟/循环计时（秒/帧双最小堆，`Update` 驱动）；`Awake` 注册配置逐出计时器，`OnDestroy` 取消全部计时器；`OnApplicationPause` / `OnApplicationQuit` / `OnDestroy` 调用 `CloudManager.FlushCloudData` |
-| `AudioManager` | `Launcher.Awake` 创建常驻对象 | BGM/SFX 通道、音量/静音（本地持久化）、加载排队、同名 SFX 打断重播 |
+| `AudioManager` | `Launcher.Awake` 创建常驻对象 | 仅挂载 clip 播放；BGM 单通道循环，SFX 每 clip 独立通道同 clip 打断重播，通道上限 30，超出回收最久未用空闲通道，全忙打错误日志并跳过；BGM/SFX/全部三套停止暂停恢复；音量/静音本地持久化 |
 
 二者使用私有静态字段 `m_instance`，在 `Awake` 赋值；对外暴露 `Instance`（为空时打 Error）与 `HasInstance`（判空不打日志）。
 
@@ -619,7 +619,7 @@ HotUpdateUtils.ShowFloatText(...);
 
 | 组件 | 用途 |
 |---|---|
-| `UIButton` | 单击、双击、按下、抬起、长按、缩放反馈；每类监听覆盖赋值（非追加）；5 个 public UnityEvent 字段（`m_clickEvent` 等）可在 Inspector 绑定监听；`m_isNotChangeScale`（默认 false）、`m_changeScale`（默认 1.1f）；双击判定窗口 0.15s；长按阈值 0.2s；注册双击后单击会延迟 0.15s 且可能被双击吞掉；双击/单击分发由全局 `UIButtonDriver` 驱动；长按触发后吞掉本次单击 |
+| `UIButton` | 单击、双击、按下、抬起、长按、缩放反馈；每类监听覆盖赋值（非追加）；5 个 public UnityEvent 字段（`m_clickEvent` 等）可在 Inspector 绑定监听；`m_isNotChangeScale`（默认 false）、`m_scaleType` 枚举（Small/Medium/Big=1.1/1.2/1.3，默认 Medium，由 `UIButtonEditor` 条件显示）；`m_audioClip` 挂载点击音效，留空且未被手动修改过时 Inspector 打开即自动挂载 `Assets/GameAssets/Audios/Sfx/defaultBtn.mp3`（EditorPrefs 按 GlobalObjectId 记忆手动修改）；双击判定窗口 0.15s；长按阈值 0.2s；注册双击后单击会延迟 0.15s 且可能被双击吞掉；双击/单击分发由全局 `UIButtonDriver` 驱动；长按触发后吞掉本次单击 |
 | `UIPanel` | 页面基类 |
 | `UIPopup` | 弹窗开关动画；入场动画在 `OnEnable`（每次激活重播并重置缩放）；`m_tsTrans` 所在物体须同时挂 `CanvasGroup`；DOTween 使用 `SetTarget` / `DOKill` |
 | `LoopScrollList` | 横向/纵向循环列表；列表项缓存索引 |
@@ -628,7 +628,7 @@ HotUpdateUtils.ShowFloatText(...);
 | `ScreenAdapter` | `[ExecuteInEditMode]`；注册安全区适配；实际偏移由 `SdkManager.GetSafeAnchor` 写死为 Left/Bottom=30/130、Right/Top=30/90，非设备 SafeArea；编辑期 `OnEnable` 即改节点偏移 |
 | `BgAdapter` | `[ExecuteInEditMode]`；背景等比铺满；编辑期同样生效 |
 | `UIDrag` | UI 拖拽及 ScrollRect 事件转发；拖拽回调阶段 1=开始/2=拖拽中/3=结束 |
-| `Rocker` | 虚拟摇杆（`SetMoveFunc(Action<Vector2>)` 输出方向归一化 × 力度 0~1，手柄跟随并松开回中） |
+| `Rocker` | 虚拟摇杆（`SetMoveFunc(Action<Vector2>)` 输出方向归一化 × 力度 0~1，`SetStayFunc(Action)` 静止回调；按下时摇杆整体移至触点，手柄跟随并松开回中；无输入时自动隐藏，再次按下重新出现） |
 | `CircleImage` | 圆形 Sprite UI 网格 |
 | `CircleRawImage` | 圆形 RawImage UI 网格 |
 | `PolygonImage` | 基于 PolygonCollider2D 的非矩形射线检测 |
@@ -638,27 +638,26 @@ HotUpdateUtils.ShowFloatText(...);
 接口：
 
 ```csharp
-AudioManager.Instance.PlayBGM("bgm");
-AudioManager.Instance.PlaySFX("score");
-AudioManager.Instance.PauseAudio("bgm");
-AudioManager.Instance.StopAudio("bgm");
-AudioManager.Instance.PauseAudio(); // 空名或省略参数：暂停全部
-AudioManager.Instance.StopAudio();  // 空名或省略参数：停止全部
+AudioManager.Instance.PlayBGM(m_audioBgm);
+AudioManager.Instance.PlaySFX(m_audioClip);
+AudioManager.Instance.StopBGM();
+AudioManager.Instance.PauseBGM();
+AudioManager.Instance.ResumeBGM();
+AudioManager.Instance.StopSFX(m_audioClip);
+AudioManager.Instance.PauseSFX(m_audioClip);
+AudioManager.Instance.ResumeSFX(m_audioClip);
+AudioManager.Instance.StopAllAudio();
+AudioManager.Instance.PauseAllAudio();
+AudioManager.Instance.ResumeAllAudio();
 AudioManager.Instance.SetMasterVolume(1f);
 AudioManager.Instance.SetBGMVolume(1f);
 AudioManager.Instance.SetSFXVolume(1f);
 AudioManager.Instance.SetMute(false); // 音量设置经 SdkManager 本地存储持久化
 ```
 
-资源地址固定拼接为：
+音频一律 Inspector 挂载 `AudioClip`，禁止按名加载。文件按 `Audios/Bgm` 与 `Audios/Sfx` 子目录分放。`VastStarryRiver/资源处理/设置音频资源` 菜单按子目录批量设置导入参数：Bgm 用 CompressedInMemory，Sfx 用 DecompressOnLoad 且强制单声道。音频为 Depend 模式，由 Prefab 依赖加载，无独立地址。
 
-```text
-Audios_{name}
-```
-
-音频文件按 `Audios/Bgm` 与 `Audios/Sfx` 子目录分放。`VastStarryRiver/资源处理/设置音频资源` 菜单按子目录批量设置导入参数：Bgm 用 CompressedInMemory，Sfx 用 DecompressOnLoad 且强制单声道。地址仍按文件名生成为 `Audios_{name}`，与子目录无关。
-
-BGM 为单通道循环（子物体 `BGM`）；SFX 按名各自维护独立 `AudioSource`，同名打断重播；音量/静音经 `SdkManager` 本地存储持久化；BGM 加载中切歌会排队到加载完成后播放。
+BGM 为单通道循环（子物体 `BGM`）；SFX 每 clip 独立 `AudioSource`，同 clip 打断重播，不同 clip 叠加；音量/静音经 `SdkManager` 本地存储持久化。详见 ScriptDevGuide §10。
 
 ## 12. 配置系统
 
@@ -791,12 +790,11 @@ int, float, string,
 
 - 固定 UI Camera、UI Root 查找（`Utils.UICamera` / `Utils.UIRoot`，路径常量来自 `InvariableConst`）；
 - GameObject/Transform 获取和克隆、`HideAllChildren`；
-- `SetImage` 只处理 YooAsset 地址（`Png_{名}` 或 `图集/精灵`）；远程头像 URL 走 `SetRemoteImage`（下载为 Texture2D 后赋 `Image.sprite` / `RawImage.texture`）；
+- 远程头像 URL 走 `SetRemoteImage`（下载为 Texture2D 后赋 `Image.sprite` / `RawImage.texture`）；图集不走 Utils，由业务脚本挂载 `SpriteAtlas` 后 `GetSprite` 赋值（见 §6）；
 - 灰度材质（`SetGray`）；
 - Animation 播放；
 - 按字符串查找/添加组件（`GetComponent` / `AddComponent`，含 `HotUpdate` 程序集类型解析）；
 - UI 页面打开/关闭（`OpenUIPrefabPanel` / `CloseUIPrefabPanel`）；面板父节点按 layer 选择 `InvariableConst.UIPanelPath_0..3`；
-- 图集 Sprite 缓存与清理（`ClearSpriteCache`）；
 - Manager GameObject 创建；
 - 文件大小格式化（`FormatFileByteSize`，与 `ConfigUtils.FormatFileByteSize` 重复实现）；
 - HTML 颜色解析。

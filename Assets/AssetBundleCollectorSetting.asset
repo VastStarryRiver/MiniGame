@@ -32,7 +32,7 @@ MonoBehaviour:
       Collectors:
       - CollectPath: Assets/GameAssets/Animation
         CollectorGUID: 53e62f334391c2c45834f2c9fbf2f951
-        CollectorType: 0
+        CollectorType: 2
         AddressRuleName: AddressByGroupAndFileName
         PackRuleName: PackGroup
         FilterRuleName: CollectAll
@@ -45,7 +45,7 @@ MonoBehaviour:
       Collectors:
       - CollectPath: Assets/GameAssets/Atlas/Atlas01
         CollectorGUID: 66db0c4bca50209449b33d21400cbe02
-        CollectorType: 0
+        CollectorType: 2
         AddressRuleName: AddressByGroupAndFileName
         PackRuleName: PackCollector
         FilterRuleName: CollectAll
@@ -53,7 +53,7 @@ MonoBehaviour:
         UserData: 
       - CollectPath: Assets/GameAssets/Atlas/Atlas02
         CollectorGUID: f27a08dd9d3540644bdbe3ac1af89fcb
-        CollectorType: 0
+        CollectorType: 2
         AddressRuleName: AddressByGroupAndFileName
         PackRuleName: PackCollector
         FilterRuleName: CollectAll
@@ -61,7 +61,7 @@ MonoBehaviour:
         UserData: 
       - CollectPath: Assets/GameAssets/Atlas/Atlas03
         CollectorGUID: 83a6475063031c745a9637e7259b7fbe
-        CollectorType: 0
+        CollectorType: 2
         AddressRuleName: AddressByGroupAndFileName
         PackRuleName: PackCollector
         FilterRuleName: CollectAll
@@ -74,7 +74,7 @@ MonoBehaviour:
       Collectors:
       - CollectPath: Assets/GameAssets/Audios
         CollectorGUID: fc871ffce78d60c45ae62dae82694981
-        CollectorType: 0
+        CollectorType: 2
         AddressRuleName: AddressByGroupAndFileName
         PackRuleName: PackGroup
         FilterRuleName: CollectAll
@@ -100,7 +100,7 @@ MonoBehaviour:
       Collectors:
       - CollectPath: Assets/GameAssets/Png
         CollectorGUID: 538a3f9e0d75d4444bd145fdf94df305
-        CollectorType: 0
+        CollectorType: 2
         AddressRuleName: AddressByGroupAndFileName
         PackRuleName: PackGroup
         FilterRuleName: CollectAll

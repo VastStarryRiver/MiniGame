@@ -5,7 +5,6 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.U2D;
 using UnityEngine.UI;
 
 
@@ -16,7 +15,6 @@ namespace Invariable
     {
         private static Camera[] m_uiCamera = null;
         private static RectTransform m_uiRoot = null;
-        private static Dictionary<string, Sprite> m_spriteCache = null;
         private static Dictionary<string, Sprite> m_remoteSpriteCache = null;
         private static RectTransform[] m_panelParents = null;
         private static Dictionary<string, Type> m_panelTypeCache = null;
@@ -222,97 +220,6 @@ namespace Invariable
         }
 
         /// <summary>
-        /// 异步设置 Image/RawImage 精灵
-        /// </summary>
-        public static void SetImage(UnityEngine.Object obj, string childPath = "", string spritePath = "", bool isSetNativeSize = false)
-        {
-            if (string.IsNullOrEmpty(spritePath))
-            {
-                return;
-            }
-
-            Transform trans = GetTransform(obj);
-
-            if (!string.IsNullOrEmpty(childPath))
-            {
-                trans = trans.Find(childPath);
-            }
-
-            if (trans == null)
-            {
-                return;
-            }
-
-            Image image = trans.GetComponent<Image>();
-            RawImage rawImage = trans.GetComponent<RawImage>();
-
-            string[] atlasInfo = spritePath.Split('/');
-            string key = "";
-            string imageName = "";
-
-            if (atlasInfo.Length == 2)
-            {
-                key = $"Atlas_{atlasInfo[0]}";
-                imageName = atlasInfo[1];
-            }
-            else
-            {
-                key = $"Png_{spritePath}";
-            }
-
-            if (string.IsNullOrEmpty(imageName))
-            {
-                YooAssetManager.Instance.AsyncLoadAsset<Sprite>(key, (sprite) =>
-                {
-                    if (image != null)
-                    {
-                        image.sprite = sprite;
-
-                        if (isSetNativeSize)
-                        {
-                            image.SetNativeSize();
-                        }
-                    }
-                    else if (rawImage != null)
-                    {
-                        rawImage.texture = sprite.texture;
-
-                        if (isSetNativeSize)
-                        {
-                            rawImage.SetNativeSize();
-                        }
-                    }
-                });
-            }
-            else
-            {
-                YooAssetManager.Instance.AsyncLoadAsset<SpriteAtlas>(key, (atlas) =>
-                {
-                    Sprite sprite = GetCachedSprite(key, imageName, atlas);
-
-                    if (image != null)
-                    {
-                        image.sprite = sprite;
-
-                        if (isSetNativeSize)
-                        {
-                            image.SetNativeSize();
-                        }
-                    }
-                    else if (rawImage != null)
-                    {
-                        rawImage.texture = sprite.texture;
-
-                        if (isSetNativeSize)
-                        {
-                            rawImage.SetNativeSize();
-                        }
-                    }
-                });
-            }
-        }
-
-        /// <summary>
         /// 按远程 URL 设置 Image/RawImage，URL 为空/非法或下载失败时赋值兜底图，兜底图为空则保留旧图
         /// </summary>
         public static void SetRemoteImage(UnityEngine.Object obj, string childPath = "", string url = "", bool isSetNativeSize = false, Sprite fallBackSprite = null)
@@ -426,66 +333,6 @@ namespace Invariable
                     rawImage.SetNativeSize();
                 }
             }
-        }
-
-        /// <summary>
-        /// 清理图集 Sprite 缓存；传空则清空全部
-        /// </summary>
-        /// <param name="atlasAddress">图集资源地址</param>
-        public static void ClearSpriteCache(string atlasAddress = null)
-        {
-            if (m_spriteCache == null || m_spriteCache.Count <= 0)
-            {
-                return;
-            }
-
-            if (string.IsNullOrEmpty(atlasAddress))
-            {
-                m_spriteCache.Clear();
-
-                return;
-            }
-
-            string prefix = atlasAddress + "/";
-            List<string> removeKeys = null;
-
-            foreach (KeyValuePair<string, Sprite> item in m_spriteCache)
-            {
-                if (item.Key.StartsWith(prefix, StringComparison.Ordinal))
-                {
-                    removeKeys ??= new List<string>();
-                    removeKeys.Add(item.Key);
-                }
-            }
-
-            if (removeKeys == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < removeKeys.Count; i++)
-            {
-                m_spriteCache.Remove(removeKeys[i]);
-            }
-        }
-
-        /// <summary>
-        /// 从缓存获取图集 Sprite，未命中则 GetSprite 并缓存
-        /// </summary>
-        private static Sprite GetCachedSprite(string atlasAddress, string spriteName, SpriteAtlas atlas)
-        {
-            m_spriteCache ??= new Dictionary<string, Sprite>();
-            string cacheKey = atlasAddress + "/" + spriteName;
-
-            if (m_spriteCache.TryGetValue(cacheKey, out Sprite cachedSprite) && cachedSprite != null)
-            {
-                return cachedSprite;
-            }
-
-            Sprite sprite = atlas.GetSprite(spriteName);
-            m_spriteCache[cacheKey] = sprite;
-
-            return sprite;
         }
 
         /// <summary>

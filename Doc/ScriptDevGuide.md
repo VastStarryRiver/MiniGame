@@ -62,9 +62,6 @@ Editor 代码不能被运行时程序集引用。
 | 生成配置表缓存字段 | `m_config{表名}`（由 CodeGenerator 生成，可写 static） |
 | UI 页面类名 | 与 Prefab 文件名一致 |
 | UI Prefab 地址 | `Prefabs_{Prefab名}` |
-| 音频地址 | `Audios_{音频名}` |
-| 独立图片地址 | `Png_{文件名}` |
-| 图集地址 | `Atlas_{图集名}` |
 | DLL 地址 | `MiniGame_{DLL文件名}` |
 | UI 挂载节点 | `UI_Root/Canvas_{layer}/Ts_Panel` |
 | 事件名 | 字符串，建议使用 `模块_动作` |
@@ -716,47 +713,26 @@ GameManager.Instance.CancelInvokeByKey(HotUpdateConst.Timer_Battle_Countdown);
 
 ## 9. 加载资源
 
-### 9.1 普通资源
+### 9.1 挂载资源
 
-```csharp
-YooAssetManager.Instance.AsyncLoadAsset<Sprite>(
-    "Png_icon",
-    sprite =>
-    {
-        // 使用资源
-    }
-);
-```
+Animation、Atlas、Audios、Png 四个分组为 Depend 模式，不按名加载。资源通过 Prefab 挂载引用进包：
+
+- 单张图片：`public Sprite m_iconSprite;` → `m_imgIcon.sprite = m_iconSprite;`
+- 图集：`public SpriteAtlas m_uiAtlas;` → `m_imgIcon.sprite = m_uiAtlas.GetSprite("icon_score");`
+- 音频：`public AudioClip m_audioClip;` → `AudioManager.Instance.PlaySFX(m_audioClip);`
+- 动画：挂载到 Animation 组件，代码 `animation.Play("animName")`
 
 ### 9.2 设置图片
 
-独立图片：
+图集一律在脚本声明 `public SpriteAtlas` 字段并在 Inspector 挂载，按名取图后直接赋值（随 Prefab 依赖加载，零异步）。禁止按地址异步加载图集。同一图集内图片仍合批为一个 DrawCall。
 
 ```csharp
-Utils.SetImage(gameObject, "Icon", "icon");
+public SpriteAtlas m_uiAtlas;
+
+m_imgIcon.sprite = m_uiAtlas.GetSprite("icon_score");
 ```
 
-实际地址：
-
-```text
-Png_icon
-```
-
-图集图片：
-
-```csharp
-Utils.SetImage(
-    gameObject,
-    "Icon",
-    "AtlasName/SpriteName"
-);
-```
-
-实际图集地址：
-
-```text
-Atlas_AtlasName
-```
+远程 URL 走 `Utils.SetRemoteImage`，无法挂载。单张图片挂载 `public Sprite` 字段，图集挂载 `public SpriteAtlas` 字段。
 
 ### 9.3 设置灰度
 
@@ -788,7 +764,7 @@ YooAssetManager.Instance.UnLoadScene("Scenes_Battle");
 
 ### 9.5 资源加载检查清单
 
-- [ ] 地址与 Collector 地址规则一致；
+- [ ] 地址与 Collector 地址规则一致；Depend 挂载资源（Animation / Atlas / Audios / Png）无独立地址，不走此项；
 - [ ] 文件位于 `Assets/GameAssets` 对应目录；
 - [ ] 加载失败路径有日志或用户提示；
 - [ ] 回调触发时宿主对象仍存活；
@@ -798,42 +774,43 @@ YooAssetManager.Instance.UnLoadScene("Scenes_Battle");
 
 ## 10. 使用音频
 
-播放：
+### 10.1 Inspector 挂载
+
+音频一律在脚本声明 `public AudioClip` 字段并在 Inspector 挂载，经 `AudioManager` 播放（随 Prefab 依赖加载，零异步）。禁止按名加载。
 
 ```csharp
-AudioManager.Instance.PlayBGM("bgm");
+AudioManager.Instance.PlaySFX(m_audioClip);
+AudioManager.Instance.PlayBGM(m_audioBgm);
 ```
 
-停止：
+`PlaySFX(clip)` 写死单次，每 clip 独立通道，同 clip 打断重播，不同 clip 叠加；通道上限 30，超出回收最久未用空闲通道，全忙打错误日志并跳过。`PlayBGM(clip)` 写死循环，单通道，切歌自动停上一首。音量/静音走 `SetMasterVolume` / `SetBGMVolume` / `SetSFXVolume` / `SetMute`。
+
+UIButton 的 `m_audioClip` 即此路径：单击触发时自动 `PlaySFX(m_audioClip)`。`m_audioClip` 留空时 Inspector 自动挂载默认点击音效（`Audios/Sfx/defaultBtn.mp3`），手动修改后不自动覆盖。
+
+### 10.2 停止、暂停与恢复
 
 ```csharp
-AudioManager.Instance.StopAudio("bgm");
-AudioManager.Instance.StopAudio(); // 空名或省略参数：停止全部
+AudioManager.Instance.StopBGM();
+AudioManager.Instance.PauseBGM();
+AudioManager.Instance.ResumeBGM();
+AudioManager.Instance.StopSFX(m_audioClip);
+AudioManager.Instance.PauseSFX(m_audioClip);
+AudioManager.Instance.ResumeSFX(m_audioClip);
+AudioManager.Instance.StopAllAudio();
+AudioManager.Instance.PauseAllAudio();
+AudioManager.Instance.ResumeAllAudio();
 ```
 
-暂停：
+`StopBGM` / `PauseBGM` / `ResumeBGM` 控制当前 BGM。`StopSFX(clip)` / `PauseSFX(clip)` / `ResumeSFX(clip)` 按 clip 控制音效。`StopAllAudio` / `PauseAllAudio` / `ResumeAllAudio` 控制全部。
 
-```csharp
-AudioManager.Instance.PauseAudio("bgm");
-AudioManager.Instance.PauseAudio(); // 空名或省略参数：暂停全部
-```
-
-文件应位于：
+### 10.3 文件位置与导入
 
 ```text
 Assets/GameAssets/Audios/Bgm/bgm.*   # 背景音乐
 Assets/GameAssets/Audios/Sfx/xxx.*   # 音效
 ```
 
-子目录是导入设置依据（`VastStarryRiver/资源处理/设置音频资源`：Bgm 用 CompressedInMemory，Sfx 用 DecompressOnLoad 且强制单声道）；地址仍按文件名生成为 `Audios_{name}`，与子目录无关。
-
-地址由代码生成：
-
-```text
-Audios_bgm
-```
-
-BGM 用 `PlayBGM`，音效用 `PlaySFX`（同名打断重播）；另有 `SetMasterVolume` / `SetBGMVolume` / `SetSFXVolume` / `SetMute`，经 `SdkManager` 本地存储持久化。
+子目录是导入设置依据（`VastStarryRiver/资源处理/设置音频资源`：Bgm 用 CompressedInMemory，Sfx 用 DecompressOnLoad 且强制单声道）。音量设置经 `SdkManager` 本地存储持久化。
 
 ## 11. 新增或修改 Excel 配置
 
@@ -1005,7 +982,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 | Editor | 转发 `SetLocalData` / `GetLocalData` |
 | 微信/抖音 | 转发 `CloudManager` 云缓存；写后异步上传 |
 
-云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜：数据变化时调用 `CloudManager.Instance.ReportRankScore(rankKey, score)`（云函数同时维护世界榜 `rank_world` 与日榜 `rank_day`，上榜判断以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0；日榜 0-5 点 UTC+8 停止写入，5 点由云函数定时任务 `ResetDayRank` 主动清空，5 点后日榜立即为空，写入侧惰性清空兜底）；世界榜/日榜拉取用 `CloudManager.Instance.GetRankList(rankKey, rankType, callBack)`（`rankType` 必填，世界榜传 `CloudRankTypes.World`，日榜传 `CloudRankTypes.Day`；读 `kv_{GameId}_rank_{平台}` 下对应 userId 快照，写入时维护降序，读取仅截取前 100，微信与抖音分榜；日榜 0-5 点返回前一天完整数据，5 点后日榜立即为空）。编辑器桩：`GetRankList` 回空列表、`ReportRankScore` 回 true。玩家存档 JSON 写入 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`；排行榜条目为 `UserId` / `NickName` / `AvatarUrl` / `Data` 并列，资料不进 `Data`；未授权 fail-soft，不阻塞存档且不清空旧资料。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要走 `Utils.SetImage`。上传前校验令牌有效性、临期/过期自动重签，401 自动重签并重试一次。云函数/密钥约束见 `cloud-service` 规则。
+云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜：数据变化时调用 `CloudManager.Instance.ReportRankScore(rankKey, score)`（云函数同时维护世界榜 `rank_world` 与日榜 `rank_day`，上榜判断以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0；日榜 0-5 点 UTC+8 停止写入，5 点由云函数定时任务 `ResetDayRank` 主动清空，5 点后日榜立即为空，写入侧惰性清空兜底）；世界榜/日榜拉取用 `CloudManager.Instance.GetRankList(rankKey, rankType, callBack)`（`rankType` 必填，世界榜传 `CloudRankTypes.World`，日榜传 `CloudRankTypes.Day`；读 `kv_{GameId}_rank_{平台}` 下对应 userId 快照，写入时维护降序，读取仅截取前 100，微信与抖音分榜；日榜 0-5 点返回前一天完整数据，5 点后日榜立即为空）。编辑器桩：`GetRankList` 回空列表、`ReportRankScore` 回 true。玩家存档 JSON 写入 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`；排行榜条目为 `UserId` / `NickName` / `AvatarUrl` / `Data` 并列，资料不进 `Data`；未授权 fail-soft，不阻塞存档且不清空旧资料。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要用挂载图集。上传前校验令牌有效性、临期/过期自动重签，401 自动重签并重试一次。云函数/密钥约束见 `cloud-service` 规则。
 
 存档修改应考虑：
 

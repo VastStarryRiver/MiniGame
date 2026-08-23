@@ -309,7 +309,6 @@ namespace Invariable
             handle.Release();
             m_assetHandles.Remove(address);
             m_lastAccessTimes?.Remove(address);
-            Utils.ClearSpriteCache(address);
             Package.TryUnloadUnusedAsset(address);
         }
 
@@ -329,7 +328,6 @@ namespace Invariable
             }
 
             m_lastAccessTimes?.Clear();
-            Utils.ClearSpriteCache();
         }
 
         /// <summary>
@@ -466,8 +464,7 @@ namespace Invariable
         /// </summary>
         private static bool IsEvictExempt(string address)
         {
-            return address.StartsWith("Audios_", StringComparison.Ordinal)
-                || address.StartsWith("Config_", StringComparison.Ordinal)
+            return address.StartsWith("Config_", StringComparison.Ordinal)
                 || address.StartsWith("MiniGame_", StringComparison.Ordinal);
         }
     }

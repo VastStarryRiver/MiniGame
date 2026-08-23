@@ -14,6 +14,7 @@ namespace Invariable
         private Action<Vector2> m_moveFunc = null;
         private Action m_stayFunc = null;
         private float m_radius = 0f;
+        private Vector2 m_lastMoveValue;
 
 
 
@@ -38,6 +39,7 @@ namespace Invariable
             {
                 ResetHandle();
                 m_moveFunc?.Invoke(Vector2.zero);
+                m_lastMoveValue = Vector2.zero;
                 gameObject.SetActive(false);
                 m_isSetCurrPos = false;
 
@@ -68,15 +70,23 @@ namespace Invariable
             Vector2 clamped = Vector2.ClampMagnitude(moveDir, m_radius);
             m_tsHandle.anchoredPosition = clamped;
 
+            Vector2 moveValue;
+
             if (clamped == Vector2.zero)
             {
                 m_stayFunc?.Invoke();
-                m_moveFunc?.Invoke(Vector2.zero);
+                moveValue = Vector2.zero;
             }
             else
             {
                 float strength = clamped.magnitude / m_radius;
-                m_moveFunc?.Invoke(clamped.normalized * strength);
+                moveValue = clamped.normalized * strength;
+            }
+
+            if (moveValue != m_lastMoveValue)
+            {
+                m_lastMoveValue = moveValue;
+                m_moveFunc?.Invoke(moveValue);
             }
         }
 
@@ -84,6 +94,7 @@ namespace Invariable
         {
             ResetHandle();
             m_isSetCurrPos = false;
+            m_lastMoveValue = Vector2.zero;
         }
 
 

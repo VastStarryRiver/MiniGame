@@ -10,8 +10,16 @@ namespace Invariable
 {
     public class UIButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
     {
+        public enum ScaleType
+        {
+            Small,
+            Medium,
+            Big,
+        }
+
         public bool m_isNotChangeScale = false;
-        public float m_changeScale = 1.1f;
+        public ScaleType m_scaleType = ScaleType.Medium;
+        public AudioClip m_audioClip;
         public UnityEvent m_clickEvent = new UnityEvent();
         public UnityEvent m_doubleClickEvent = new UnityEvent();
         public UnityEvent m_downEvent = new UnityEvent();
@@ -22,6 +30,7 @@ namespace Invariable
 
         private static UIButtonDriver m_driver = null;
 
+        private float m_changeScale = 1.2f;
         private bool m_hasClickListener;
         private bool m_hasDoubleClickListener;
         private bool m_hasLongPressListener;
@@ -40,6 +49,22 @@ namespace Invariable
         private void Awake()
         {
             m_trans = gameObject.GetComponent<RectTransform>();
+
+            switch (m_scaleType)
+            {
+                case ScaleType.Small:
+                    m_changeScale = 1.1f;
+                    break;
+                case ScaleType.Medium:
+                    m_changeScale = 1.2f;
+                    break;
+                case ScaleType.Big:
+                    m_changeScale = 1.3f;
+                    break;
+                default:
+                    m_changeScale = 1.2f;
+                    break;
+            }
         }
 
         private void OnDestroy()
@@ -60,7 +85,6 @@ namespace Invariable
             if (m_isCancelClick)
             {
                 m_isCancelClick = false;
-                m_eventData = null;
             }
             else
             {
@@ -72,13 +96,15 @@ namespace Invariable
                 }
                 else if (m_hasClickListener || m_clickEvent.GetPersistentEventCount() > 0)
                 {
-                    m_clickEvent.Invoke();
+                    InvokeClickEvent();
                 }
             }
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            m_isCancelClick = false;
+
             if (!m_isNotChangeScale)
             {
                 m_trans.localScale = new Vector3(m_changeScale, m_changeScale, m_changeScale);
@@ -238,6 +264,19 @@ namespace Invariable
 
 
         /// <summary>
+        /// 触发单击事件并播放挂载点击音效
+        /// </summary>
+        private void InvokeClickEvent()
+        {
+            if (m_audioClip != null && AudioManager.HasInstance)
+            {
+                AudioManager.Instance.PlaySFX(m_audioClip);
+            }
+
+            m_clickEvent.Invoke();
+        }
+
+        /// <summary>
         /// 驱动活跃按钮的长按/双击判定
         /// </summary>
         internal static void TickActiveButtons()
@@ -286,7 +325,7 @@ namespace Invariable
                     if (m_clickTimes == 1)
                     {
                         m_clickTimes = 0;
-                        m_clickEvent.Invoke();
+                        InvokeClickEvent();
                     }
                     else if (m_clickTimes >= 2)
                     {
@@ -308,26 +347,16 @@ namespace Invariable
         {
             if (m_startPressTime != 0)
             {
-                if (m_isCancelClick)
+                m_endPressTime = Time.time;
+
+                if (m_endPressTime - m_startPressTime >= 0.2f)
                 {
                     m_startPressTime = 0;
                     m_endPressTime = 0;
 
-                    m_isCancelClick = false;
-                }
-                else
-                {
-                    m_endPressTime = Time.time;
+                    m_isCancelClick = true;
 
-                    if (m_endPressTime - m_startPressTime >= 0.2f)
-                    {
-                        m_startPressTime = 0;
-                        m_endPressTime = 0;
-
-                        m_isCancelClick = true;
-
-                        m_longPressEvent.Invoke();
-                    }
+                    m_longPressEvent.Invoke();
                 }
             }
         }

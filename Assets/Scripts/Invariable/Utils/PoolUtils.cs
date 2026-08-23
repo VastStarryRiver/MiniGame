@@ -16,6 +16,7 @@ namespace Invariable
         private static Dictionary<string, Stack<GameObject>> m_gameObjectPools = null;
         private static Dictionary<string, int> m_gameObjectMaxSizes = null;
         private static Transform m_poolParent = null;
+        private static HashSet<GameObject> m_inPoolGameObjects = null;
 
         public class ObjectPool<T> where T : class, new()
         {
@@ -23,6 +24,7 @@ namespace Invariable
             private readonly Action<T> OnGet;
             private readonly Action<T> OnRelease;
             private readonly int MaxSize;
+            private HashSet<T> m_inPool;
 
 
 
@@ -32,6 +34,7 @@ namespace Invariable
                 OnGet = onGet;
                 OnRelease = onRelease;
                 MaxSize = maxSize > 0 ? maxSize : DefaultMaxSize;
+                m_inPool = new HashSet<T>();
             }
 
 
@@ -41,7 +44,18 @@ namespace Invariable
             /// </summary>
             public T Get()
             {
-                T item = Stack.Count > 0 ? Stack.Pop() : new T();
+                T item;
+
+                if (Stack.Count > 0)
+                {
+                    item = Stack.Pop();
+                    m_inPool.Remove(item);
+                }
+                else
+                {
+                    item = new T();
+                }
+
                 OnGet?.Invoke(item);
 
                 return item;
@@ -57,11 +71,22 @@ namespace Invariable
                     return;
                 }
 
+                if (!m_inPool.Add(item))
+                {
+                    GameLog.Error($"PoolUtils 类型池重复归还: {typeof(T).Name}");
+
+                    return;
+                }
+
                 OnRelease?.Invoke(item);
 
                 if (Stack.Count < MaxSize)
                 {
                     Stack.Push(item);
+                }
+                else
+                {
+                    m_inPool.Remove(item);
                 }
             }
         }
@@ -115,6 +140,11 @@ namespace Invariable
             {
                 GameObject item = stack.Pop();
 
+                if (m_inPoolGameObjects != null)
+                {
+                    m_inPoolGameObjects.Remove(item);
+                }
+
                 if (item == null)
                 {
                     continue;
@@ -143,10 +173,20 @@ namespace Invariable
                 return;
             }
 
+            m_inPoolGameObjects ??= new HashSet<GameObject>();
+
+            if (!m_inPoolGameObjects.Add(instance))
+            {
+                GameLog.Error($"PoolUtils GameObject 池重复归还: {key}");
+
+                return;
+            }
+
             Stack<GameObject> stack = GetGameObjectStack(key);
 
             if (stack.Count >= GetGameObjectMaxSize(key))
             {
+                m_inPoolGameObjects.Remove(instance);
                 GameLog.Info($"PoolUtils 池 [{key}] 超限销毁，可考虑 SetGameObjectPoolMaxSize 调大上限");
                 UnityEngine.Object.Destroy(instance);
 
@@ -300,6 +340,11 @@ namespace Invariable
             while (stack.Count > 0)
             {
                 GameObject item = stack.Pop();
+
+                if (m_inPoolGameObjects != null)
+                {
+                    m_inPoolGameObjects.Remove(item);
+                }
 
                 if (item != null)
                 {

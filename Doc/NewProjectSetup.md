@@ -269,7 +269,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 - 替换 `Assets/GameAssets` 下预制体、图集、音频等
 - 需要合并多图为 Multiple Sprite PNG 时使用工程内 AtlasBuilder（`Assets/Editor/MyTools/AtlasBuilder/`，ContextMenu `BuildAtlas`；输出在 Editor 目录，与 YooAsset 收集的 `GameAssets/Atlas` UI 图集无关）
-- 新增音频或图集资源后，执行 `VastStarryRiver/资源处理` 对应菜单批量设置导入参数
+- 新增音频、图片或图集资源后，执行 `VastStarryRiver/资源处理` 对应菜单批量设置导入参数
 - TMP 表情由 `Assets/ToolPackage/TextMesh Pro/Resources/Sprite Assets/emoji.asset` 提供（TMP Settings 默认表情图集），与 AtlasBuilder 无关
 
 ### 6.3 首包资源与启动内容

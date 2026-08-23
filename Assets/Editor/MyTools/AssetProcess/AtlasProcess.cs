@@ -1,6 +1,7 @@
 using Invariable;
 using UnityEditor;
 using UnityEditor.U2D;
+using UnityEngine;
 
 
 
@@ -9,20 +10,22 @@ namespace MyTools
     public static class AtlasProcess
     {
         private const string AtlasFolder = "Assets/GameAssets/Atlas";
+        private const string PngFolder = "Assets/GameAssets/Png";
 
 
 
         /// <summary>
-        /// 批量设置 Atlas 目录下图片与图集的导入格式
+        /// 批量设置图集、图集源图与散图的导入格式
         /// </summary>
         [MenuItem("VastStarryRiver/资源处理/设置图片和图集", false, 41)]
         public static void ApplyAtlasImportSettings()
         {
             int atlasCount = ApplyAtlases();
             int textureCount = ApplyTextures();
+            int pngCount = ApplyPngTextures();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            GameLog.Info($"图片和图集导入格式已设置: 图集 {atlasCount} 个，图片 {textureCount} 个");
+            GameLog.Info($"图片和图集导入格式已设置: 图集 {atlasCount} 个，图集源图 {textureCount} 个，散图 {pngCount} 个");
         }
 
 
@@ -61,7 +64,7 @@ namespace MyTools
         }
 
         /// <summary>
-        /// 对 Atlas 下 Texture 子目录图片关闭可读
+        /// 对 Atlas 下 Texture 子目录图片应用最佳导入模式
         /// </summary>
         private static int ApplyTextures()
         {
@@ -89,12 +92,71 @@ namespace MyTools
                     continue;
                 }
 
-                importer.isReadable = false;
+                ApplySpriteTextureSettings(importer);
                 importer.SaveAndReimport();
                 count++;
             }
 
             return count;
+        }
+
+        /// <summary>
+        /// 对 Png 目录散图应用最佳导入模式
+        /// </summary>
+        private static int ApplyPngTextures()
+        {
+            if (!AssetDatabase.IsValidFolder(PngFolder))
+            {
+                GameLog.Error($"散图目录不存在: {PngFolder}");
+
+                return 0;
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { PngFolder });
+            int count = 0;
+
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+
+                if (!path.EndsWith(".png"))
+                {
+                    continue;
+                }
+
+                TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+                if (importer == null)
+                {
+                    continue;
+                }
+
+                ApplySpriteTextureSettings(importer);
+                importer.SaveAndReimport();
+                count++;
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// 写入 UI 图片最佳导入模式：Sprite 类型、关可读、关 mipmap、压缩
+        /// </summary>
+        private static void ApplySpriteTextureSettings(TextureImporter importer)
+        {
+            if (importer.textureType != TextureImporterType.Sprite)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+            }
+
+            importer.isReadable = false;
+            importer.mipmapEnabled = false;
+
+            TextureImporterPlatformSettings platformSettings = importer.GetPlatformTextureSettings("DefaultTexturePlatform");
+            platformSettings.name = "DefaultTexturePlatform";
+            platformSettings.textureCompression = TextureImporterCompression.Compressed;
+            importer.SetPlatformTextureSettings(platformSettings);
         }
 
         /// <summary>

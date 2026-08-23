@@ -8,21 +8,20 @@ namespace Invariable
 {
     public class AudioManager : MonoBehaviour
     {
+        private const int MaxSfxChannels = 30;
+
         private static AudioManager m_instance = null;
 
         private AudioSource m_bgmSource = null;
-        private string m_currentBgmName = null;
-        private bool m_bgmLoading = false;
-        private string m_pendingBgmName = null;
-        private Dictionary<string, AudioSource> m_sfxSources = null;
-        private HashSet<string> m_sfxLoading = null;
+        private Dictionary<AudioClip, AudioSource> m_sfxSources = null;
+        private List<AudioClip> m_sfxLruList = null;
         private float m_masterVolume = 1f;
         private float m_bgmVolume = 1f;
         private float m_sfxVolume = 1f;
         private bool m_mute = false;
 
         /// <summary>
-        /// 实例是否存在（判空检查用，不触发错误日志）
+        /// 实例是否存在
         /// </summary>
         public static bool HasInstance
         {
@@ -50,8 +49,8 @@ namespace Invariable
         private void Awake()
         {
             m_instance = this;
-            m_sfxSources = new Dictionary<string, AudioSource>();
-            m_sfxLoading = new HashSet<string>();
+            m_sfxSources = new Dictionary<AudioClip, AudioSource>();
+            m_sfxLruList = new List<AudioClip>();
             LoadVolumeSettings();
         }
 
@@ -66,30 +65,23 @@ namespace Invariable
 
 
         /// <summary>
-        /// 播放背景音乐（单通道循环，切歌自动停上一首）
+        /// 播放背景音乐（挂载 clip，单通道循环，切歌自动停上一首）
         /// </summary>
-        public void PlayBGM(string name)
+        public void PlayBGM(AudioClip clip)
         {
-            if (string.IsNullOrEmpty(name))
+            if (clip == null)
             {
-                return;
-            }
-
-            if (m_currentBgmName == name && m_bgmSource != null && m_bgmSource.isPlaying)
-            {
-                return;
-            }
-
-            if (m_bgmLoading)
-            {
-                m_pendingBgmName = name;
-
                 return;
             }
 
             EnsureBgmSource();
 
-            if (m_bgmSource.clip != null && m_currentBgmName == name)
+            if (m_bgmSource.clip == clip && m_bgmSource.isPlaying)
+            {
+                return;
+            }
+
+            if (m_bgmSource.clip == clip)
             {
                 ApplyBgmVolume();
                 m_bgmSource.Play();
@@ -97,164 +89,154 @@ namespace Invariable
                 return;
             }
 
-            m_bgmLoading = true;
-            m_pendingBgmName = null;
-            string requestName = name;
-
-            YooAssetManager.Instance.AsyncLoadAsset<AudioClip>("Audios_" + name, (clip) =>
-            {
-                m_bgmLoading = false;
-
-                if (!string.IsNullOrEmpty(m_pendingBgmName) && m_pendingBgmName != requestName)
-                {
-                    string next = m_pendingBgmName;
-                    m_pendingBgmName = null;
-                    PlayBGM(next);
-
-                    return;
-                }
-
-                m_pendingBgmName = null;
-
-                if (clip == null)
-                {
-                    GameLog.Error($"PlayBGM 加载失败: {requestName}");
-
-                    return;
-                }
-
-                EnsureBgmSource();
-                m_bgmSource.Stop();
-                m_bgmSource.clip = clip;
-                m_bgmSource.loop = true;
-                m_currentBgmName = requestName;
-                ApplyBgmVolume();
-                m_bgmSource.Play();
-            });
+            m_bgmSource.Stop();
+            m_bgmSource.clip = clip;
+            m_bgmSource.loop = true;
+            ApplyBgmVolume();
+            m_bgmSource.Play();
         }
 
         /// <summary>
-        /// 播放音效（同名打断重播）
+        /// 播放音效（挂载 clip，每 clip 独立通道，同 clip 打断重播）
         /// </summary>
-        public void PlaySFX(string name)
+        public void PlaySFX(AudioClip clip)
         {
-            if (string.IsNullOrEmpty(name))
+            if (clip == null)
             {
                 return;
             }
 
-            if (m_sfxSources.TryGetValue(name, out AudioSource source) && source.clip != null)
-            {
-                ApplySfxVolume(source);
-                source.Stop();
-                source.Play();
-
-                return;
-            }
-
-            if (m_sfxLoading.Contains(name))
-            {
-                return;
-            }
+            AudioSource source = EnsureSfxSource(clip);
 
             if (source == null)
             {
-                GameObject go = new GameObject(name);
-                go.transform.SetParent(transform);
-                source = go.AddComponent<AudioSource>();
-                source.playOnAwake = false;
-                source.loop = false;
-                m_sfxSources.Add(name, source);
+                return;
             }
 
-            m_sfxLoading.Add(name);
-
-            YooAssetManager.Instance.AsyncLoadAsset<AudioClip>("Audios_" + name, (clip) =>
-            {
-                m_sfxLoading.Remove(name);
-
-                if (clip == null)
-                {
-                    GameLog.Error($"PlaySFX 加载失败: {name}");
-
-                    return;
-                }
-
-                if (!m_sfxSources.TryGetValue(name, out AudioSource loadedSource))
-                {
-                    return;
-                }
-
-                loadedSource.clip = clip;
-                ApplySfxVolume(loadedSource);
-                loadedSource.Stop();
-                loadedSource.Play();
-            });
+            source.clip = clip;
+            source.loop = false;
+            ApplySfxVolume(source);
+            source.Stop();
+            source.Play();
         }
 
         /// <summary>
-        /// 停止指定或全部音频
+        /// 停止当前背景音乐
         /// </summary>
-        public void StopAudio(string name = "")
+        public void StopBGM()
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                if (m_bgmSource != null)
-                {
-                    m_bgmSource.Stop();
-                }
-
-                foreach (KeyValuePair<string, AudioSource> item in m_sfxSources)
-                {
-                    item.Value.Stop();
-                }
-
-                return;
-            }
-
-            if (m_currentBgmName == name && m_bgmSource != null)
+            if (m_bgmSource != null)
             {
                 m_bgmSource.Stop();
+            }
+        }
 
+        /// <summary>
+        /// 暂停当前背景音乐
+        /// </summary>
+        public void PauseBGM()
+        {
+            if (m_bgmSource != null)
+            {
+                m_bgmSource.Pause();
+            }
+        }
+
+        /// <summary>
+        /// 恢复当前背景音乐
+        /// </summary>
+        public void ResumeBGM()
+        {
+            if (m_bgmSource != null)
+            {
+                m_bgmSource.UnPause();
+            }
+        }
+
+        /// <summary>
+        /// 停止指定 clip 的音效
+        /// </summary>
+        public void StopSFX(AudioClip clip)
+        {
+            if (clip == null)
+            {
                 return;
             }
 
-            if (m_sfxSources.TryGetValue(name, out AudioSource source))
+            if (m_sfxSources.TryGetValue(clip, out AudioSource source))
             {
                 source.Stop();
             }
         }
 
         /// <summary>
-        /// 暂停指定或全部音频
+        /// 暂停指定 clip 的音效
         /// </summary>
-        public void PauseAudio(string name = "")
+        public void PauseSFX(AudioClip clip)
         {
-            if (string.IsNullOrEmpty(name))
+            if (clip == null)
             {
-                if (m_bgmSource != null)
-                {
-                    m_bgmSource.Pause();
-                }
-
-                foreach (KeyValuePair<string, AudioSource> item in m_sfxSources)
-                {
-                    item.Value.Pause();
-                }
-
                 return;
             }
 
-            if (m_currentBgmName == name && m_bgmSource != null)
-            {
-                m_bgmSource.Pause();
-
-                return;
-            }
-
-            if (m_sfxSources.TryGetValue(name, out AudioSource source))
+            if (m_sfxSources.TryGetValue(clip, out AudioSource source))
             {
                 source.Pause();
+            }
+        }
+
+        /// <summary>
+        /// 恢复指定 clip 的音效
+        /// </summary>
+        public void ResumeSFX(AudioClip clip)
+        {
+            if (clip == null)
+            {
+                return;
+            }
+
+            if (m_sfxSources.TryGetValue(clip, out AudioSource source))
+            {
+                source.UnPause();
+            }
+        }
+
+        /// <summary>
+        /// 停止全部音频
+        /// </summary>
+        public void StopAllAudio()
+        {
+            StopBGM();
+
+            foreach (KeyValuePair<AudioClip, AudioSource> item in m_sfxSources)
+            {
+                item.Value.Stop();
+            }
+        }
+
+        /// <summary>
+        /// 暂停全部音频
+        /// </summary>
+        public void PauseAllAudio()
+        {
+            PauseBGM();
+
+            foreach (KeyValuePair<AudioClip, AudioSource> item in m_sfxSources)
+            {
+                item.Value.Pause();
+            }
+        }
+
+        /// <summary>
+        /// 恢复全部音频
+        /// </summary>
+        public void ResumeAllAudio()
+        {
+            ResumeBGM();
+
+            foreach (KeyValuePair<AudioClip, AudioSource> item in m_sfxSources)
+            {
+                item.Value.UnPause();
             }
         }
 
@@ -316,6 +298,81 @@ namespace Invariable
         }
 
         /// <summary>
+        /// 确保指定 clip 的音效 AudioSource 已创建，达到上限且无空闲通道时返回 null
+        /// </summary>
+        private AudioSource EnsureSfxSource(AudioClip clip)
+        {
+            if (m_sfxSources.TryGetValue(clip, out AudioSource source))
+            {
+                m_sfxLruList.Remove(clip);
+                m_sfxLruList.Add(clip);
+
+                return source;
+            }
+
+            if (m_sfxSources.Count >= MaxSfxChannels)
+            {
+                AudioClip evicted = FindIdleSfxClip();
+
+                if (evicted == null)
+                {
+                    GameLog.Error($"AudioManager SFX 通道已达上限 {MaxSfxChannels} 且全部正在播放: {clip.name}");
+
+                    return null;
+                }
+
+                DestroySfxChannel(evicted);
+            }
+
+            GameObject go = new GameObject("SFX_" + clip.name);
+            go.transform.SetParent(transform);
+            source = go.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.loop = false;
+            source.clip = clip;
+            m_sfxSources.Add(clip, source);
+            m_sfxLruList.Add(clip);
+
+            return source;
+        }
+
+        /// <summary>
+        /// 找最久未用的空闲音效通道，暂停视为空闲，无空闲返回 null
+        /// </summary>
+        private AudioClip FindIdleSfxClip()
+        {
+            for (int i = 0; i < m_sfxLruList.Count; i++)
+            {
+                AudioClip clip = m_sfxLruList[i];
+
+                if (!m_sfxSources.TryGetValue(clip, out AudioSource source) || source == null || !source.isPlaying)
+                {
+                    return clip;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 销毁指定 clip 的音效通道并移出管理
+        /// </summary>
+        private void DestroySfxChannel(AudioClip clip)
+        {
+            if (m_sfxSources.TryGetValue(clip, out AudioSource source))
+            {
+                m_sfxSources.Remove(clip);
+
+                if (source != null)
+                {
+                    UnityEngine.Object.Destroy(source.gameObject);
+                }
+            }
+
+            m_sfxLruList.Remove(clip);
+        }
+
+        /// <summary>
         /// 应用 BGM 音量
         /// </summary>
         private void ApplyBgmVolume()
@@ -346,7 +403,7 @@ namespace Invariable
         /// </summary>
         private void ApplyAllSfxVolumes()
         {
-            foreach (KeyValuePair<string, AudioSource> item in m_sfxSources)
+            foreach (KeyValuePair<AudioClip, AudioSource> item in m_sfxSources)
             {
                 ApplySfxVolume(item.Value);
             }
