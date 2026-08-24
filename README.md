@@ -93,7 +93,7 @@ Assets/
 │  ├─ AssetImporter/       # .bin 导入为 BinAsset
 │  ├─ AssetProcess/        # 音频/图片/图集导入设置（VastStarryRiver/资源处理 菜单）
 │  ├─ AtlasBuilder/        # 通用纹理打包（多图合 Multiple Sprite PNG，ContextMenu BuildAtlas，输出在 Editor 目录）
-│  └─ UIButtonEditor.cs    # UIButton 自定义 Inspector
+│  └─ InspectorEditor/     # 自定义 Inspector（UIButtonEditor）
 ├─ ToolPackage/            # 本地第三方库
 │  ├─ DOTween/             # 预编译 DLL + Modules 源码
 │  ├─ TextMesh Pro/

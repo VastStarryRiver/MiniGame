@@ -101,7 +101,7 @@
 - 微信/抖音小游戏构建；
 - 音频/图集导入设置（`AssetProcess`）；
 - 图集和 `.bin` 导入；
-- UIButton 自定义 Inspector（`UIButtonEditor.cs`，位于 MyTools 根下）。
+- UIButton 自定义 Inspector（`InspectorEditor/UIButtonEditor.cs`）。
 
 仅包含 Editor 平台，不进入运行时。引用 `Invariable` 用名称引用。
 
