@@ -20,7 +20,7 @@
 
 ## 2. 程序集架构
 
-项目内程序集（`Invariable` / `CloudService` / `MyTools` / `HotUpdate`）之间的引用统一写名称；第三方包继续用 GUID。
+项目内程序集（`Invariable` / `CloudService` / `MyTools` / `HotUpdate`）之间的引用统一写名称；第三方包用 GUID。
 
 ### 2.1 `Invariable`
 
@@ -446,7 +446,7 @@ Assets/AssetBundleCollectorSetting.asset
 
 - `Additive` 模式直接加载目标场景；
 - `Single` 模式先逐个卸载其他已缓存场景，再加载目标场景；加载完成后调用 `PoolUtils.ClearAllGameObjectPools()` 清空 GameObject 池；
-- 缓存句柄对应场景已卸载时释放旧句柄并重新加载；
+- 缓存句柄对应场景已卸载时释放该句柄并重新加载；
 - 加载失败释放句柄并回调 `default`。
 
 闲置逐出（与配置表 `ConfigFormat` 节奏对齐）：
@@ -500,7 +500,7 @@ Singleton<T> where T : new()
 - 池根节点：`Launcher.Awake` 调用 `SetPoolParent` 注入 `PoolParent` 常驻节点，归还的 GameObject 统一挂入并隐藏；取出时激活并挂到指定 parent
 - 清池：`ClearGameObjectPool(key)` 销毁指定 key 全部实例、`ClearAllGameObjectPools()` 清空全部，均保留自定义上限；`Single` 模式场景加载完成后自动调用后者
 - 池 key 使用 `HotUpdateConst` `#region 对象池` 常量，禁止调用处散落字面量
-- 现有示例：`FloatTextPanel`（`HotUpdateConst.Pool_FloatTextItem`）
+- 示例：`FloatTextPanel`（`HotUpdateConst.Pool_FloatTextItem`）
 
 ## 8. 事件系统
 
@@ -557,7 +557,7 @@ CancelInvokeByKey(key);
 - `DelayCallSeconds` 与 `RepeatingCallSeconds` 均受 `Time.timeScale` 影响；
 - `CancelInvokeByKey` 仅当 key 存在时输出 `GameLog.Info(key + "取消调用")`，key 不存在直接返回。
 
-现有使用示例：`FloatTextPanel`。
+使用示例：`FloatTextPanel`。
 
 ## 10. UI 框架
 
@@ -566,10 +566,10 @@ CancelInvokeByKey(key);
 打开页面应使用：
 
 ```csharp
-Utils.OpenUIPrefabPanel(prefabName, layer, callback);
+Utils.OpenUIPrefabPanel(string prefabPath, int layer, Action<GameObject> callBack = null);
 ```
 
-Tips/FloatText 业务封装走 `HotUpdateUtils.OpenTipsPanel` / `ShowFloatText`（内部仍调用 `Utils.OpenUIPrefabPanel`）。
+`prefabPath` 传路径或文件名均可，内部取文件名并去掉 `.prefab`。Tips/FloatText 业务封装走 `HotUpdateUtils.OpenTipsPanel` / `ShowFloatText`（内部仍调用 `Utils.OpenUIPrefabPanel`）。
 
 执行过程：
 
@@ -635,29 +635,7 @@ HotUpdateUtils.ShowFloatText(...);
 
 ## 11. 音频
 
-接口：
-
-```csharp
-AudioManager.Instance.PlayBGM(m_audioBgm);
-AudioManager.Instance.PlaySFX(m_audioClip);
-AudioManager.Instance.StopBGM();
-AudioManager.Instance.PauseBGM();
-AudioManager.Instance.ResumeBGM();
-AudioManager.Instance.StopSFX(m_audioClip);
-AudioManager.Instance.PauseSFX(m_audioClip);
-AudioManager.Instance.ResumeSFX(m_audioClip);
-AudioManager.Instance.StopAllAudio();
-AudioManager.Instance.PauseAllAudio();
-AudioManager.Instance.ResumeAllAudio();
-AudioManager.Instance.SetMasterVolume(1f);
-AudioManager.Instance.SetBGMVolume(1f);
-AudioManager.Instance.SetSFXVolume(1f);
-AudioManager.Instance.SetMute(false); // 音量设置经 SdkManager 本地存储持久化
-```
-
-音频一律 Inspector 挂载 `AudioClip`，禁止按名加载。文件按 `Audios/Bgm` 与 `Audios/Sfx` 子目录分放。`VastStarryRiver/资源处理/设置音频资源` 菜单按子目录批量设置导入参数：Bgm 用 CompressedInMemory，Sfx 用 DecompressOnLoad 且强制单声道。音频为 Depend 模式，由 Prefab 依赖加载，无独立地址。
-
-BGM 为单通道循环（子物体 `BGM`）；SFX 每 clip 独立 `AudioSource`，同 clip 打断重播，不同 clip 叠加；音量/静音经 `SdkManager` 本地存储持久化。详见 ScriptDevGuide §10。
+`AudioManager`：BGM 单通道循环（子物体 `BGM`）；SFX 每 clip 独立 `AudioSource`，同 clip 打断重播，不同 clip 叠加；通道上限 30，超出回收最久未用空闲通道，全忙打错误日志并跳过。音频一律 Inspector 挂载 `AudioClip`，禁止按名加载，为 Depend 模式、由 Prefab 依赖加载。音量/静音经 `SdkManager` 本地存储持久化。播放、停止与导入设置见 ScriptDevGuide §10。
 
 ## 12. 配置系统
 
@@ -710,47 +688,7 @@ ConfigManager.ClearAll();
 
 ### 12.1 Excel 源表格式
 
-表头固定 3 行，第 4 行起为数据（全表至少 4 行）：
-
-| 行 | 含义 |
-|---:|---|
-| 1 | 字段名；首列强制视为 `Id` |
-| 2 | 类型：`int` / `float` / `string`（不区分大小写） |
-| 3 | 注释（可空） |
-| 4+ | 数据行 |
-
-约束：
-
-- 文件名须为合法 C# 标识符；
-- `Id` 必须是标量 `int`，不能是数组；
-- 字段按 baseName 字典序、同前缀按数字后缀排序后写入 bytes 与生成代码，`Id` 强制首位；布局顺序不等于 Excel 列序；
-- 定长数组：列名使用 `字段名+序号`（如 `Reward1`/`Reward2`），同前缀连续列且类型一致，生成 `字段名` 数组；
-- 空单元格：`int`/`float` 按 0，`string` 按空串。
-
-支持类型：
-
-```text
-int, float, string,
-定长 int[] / float[] / string[]
-```
-
-标量示例：
-
-| Id | StartLv | Speed | Name |
-|---|---|---|---|
-| int | int | float | string |
-| 编号 | 开启等级 | 速度 | 名称 |
-| 1 | 10 | 3.5 | 新手 |
-
-定长数组示例：
-
-| Id | Reward1 | Reward2 | Pos1 | Pos2 | Tag1 | Tag2 |
-|---|---|---|---|---|---|---|
-| int | int | int | float | float | string | string |
-| 编号 | 奖励1 | 奖励2 | X | Y | 标签1 | 标签2 |
-| 1 | 100 | 200 | 1.5 | 2.5 | 近战 | 物理 |
-
-生成字段：`int[] Reward`、`float[] Pos`、`string[] Tag`。
+源表格式、约束与示例见 ScriptDevGuide §11.1。
 
 ### 12.2 设计要点
 
@@ -767,20 +705,7 @@ int, float, string,
 
 ## 13. CDN 根地址
 
-运行时 CDN 根地址为编译期常量 `InvariableConst.CDNPath`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`，`#region 游戏资源`）。YooAsset 远程根为 `{CDNPath}/yoo`。
-
-打包微信/抖音小游戏时，菜单会把该常量写入平台配置资产的 `CDN` 字段后再构建：
-
-- 微信：`Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset`、`Assets/Settings/Build Profiles/WeChat Profile.asset`
-- 抖音：`Assets/Settings/Build Profiles/DouYin Profile.asset`、`Assets/Editor/StarkBuilderSetting.asset`
-
-只同步 `CDN` 字段；`StreamCDN` / `AssetsUrl` / `wasmResourceUrl` 不改。Profile 里的 CDN 无需手填。
-
-`ConfigUtils.CdnPath` 是工程根下的本地 `CDN/` 暂存目录（复制 bundle / unityweb.bin 用），与远程根 `InvariableConst.CDNPath` 不是同一概念。
-
-`CDNPath` 必须填写。留空时编辑器模拟模式可跑，但真机 WebPlayMode 远程根变为 `/yoo`，资源下载必失败；打包菜单会把空串写入上述平台配置资产的 `CDN` 字段。打包前必查。
-
-`InvariableConst.CDNPath` 属 `Invariable`，修改后必须重新构建并发布小游戏基础包，不能只热更。
+运行时 CDN 根地址为编译期常量 `InvariableConst.CDNPath`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{CDNPath}/yoo`。完整配置、打包写入、本地暂存目录与留空后果见 HotUpdateBuildAdapt §4。
 
 ## 14. 工具类
 
@@ -803,11 +728,7 @@ int, float, string,
 
 ## 15. 日志输出
 
-- `Invariable` / `HotUpdate` / `MyTools` 业务日志使用 `GameLog.Info` / `GameLog.Error`，禁止直接调用 `UnityEngine.Debug.Log` / `LogWarning` / `LogError`；
-- `GameLog.Info` 仅编辑器环境输出（包内剔除）；`GameLog.Error` 始终输出；
-- 映射：`Debug.Log` / `Debug.LogWarning` → `GameLog.Info`；`Debug.LogError` → `GameLog.Error`；
-- `CloudService` 云函数体仍使用 `UnityEngine.Debug`（云函数约束，且 `GameLog` 位于 `Invariable`，引用它会与 `Invariable` → `CloudService` 的现有依赖形成循环引用）；
-- 例外：`GameLog.cs` 自身实现；第三方库 `ToolPackage` 不在此约束。
+规范见 ScriptDevGuide §3.13。
 
 ## 16. UOS 服务与云存档
 
@@ -830,15 +751,8 @@ int, float, string,
 - 玩家资料字段统一为 `UserId` / `NickName` / `AvatarUrl`：玩家存档写在 JSON 内容里，排行榜条目写在顶层与 `Data` 并列（`Data` 只保留排行分数等业务数据）；
 - 同游戏同账号才同数据。
 
-客户端入口：`CloudManager` 负责 `InitCloudData` / `GetRankList` / `ReportRankScore`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）以及 `SyncPlatformUserInfo` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`（`SyncPlatformUserInfo` 与 `RequestPlatformUserInfoAuth` 为双回调：`authCallBack` 仅在本次发生授权动作时触发，`userInfoCallBack` 返回昵称/头像获取结果）。`GetRankList(rankKey, rankType, callBack)`：`rankType` 必填（`CloudRankTypes.World` / `Day`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后，按客户端传入的平台标识自行拼 `kv_{gameId}_rank_{platform}`，再按 `rankType` 读 `rank_world` 或 `rank_day` Top100 快照（list + 详情 + 下载共 3 次请求）；快照由 `ReportRankScore` 写入时维护 `rankKey` 降序，读取仅截取前 `CloudGetAllMaxCount = 100` 名返回。日榜 0-5 点（UTC+8）只读前一天完整数据，5 点由云函数定时任务 `ResetDayRank` 主动清空（5 点后日榜立即为空），写入侧惰性清空兜底。`ReportRankScore(rankKey, score)`：数据变化时上报，云函数同时增量维护世界榜与日榜，并写入条目顶层 `UserId` / `NickName` / `AvatarUrl`（与 `Data` 并列，空值保留旧资料，`Data` 只保留排行分数等业务数据）；上榜判断由云函数以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0。日榜 0-5 点停止写入（世界榜仍更新），5 点后允许写入，若快照日期不是当天则惰性清空再写入。玩家存档上传同样写入 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`。微信首次/未授权必须 `WX.CreateUserInfoButton` 用户点击，已授权后 `WX.GetUserInfo` 可刷新。抖音授权为两段链路：同步时 `TT.GetUserInfoAuth` 检查，已授权走 `TT.GetUserInfo`，未授权显示授权锚点；`TT.Authorize("scope.userInfo")` 在 `SdkManager.RequestPlatformUserInfoAuth`（锚点点击）中，授权成功后再 `TT.GetUserInfo`。未授权不阻塞存档。头像只存 URL，显示走 `Utils.SetRemoteImage`，域名配到 MP 后台 downloadFile，不进 UOS 白名单。客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。资料键契约：`CloudService.CloudDataKeys`。
+客户端入口：`CloudManager` 负责 `InitCloudData` / `GetRankList` / `ReportRankScore`；`SdkManager` 负责 `SetCloudData` / `GetCloudData`（与本地存储同属数据存储模块）以及 `SyncPlatformUserInfo` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth` / `DestroyPlatformUserInfoButton`（`SyncPlatformUserInfo` 与 `RequestPlatformUserInfoAuth` 为双回调：`authCallBack` 仅在本次发生授权动作时触发，`userInfoCallBack` 返回昵称/头像获取结果）。`GetRankList(rankKey, rankType, callBack)`：`rankType` 必填（`CloudRankTypes.World` / `Day`），云函数校验 `gameId` 与 `CloudHelper.Secrets.GameId` 一致后，按客户端传入的平台标识自行拼 `kv_{gameId}_rank_{platform}`，再按 `rankType` 读 `rank_world` 或 `rank_day` Top100 快照（list + 详情 + 下载共 3 次请求）；快照由 `ReportRankScore` 写入时维护 `rankKey` 降序，读取仅截取前 `CloudGetAllMaxCount = 100` 名返回。日榜 0-5 点（UTC+8）只读前一天完整数据，5 点由云函数定时任务 `ResetDayRank` 主动清空（5 点后日榜立即为空），写入侧惰性清空兜底。`ReportRankScore(rankKey, score)`：数据变化时上报，云函数同时增量维护世界榜与日榜，并写入条目顶层 `UserId` / `NickName` / `AvatarUrl`（与 `Data` 并列，空值保留已有资料，`Data` 只保留排行分数等业务数据）；上榜判断由云函数以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0。日榜 0-5 点停止写入（世界榜照常更新），5 点后允许写入，若快照日期不是当天则惰性清空再写入。玩家存档上传同样写入 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`。微信首次/未授权必须 `WX.CreateUserInfoButton` 用户点击，已授权后 `WX.GetUserInfo` 可刷新。抖音授权为两段链路：同步时 `TT.GetUserInfoAuth` 检查，已授权走 `TT.GetUserInfo`，未授权显示授权锚点；`TT.Authorize("scope.userInfo")` 在 `SdkManager.RequestPlatformUserInfoAuth`（锚点点击）中，授权成功后再 `TT.GetUserInfo`。未授权不阻塞存档。头像只存 URL，显示走 `Utils.SetRemoteImage`，域名配到 MP 后台 downloadFile，不进 UOS 白名单。客户端 SDK 只能读当前玩家自己的存档，也不能直接指定 namespace。业务侧回调类型为 `CloudService.PlayerCloudData`（位于 `Assets/Scripts/CloudService/Model/PlayerCloudData.cs`）。资料键契约：`CloudService.CloudDataKeys`。
 
 编辑器环境 `SdkManager.SetCloudData` / `GetCloudData` 走本地存储；真机转发 `CloudManager` 云缓存；云初始化失败后 Set 静默丢弃、Get 返回默认值。
 
-云函数部署：
-
-1. 在 `CloudHelper.Secrets` 填入本游戏的 `GameId` 与平台 AppID/AppSecret；`CloudManager.CloudSaveGameId` 必须与其一致；
-2. 菜单 `UOS/Func Stateless/Open Panel` 上传；
-3. 切换为远程调用模式；
-4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户；控制台 cron 时区已确认为 UTC+8（北京时间），每天凌晨 5 点触发）。
-
-微信/抖音 MP 后台白名单：`https://a.unity.cn`、`https://a.unity3dcloud.cn`、`https://a2.unity3dcloud.cn`、`https://a3.unity3dcloud.cn`（CDN 资源）；`https://save.unity.cn`、`https://uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com`、`https://stateless.unity.cn`、`https://p.unity.cn`。
+云函数部署步骤见 NewProjectSetup §7。微信/抖音 MP 后台合法域名配置见 NewProjectSetup §4.2。

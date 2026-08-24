@@ -135,11 +135,7 @@ a3.unity3dcloud.cn
 public const string CDNPath = "{新CDN根地址}";
 ```
 
-运行时 YooAsset 远程根为 `{CDNPath}/yoo`。打包微信/抖音时菜单会把该常量写入平台配置资产的 `CDN` 字段，无需手填 Profile。
-
-`CDNPath` **必须填写**。留空时编辑器模拟模式可跑，但真机 WebPlayMode 远程根变为 `/yoo`，资源下载必失败。
-
-`CDNPath` 属 `Invariable`，修改后必须重新构建并发布小游戏基础包，不能只热更。
+运行时 YooAsset 远程根为 `{CDNPath}/yoo`。留空后果、打包写入与发布边界见 HotUpdateBuildAdapt §4。
 
 ### 5.4 DLL/配置加密密钥
 
@@ -235,17 +231,17 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 构建输出路径 | 指向本机新工程下的路径（如 `{新工程根}/Build/WeChat`、`{新工程根}/Build/DouYin`） |
 | 屏幕方向、内存、压缩等 | 按新游戏需求核对 |
 
-**重要：** Profile 含机器相关绝对路径。整目录复制后必须重新检查，不能沿用旧机器路径。切平台时通过 Build Profile 正确激活，不要只改宏文本。
+**重要：** Profile 含机器相关绝对路径。整目录复制后必须重新检查，不能沿用源机器路径。切平台时通过 Build Profile 正确激活，不要只改宏文本。
 
 ### 5.9 编辑器 CDN 上传目标
 
-打开 UOS CDN 相关面板（`UOS/CDN/Manager` 或工程内已有 CDN 工具），将上传目标切换为**新 App 下的新 Bucket**，再执行后续「复制到 CDN / 上传」步骤，避免把资源传到旧游戏 Bucket。
+打开 UOS CDN 相关面板（`UOS/CDN/Manager` 或工程内已有 CDN 工具），将上传目标切换为**新 App 下的新 Bucket**，再执行后续「复制到 CDN / 上传」步骤，避免把资源传到其他游戏 Bucket。
 
 ### 5.10 明确无需改动的项
 
 - `YooAssetManager.LoadMetadataForAOTAssemblies("MiniGame", ...)` 中的 `"MiniGame"` 是团结引擎 **BuildTarget 名**（与 `EditorUserBuildSettings.activeBuildTarget.ToString()` 对应），**不是**产品名 / GameId。同引擎版本下保持不变。
-- YooAsset Package 名默认 `MyPackage`，可继续沿用，除非团队另有规范。
-- `HotUpdate.asmdef` 引用 `Invariable` 与 `CloudService`（消费 Model DTO），统一写名称，**勿删**。项目内程序集之间用名称引用，第三方包继续用 GUID。
+- YooAsset Package 名默认 `MyPackage`，可沿用，除非团队另有规范。
+- `HotUpdate.asmdef` 引用 `Invariable` 与 `CloudService`（消费 Model DTO），统一写名称，**勿删**。项目内程序集之间用名称引用，第三方包用 GUID。
 
 ---
 
@@ -293,8 +289,8 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 1. 菜单：`UOS/Func Stateless/Open Panel`
 2. 上传 `CloudHelper` 所在云函数工程（`Assets/Scripts/CloudService/`）
 3. **切换为远程调用模式**
-4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户；控制台 cron 时区已确认为 UTC+8（北京时间），每天凌晨 5 点触发）
-5. 打包微信/抖音小游戏前确认仍为远程模式；**禁止**以本地调用模式出正式包
+4. UOS 控制台给 `ResetDayRank` 配置定时触发器 cron `0 5 * * *`（需正式用户；控制台 cron 时区为 UTC+8（北京时间），每天凌晨 5 点触发）
+5. 打包微信/抖音小游戏前确认处于远程模式；**禁止**以本地调用模式出正式包
 
 提醒：
 
@@ -305,30 +301,14 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 ## 8. 首发构建流水线
 
-以下为新游戏**首次或完整基础包发布**推荐顺序（与 [HotUpdateBuildAdapt.md](./HotUpdateBuildAdapt.md) §12.1 一致）。每步完成后确认无报错再继续。
+新游戏首次或完整基础包发布的步骤顺序与 [HotUpdateBuildAdapt.md](./HotUpdateBuildAdapt.md) §12.1 一致，按该节执行。首发额外确认：
 
-1. 激活目标平台 Build Profile（微信或抖音）
-2. 确认只激活正确的平台宏（`MINIGAME_SUBPLATFORM_WEIXIN` / `MINIGAME_SUBPLATFORM_DOUYIN`）
-3. 检查 Profile 的 AppID、输出路径和方向（CDN 由打包菜单按 `InvariableConst.CDNPath` 自动写入）
-4. 确认 `InvariableConst.CDNPath` 已是 `{新CDN根地址}`
-5. 如有 Excel 变更：`VastStarryRiver/Config/导出Excel配置`
-6. 等待脚本编译成功
-7. `VastStarryRiver/DLL/导出所有DLL`
-8. `VastStarryRiver/DLL/复制热更新DLL`
-9. `VastStarryRiver/DLL/复制元数据DLL`
-10. `VastStarryRiver/构建AssetBundle`
-11. `VastStarryRiver/打包/复制bundle到CDN目录`（写入本地 `CDN/yoo`）
-12. 用 UOS CDN 工具将 `CDN/yoo` 上传到**新 Bucket** 并发布（Badge 与 `{新CDN根地址}` 一致）
-13. 确认云函数已上传且为**远程调用模式**，`ResetDayRank` 定时触发器已配置（第 7 章）
-14. 打包：
-    - 微信：`VastStarryRiver/打包/打包微信小游戏` → 输出 `Build/WeChat`
-    - 抖音：`VastStarryRiver/打包/打包抖音小游戏` → 输出 `Build/DouYin`
-15. 若平台数据文件走 CDN：`VastStarryRiver/打包/复制unityweb.bin到CDN目录`，再上传到新 Bucket 根（与 `CDN/yoo` 区分）
-16. 用对应平台开发者工具打开构建产物并启动
-17. **清缓存**与**保留缓存**各测一轮
-18. 提交审核或发布
+- `InvariableConst.CDNPath` 已是 `{新CDN根地址}`
+- 云函数已上传且为远程调用模式，`ResetDayRank` 定时触发器已配置（第 7 章）
+- UOS CDN 上传目标为新 Bucket，Badge 与 `{新CDN根地址}` 一致
+- 用对应平台开发者工具打开构建产物，清缓存与保留缓存各测一轮
 
-后续仅业务代码热更 / 仅资源热更，见 HotUpdateBuildAdapt §12.2 / §12.3。以下改动不能只靠热更，必须重发基础包：`Invariable`、`CloudService`、首包 Resources、SDK/引擎/HybridCLR 配置、Start 场景、Build Profile 中影响运行时的设置等（详见 HotUpdateBuildAdapt §13）。
+后续仅业务代码热更 / 仅资源热更，见 HotUpdateBuildAdapt §12.2 / §12.3。不能只靠热更、必须重发基础包的范围见 HotUpdateBuildAdapt §13。
 
 ---
 
@@ -337,7 +317,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 ### 9.1 编辑器侧（准备阶段自检）
 
 - [ ] `CloudHelper.Secrets.GameId` 与 `CloudManager.CloudSaveGameId` 均为 `{新GameId}`
-- [ ] 工程内无旧游戏 CDN bucket UUID、无旧 GameId 残留（搜索旧值）
+- [ ] 工程内无其他游戏 CDN bucket UUID、无其他 GameId 残留（搜索残留值）
 - [ ] `InvariableConst.CDNPath` 指向 `{新CDN根地址}`（不可留空）
 - [ ] `InvariableConst.EncryptKey` / `EncryptIv` 已填合法长度（key 16/24/32 字节、iv 16 字节）
 - [ ] UOS Launcher 显示已绑定新 App
@@ -345,7 +325,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 - [ ] UOS 控制台已给 `ResetDayRank` 配置日榜定时触发器 cron `0 5 * * *`（需正式用户，cron 时区 UTC+8）
 - [ ] 微信隐私协议已配置（含 `scope.userInfo`）；抖音开放平台已开通 `scope.userInfo`
 - [ ] 头像实际域名已加入微信/抖音 MP 后台 downloadFile 合法域名
-- [ ] 微信/抖音 Build Profile AppID、输出路径已更新
+- [ ] 微信/抖音 Build Profile AppID、输出路径已改为新值
 - [ ] Console 无编译错误
 
 ### 9.2 真机 / 平台侧（双平台均测）
@@ -353,7 +333,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 场景 | 微信真机 | 抖音真机 |
 |---|:---:|:---:|
 | 首次无缓存启动 | 必测 | 必测 |
-| 有旧缓存启动 | 必测 | 必测 |
+| 有缓存启动 | 必测 | 必测 |
 | 平台登录 → 云函数换取云存档令牌 | 必测 | 必测 |
 | 云存档读写（`kv_{新GameId}_player`） | 必测 | 必测 |
 | 世界榜/日榜上报/拉取（`kv_{新GameId}_rank_wx` / `kv_{新GameId}_rank_dy`，分榜不混） | 必测 | 必测 |
@@ -383,23 +363,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 ## 附录 B：关键菜单速查
 
-```text
-UOS/Open Launcher
-UOS/Func Stateless/Open Panel
-UOS/CDN/Manager
-VastStarryRiver/Config/导出Excel配置
-VastStarryRiver/Config/校验配置数据
-VastStarryRiver/DLL/导出所有DLL
-VastStarryRiver/DLL/复制热更新DLL
-VastStarryRiver/DLL/复制元数据DLL
-VastStarryRiver/构建AssetBundle
-VastStarryRiver/打包/打包微信小游戏
-VastStarryRiver/打包/打包抖音小游戏
-VastStarryRiver/打包/复制bundle到CDN目录
-VastStarryRiver/打包/复制unityweb.bin到CDN目录
-VastStarryRiver/资源处理/设置音频资源
-VastStarryRiver/资源处理/设置图片和图集
-```
+完整菜单清单见 `unity-mcp` 规则「项目菜单清单」。
 
 ## 附录 C：准备进度勾选（可选）
 

@@ -135,7 +135,7 @@ Editor 代码不能被运行时程序集引用。
 | `catch` 异常变量 | 统一 `error` | `catch (Exception error)` |
 | 事件处理方法 | `On` + 对象/行为 + 事件 | `OnPlayGameClick` |
 
-常用 Unity/UI 字段缩写沿用现有工程风格：
+常用 Unity/UI 字段缩写沿用工程风格：
 
 | 前缀 | 类型/用途 | 对应节点名 | 示例 |
 |---|---|---|---|
@@ -224,10 +224,10 @@ private void Awake()
 
 1. 对象由代码动态实例化，编辑阶段无法拖拽绑定；
 2. 目标对象来自运行时加载的场景或 Prefab，编译时不存在引用关系；
-3. 框架级全局根节点需要跨场景定位，例如现有的 `UI_Root`；
+3. 框架级全局根节点需要跨场景定位，例如 `UI_Root`；
 4. 第三方 SDK 或框架 API 只能通过名称、路径或类型获取对象；
-5. 为兼容旧资源临时补偿缺失引用，并且需求明确要求兼容；
-6. 既有例外：`UIPopup.OnEnable` 对同物体 `CanvasGroup` 使用 `GetComponent`（`m_tsTrans` 所在物体必须同时挂 `CanvasGroup`）。
+5. 为兼容已有资源临时补偿缺失引用，并且需求明确要求兼容；
+6. 例外：`UIPopup.OnEnable` 对同物体 `CanvasGroup` 使用 `GetComponent`（`m_tsTrans` 所在物体必须同时挂 `CanvasGroup`）。
 
 确需运行时查找时，必须同时满足：
 
@@ -301,7 +301,7 @@ private RectTransform CreateItem()
 - `//` 后空一格；行尾注释与代码之间空一格：`代码; // 注释`；
 - 行尾注释仅用于解释当前语句中不直观的目的；
 - 注释不使用全角句号，句尾不加标点，句中用 `，`；
-- 注释与代码保持同步；不保留被注释掉的废弃代码。
+- 注释与代码保持同步；不保留被注释掉的无用代码。
 
 示例：
 
@@ -379,7 +379,7 @@ m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetEase(Ease.InSine).OnComplete(() =>
 - 不使用目标类型推断 `new()`，显式写类型；
 - 短集合初始化可单行，长初始化每元素一行；
 - `#region` 允许保留；
-- 字符串事件名、资源地址等应沿用项目既有格式；
+- 字符串事件名、资源地址等应沿用项目格式；
 - 同一业务字符串重复使用时，应提取为常量；
 - 不直接在业务代码中写入密码、正式广告位 ID 或其他敏感配置；
 - 文档只规定书写格式；没有实际用途的字段、生命周期方法和空方法不得保留。
@@ -394,7 +394,7 @@ m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetEase(Ease.InSine).OnComplete(() =>
 - `Invariable` / `HotUpdate` / `MyTools` 禁止直接调用 `UnityEngine.Debug.Log` / `LogWarning` / `LogError` 输出业务日志；
 - 必须使用 `GameLog.Info`（仅编辑器环境输出）或 `GameLog.Error`（始终输出）；
 - 映射：`Debug.Log` / `Debug.LogWarning` → `GameLog.Info`；`Debug.LogError` → `GameLog.Error`；
-- 排除 `CloudService`：云函数约束要求只能用 `UnityEngine.Debug`，且 `GameLog` 位于 `Invariable`，引用它会与 `Invariable` → `CloudService` 的现有依赖形成循环引用；
+- 排除 `CloudService`：云函数约束要求只能用 `UnityEngine.Debug`，且 `GameLog` 位于 `Invariable`，引用它会与 `Invariable` → `CloudService` 的依赖方向形成循环引用；
 - `GameLog` 命名空间为 `Invariable`：同程序集直接用；跨程序集（`MyTools`）需 `using Invariable;`；
 - 例外：`GameLog.cs` 自身实现；第三方库 `ToolPackage` 不在此约束。
 
@@ -425,7 +425,7 @@ m_tsPlay.DOAnchorPos(Vector2.zero, 1f).SetEase(Ease.InSine).OnComplete(() =>
 - [ ] 固定组件引用均为 `public` 并已拖拽赋值（预制体脚本）；
 - [ ] 生命周期按执行序；预制体脚本 public 绑定字段在前；
 - [ ] 事件、计时器和 SDK 回调已对称清理；按钮监听：Inspector UnityEvent 持久化绑定和代码 `AddClickListener` 等等五个注册的监听都会在GameObject销毁的时候自动失效所以无需代码清理；
-- [ ] 没有废弃注释代码、调试残留或敏感信息。
+- [ ] 没有无用注释代码、调试残留或敏感信息。
 
 ## 4. 新增普通热更新业务脚本
 
@@ -454,7 +454,7 @@ namespace HotUpdate
 
 注意：
 
-1. `HotUpdate` 可以 `using Invariable`；asmdef 对项目内程序集统一写名称引用，第三方包继续用 GUID；
+1. `HotUpdate` 可以 `using Invariable`；asmdef 对项目内程序集统一写名称引用，第三方包用 GUID；
 2. 不要让 `Invariable` 直接引用此类型；
 3. `HotUpdate` 可消费 `CloudService` 的 Model DTO（如 `PlayerCloudData`），仅限数据模型，禁止依赖云函数内部实现；DTO 契约变更需重发基础包并同步重导热更 DLL；
 4. 如需从不可热更层调用，应定义稳定接口、事件，或在唯一入口处反射；
@@ -644,7 +644,7 @@ GameManager.Instance.InvokeEventCallBack<object>(HotUpdateConst.Event_ExampleFea
 
 ### 7.2 使用注意
 
-- 事件 API 仅保留泛型：`AddEventListener<T>` / `RemoveEventListener<T>` / `InvokeEventCallBack<T>`；
+- 事件 API 仅有泛型：`AddEventListener<T>` / `RemoveEventListener<T>` / `InvokeEventCallBack<T>`；
 - 参数类型不匹配会在运行时失败；
 - 不要用含义相近但拼写不同的事件名；
 - 不要在匿名 lambda 注册后尝试用另一个 lambda 移除；
@@ -652,7 +652,7 @@ GameManager.Instance.InvokeEventCallBack<object>(HotUpdateConst.Event_ExampleFea
 - 回调中避免直接增删同一个事件的监听集合；
 - 高频数据同步不宜全部经过事件总线，可考虑明确接口。
 
-事件与延迟调用 key 已集中到常量类（用 `#region` 分区管理）：
+事件与延迟调用 key 集中在常量类（用 `#region` 分区管理）：
 
 ```text
 Assets/Scripts/Invariable/Utils/InvariableConst.cs   # 跨层契约（事件/计时器/UI 路径/AOT 列表/广告与分享/音频本地 key 等）
@@ -982,7 +982,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 | Editor | 转发 `SetLocalData` / `GetLocalData` |
 | 微信/抖音 | 转发 `CloudManager` 云缓存；写后异步上传 |
 
-云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜：数据变化时调用 `CloudManager.Instance.ReportRankScore(rankKey, score)`（云函数同时维护世界榜 `rank_world` 与日榜 `rank_day`，上榜判断以云端快照为准：已上榜者每次上报直接覆盖分数和其它排行榜数据；未上榜者榜满 100 需超过榜尾才上榜、榜不满时分数需大于 0；日榜 0-5 点 UTC+8 停止写入，5 点由云函数定时任务 `ResetDayRank` 主动清空，5 点后日榜立即为空，写入侧惰性清空兜底）；世界榜/日榜拉取用 `CloudManager.Instance.GetRankList(rankKey, rankType, callBack)`（`rankType` 必填，世界榜传 `CloudRankTypes.World`，日榜传 `CloudRankTypes.Day`；读 `kv_{GameId}_rank_{平台}` 下对应 userId 快照，写入时维护降序，读取仅截取前 100，微信与抖音分榜；日榜 0-5 点返回前一天完整数据，5 点后日榜立即为空）。编辑器桩：`GetRankList` 回空列表、`ReportRankScore` 回 true。玩家存档 JSON 写入 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`；排行榜条目为 `UserId` / `NickName` / `AvatarUrl` / `Data` 并列，资料不进 `Data`；未授权 fail-soft，不阻塞存档且不清空旧资料。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要用挂载图集。上传前校验令牌有效性、临期/过期自动重签，401 自动重签并重试一次。云函数/密钥约束见 `cloud-service` 规则。
+云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜上报：`CloudManager.Instance.ReportRankScore(rankKey, score)`。排行榜拉取：`CloudManager.Instance.GetRankList(rankKey, rankType, callBack)`，`rankType` 必填，世界榜传 `CloudRankTypes.World`，日榜传 `CloudRankTypes.Day`。编辑器桩：`GetRankList` 回空列表、`ReportRankScore` 回 true。资料键用 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要用挂载图集。云存档与排行榜契约见 FrameworkAndProcess §16。云函数/密钥约束见 `cloud-service` 规则。
 
 存档修改应考虑：
 
@@ -1041,7 +1041,7 @@ public void DoPlatformAction(Action<bool> callBack)
 
 - 热更新 UI 可以通过 Prefab 序列化脚本或运行时按类名补加组件；
 - 运行时补加依赖“Prefab 名 = 类名”；
-- 字段序列化变化可能导致旧 Prefab 丢引用；
+- 字段序列化变化可能导致已有 Prefab 丢引用；
 - 重命名脚本或移动命名空间时要检查 Prefab；
 - 修改字段类型后要重新打开 Prefab 验证；
 - 不要只改脚本而忽略对应 `.prefab`；
@@ -1075,7 +1075,7 @@ public void DoPlatformAction(Action<bool> callBack)
 - [ ] 新类型可被 HybridCLR 加载；
 - [ ] AOT 泛型和反射类型已验证；
 - [ ] DLL 已重新生成、加密并构建到 YooAsset；
-- [ ] 真机不是仍在使用旧缓存清单。
+- [ ] 真机未使用过期缓存清单。
 
 ### 16.4 平台
 
@@ -1131,4 +1131,4 @@ public const string Pool_FloatTextItem = "FloatTextItem";
 #endregion
 ```
 
-现有示例：`FloatTextPanel`。
+示例：`FloatTextPanel`。

@@ -159,7 +159,7 @@ Prefab、图片、音频、场景、Excel 表名及资源地址（如有）
 BUG 出现前的操作、实际结果、预期结果、日志或截图
 
 【兼容要求】
-是否需要兼容已有存档、旧资源清单或旧版本客户端？
+是否需要兼容已有存档、已发布资源清单或已发布客户端？
 ```
 
 ## 7. 后续修改代码时的流程
@@ -170,7 +170,7 @@ BUG 出现前的操作、实际结果、预期结果、日志或截图
 4. 实施最小范围修改；
 5. 检查编译边界、空引用、生命周期、事件/计时器清理；
 6. 尽可能进行静态检查或引擎编译验证；
-7. 汇报改动文件和内容、发布平台类型、仍需在编辑器/真机完成的验证。
+7. 汇报改动文件和内容、发布平台类型、需在编辑器/真机完成的验证。
 
 ## 8. 框架状态摘要
 
@@ -188,5 +188,5 @@ BUG 出现前的操作、实际结果、预期结果、日志或截图
   - `MINIGAME_SUBPLATFORM_DOUYIN`
 - 安全区为固定偏移，不是根据设备实时安全区计算。
 - UOS：Launcher / CloudSave / Func Stateless；玩家存档 namespace 为 `kv_{CloudManager.CloudSaveGameId}_player`，排行榜快照为 `kv_{CloudManager.CloudSaveGameId}_rank_{平台}`（`wx` / `dy` 分榜），须与 `CloudHelper.Secrets.GameId` 一致。后台显示名（仅展示）：玩家存档「微信玩家数据」/「抖音玩家数据」，快照「微信世界排行榜」/「微信每日排行榜」/「抖音世界排行榜」/「抖音每日排行榜」。玩家存档 JSON 含 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`；排行榜条目为 `UserId` / `NickName` / `AvatarUrl` / `Data` 并列（`Data` 只保留排行分数等业务数据）；授权入口 `SdkManager.RequestPlatformUserInfoAuth`；微信首次需 `createUserInfoButton`，抖音需 `scope.userInfo` 授权；未授权不阻塞存档。
-- `HotUpdate` 引用 `Invariable` 与 `CloudService`（消费 Model DTO，如 `PlayerCloudData`）；项目内程序集统一名称引用，第三方包继续用 GUID。
+- `HotUpdate` 引用 `Invariable` 与 `CloudService`（消费 Model DTO，如 `PlayerCloudData`）；项目内程序集统一名称引用，第三方包用 GUID。
 - 云读写业务入口：`SdkManager.SetCloudData` / `GetCloudData`；云初始化：`CloudManager.InitCloudData`。

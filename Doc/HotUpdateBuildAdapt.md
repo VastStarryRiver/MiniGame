@@ -121,7 +121,7 @@ TiktokFileSystem
 - 微信：`Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset`、`Assets/Settings/Build Profiles/WeChat Profile.asset`
 - 抖音：`Assets/Settings/Build Profiles/DouYin Profile.asset`、`Assets/Editor/StarkBuilderSetting.asset`
 
-只同步 `CDN` 字段。`ConfigUtils.CdnPath` 是本地 `CDN/` 暂存目录，与远程根不是同一概念。
+只同步 `CDN` 字段；`StreamCDN` / `AssetsUrl` / `wasmResourceUrl` 不改。`ConfigUtils.CdnPath` 是本地 `CDN/` 暂存目录，与远程根不是同一概念。
 
 `CDNPath` 必须填写。留空时编辑器模拟模式可跑，但真机 WebPlayMode 远程根变为 `/yoo`，资源下载必失败；打包菜单会把空串写入上述平台配置资产的 `CDN` 字段。打包前必查。
 
@@ -143,7 +143,7 @@ VastStarryRiver/Config/导出Excel配置
 
 ```text
 Excel/*（xlsx/xls）
-  -> ConfigImporter.RebuildAll（先清空旧 Config_*.cs / Preload / .bytes）
+  -> ConfigImporter.RebuildAll（先清空已有 Config_*.cs / Preload / .bytes）
   -> ExcelReader（InvariantCulture 读单元格；xlsx/xls 只读第一个 sheet）
   -> FieldAnalyzer（表头 3 行解析，首列 Id；字段名合法标识符/非关键字/不重名校验）
   -> ConfigBinaryWriter（写 GameAssets/Config/{表}.bytes；单元格解析失败带 表名+字段+行号）
@@ -155,7 +155,7 @@ Excel/*（xlsx/xls）
 
 - `.bytes` 进入 YooAsset Config 组，地址为 `Config_{表名}`，可随资源热更；
 - **严格失败模式**：任一张表失败即中断，并清空全部配置产物（要么全量正确，要么全空，避免带着问题表发布）；
-- 导表清理范围为旧 `Config_*.cs` / `ConfigManager.Preload.cs` / `.bytes`，不删除整个 `HotUpdate/Config` 目录；
+- 导表清理范围为已有 `Config_*.cs` / `ConfigManager.Preload.cs` / `.bytes`，不删除整个 `HotUpdate/Config` 目录；
 - **纯数值改动**：导表后只需构建 AssetBundle；
 - **表结构变更**：等待脚本重新编译后，再按完整 HybridCLR + YooAsset 流水线导出（见 §12.2）。
 
@@ -244,7 +244,7 @@ MiniGame_System.dll
 
 若 BuildTarget 名变化，需同步修改运行时或生成路径。
 
-若重建或重命名 `HotUpdate.asmdef`，需在 HybridCLR 设置面板确认热更程序集引用仍然有效（静态检查可能出现设置内引用与 `.meta` 标识编码不一致，以编辑器面板为准）。项目内程序集（`Invariable` / `CloudService` / `MyTools` / `HotUpdate`）之间的引用统一写名称；第三方包继续用 GUID。
+若重建或重命名 `HotUpdate.asmdef`，需在 HybridCLR 设置面板确认热更程序集引用仍然有效（静态检查可能出现设置内引用与 `.meta` 标识编码不一致，以编辑器面板为准）。项目内程序集（`Invariable` / `CloudService` / `MyTools` / `HotUpdate`）之间的引用统一写名称；第三方包用 GUID。
 
 ## 7. YooAsset 构建
 
@@ -303,7 +303,7 @@ VastStarryRiver/打包/复制bundle到CDN目录
 
 - 工具只复制最新输出目录的顶层文件；
 - 目标目录会被整个删除；
-- 上传 CDN 前确认没有混入旧平台或错误版本；
+- 上传 CDN 前确认没有混入错误平台或不一致的产物；
 - 清单和 Bundle 必须作为一个一致版本上传；
 - CDN 缓存规则不能导致新清单引用尚未生效的 Bundle。
 
@@ -449,11 +449,11 @@ CDN/
 2. 如改了 Excel，重新导出配置；
 3. 生成 HybridCLR DLL；
 4. 复制 `HotUpdate.dll.bin`；
-5. 若 AOT 依赖未变化，可不一定重复制元数据，但完整流水线仍建议复制；
+5. 若 AOT 依赖未变化，可不一定重复制元数据，完整流水线建议一并复制；
 6. 构建 YooAsset 新版本；
 7. 复制并上传 `CDN/yoo`；
 8. 验证远程新清单和 Bundle；
-9. 在旧基础包上启动验证热更新。
+9. 在已发布基础包上启动验证热更新。
 
 ### 12.3 仅动态资源更新
 
@@ -461,7 +461,7 @@ CDN/
 2. 不需要重新构建 HotUpdate DLL，除非脚本也变更；
 3. 构建 YooAsset；
 4. 上传最新清单和 Bundle；
-5. 在旧基础包上验证下载与加载。
+5. 在已发布基础包上验证下载与加载。
 
 ## 13. 什么不能只靠热更新发布
 
@@ -488,7 +488,7 @@ Editor 工具本身不进入运行时，但其产物变化可能要求重新构�
 | 场景 | Editor | 微信真机 | 抖音真机 |
 |---|---:|---:|---:|
 | 首次无缓存启动 | 模拟 | 必测 | 必测 |
-| 有旧缓存启动 | 不适用 | 必测 | 必测 |
+| 有缓存启动 | 不适用 | 必测 | 必测 |
 | 资源更新进度 | 模拟有限 | 必测 | 必测 |
 | DLL 加载和主界面 | 必测 | 必测 | 必测 |
 | 本地存档 | 必测 | 必测 | 必测 |
@@ -515,4 +515,4 @@ HotUpdate 源码/生成配置
   -> HotUpdate.StartGame.Play
 ```
 
-任一环节仍使用旧产物，都会表现为“源码已修改但真机没有变化”。排查时应逐段确认时间戳、清单版本、下载日志和缓存。
+任一环节仍使用过期产物，都会表现为“源码已修改但真机没有变化”。排查时应逐段确认时间戳、清单版本、下载日志和缓存。
