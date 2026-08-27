@@ -22,6 +22,8 @@ Assets/UOSLauncherEncrypt.meta
 Assets/WX-WASM-SDK-V2.meta
 Assets/WX-WASM-SDK-V2/Editor.meta
 /Assets/WX-WASM-SDK-V2
+Assets/Editor/StarkBuilderSetting.asset
+Assets/Editor/StarkBuilderSetting.asset.meta
 /Build
 /Bundles
 /CDN
