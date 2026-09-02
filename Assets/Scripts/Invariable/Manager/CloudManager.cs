@@ -16,7 +16,7 @@ namespace Invariable
 {
     public class CloudManager : Singleton<CloudManager>
     {
-        private const string CloudSaveGameId = "MiniGame"; // 每个游戏项目必须改为唯一值，并与 CloudHelper 内配置的 GameId 保持一致
+        private const string CloudSaveGameId = "MeteorWish"; // 每个游戏项目必须改为唯一值，并与 CloudHelper 内配置的 GameId 保持一致
         private const int CloudGetAllMaxCount = 100;
         private const float UploadDebounceSeconds = 2f;
         private const float TokenRefreshAheadSeconds = 600f; // 临期阈值：对齐 AuthTokenManager.RefreshGracePeriod（10 分钟）

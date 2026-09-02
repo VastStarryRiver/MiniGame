@@ -64,7 +64,7 @@ namespace CloudService
         // GameId 必须与客户端 CloudManager.CloudSaveGameId 一致，并填入微信/抖音 AppID/AppSecret
         private static readonly GameSecrets Secrets = new GameSecrets
         {
-            GameId = "MiniGame",
+            GameId = "MeteorWish",
             WechatAppId = "",
             WechatAppSecret = "",
             DouyinAppId = "",
