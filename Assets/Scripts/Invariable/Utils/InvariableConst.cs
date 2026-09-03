@@ -23,7 +23,8 @@ namespace Invariable
             "Newtonsoft.Json",
         };
         public const string YooAssetPackageName = "MyPackage";
-        public const string CDNPath = "";
+        public const string CDNPathDouYin = "";
+        public const string CDNPathWeChat = "";
         public const string EncryptKey = "";
         public const string EncryptIv = "";
         public const string UIRootPath = "UI_Root";
@@ -41,7 +42,7 @@ namespace Invariable
 
         #region 游戏配置
         public const string RewardedVideoAdUnitId = "";
-        public const string ShareGameTitle = "游戏名称";
+        public const string ShareGameTitle = "MeteorWish(游戏名称——流星之愿)";
         #endregion
 
         #region 音频

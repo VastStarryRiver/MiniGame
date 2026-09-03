@@ -81,7 +81,7 @@ namespace Invariable
             }
             else if (playMode == EPlayMode.WebPlayMode)
             {
-                string defaultHostServer = $"{InvariableConst.CDNPath}/yoo";
+                string defaultHostServer = $"{SdkManager.Instance.GetCDNPath()}/yoo";
                 string fallbackHostServer = defaultHostServer;
                 RemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
 

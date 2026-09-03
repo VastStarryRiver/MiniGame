@@ -37,7 +37,7 @@ Assets/Settings/Build Profiles/
 
 `EditorBuildSettings.asset` 中微信 Profile 为启用状态，抖音 Profile 为未启用状态。切平台时应通过团结引擎 Build Profile 正确激活，而不是只改宏文本。
 
-> Profile 中包含 AppID、绝对构建路径等环境相关信息。CDN 字段由打包菜单按 `InvariableConst.CDNPath` 自动写入，无需手填。文档不重复记录具体值；修改或分享时应注意凭据和环境隔离。
+> Profile 中包含 AppID、绝对构建路径等环境相关信息。CDN 字段由打包菜单按当前平台常量（`CDNPathWeChat` / `CDNPathDouYin`）自动写入，无需手填。文档不重复记录具体值；修改或分享时应注意凭据和环境隔离。
 
 ## 2. `SdkManager` 平台能力
 
@@ -90,7 +90,7 @@ WechatFileSystem
 - 通过 `WX.GetCachePath` 判断缓存；
 - 支持清理全部或未使用 Bundle；
 - 创建时检查远程 URL 是否含双斜杠；
-- 远程根地址来自 `InvariableConst.CDNPath` 的 `/yoo` 子路径。
+- 远程根地址来自 `SdkManager.GetCDNPath()` 的 `/yoo` 子路径。
 
 ### 3.2 抖音
 
@@ -110,22 +110,22 @@ TiktokFileSystem
 
 - 使用 `TTFileSystemManager`；
 - 通过 URL 缓存接口判断和加载；
-- 远程根地址同样来自 `InvariableConst.CDNPath` 的 `/yoo` 子路径。
+- 远程根地址同样来自 `SdkManager.GetCDNPath()` 的 `/yoo` 子路径。
 
 ## 4. CDN 根地址配置
 
-运行时 CDN 根地址为 `InvariableConst.CDNPath`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{CDNPath}/yoo`。
+运行时 CDN 根地址由 `SdkManager.GetCDNPath()` 按平台返回 `InvariableConst.CDNPathWeChat` 或 `InvariableConst.CDNPathDouYin`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{GetCDNPath()}/yoo`。
 
-打包微信/抖音小游戏时，菜单会把该常量写入平台配置资产的 `CDN` 字段后再构建，无需手填 Profile：
+打包微信/抖音小游戏时，菜单会把对应平台常量写入平台配置资产的 `CDN` 字段后再构建，无需手填 Profile：
 
-- 微信：`Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset`、`Assets/Settings/Build Profiles/WeChat Profile.asset`
-- 抖音：`Assets/Settings/Build Profiles/DouYin Profile.asset`、`Assets/Editor/StarkBuilderSetting.asset`
+- 微信：写入 `CDNPathWeChat` 到 `Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset`、`Assets/Settings/Build Profiles/WeChat Profile.asset`
+- 抖音：写入 `CDNPathDouYin` 到 `Assets/Settings/Build Profiles/DouYin Profile.asset`、`Assets/Editor/StarkBuilderSetting.asset`
 
-只同步 `CDN` 字段；`StreamCDN` / `AssetsUrl` / `wasmResourceUrl` 不改。`ConfigUtils.CdnPath` 是本地 `CDN/` 暂存目录，与远程根不是同一概念。
+只同步 `CDN` 字段；`StreamCDN` / `AssetsUrl` / `wasmResourceUrl` 不改。`ConfigUtils.CdnPath` 是本地 `CDN/` 暂存目录，复制菜单按当前平台落到 `CDN/WeChat` 或 `CDN/DouYin`，与远程根不是同一概念。
 
-`CDNPath` 必须填写。留空时编辑器模拟模式可跑，但真机 WebPlayMode 远程根变为 `/yoo`，资源下载必失败；打包菜单会把空串写入上述平台配置资产的 `CDN` 字段。打包前必查。
+`CDNPathWeChat` / `CDNPathDouYin` 必须填写完整 URL。留空时编辑器模拟模式可跑，但真机 WebPlayMode 远程根变为 `/yoo`，资源下载必失败；打包菜单会把空串写入上述平台配置资产的 `CDN` 字段。打包前必查。
 
-`InvariableConst.CDNPath` 属 `Invariable`，修改后必须重新构建基础包。
+两字段属 `Invariable`，修改后必须重新构建基础包。
 
 工程未启用微信 Instant Game AutoStreaming；若开启，Build Profile 路径可能用 SDK 的 AutoStreaming CDN 覆盖 `ProjectConf.CDN`，需单独确认。
 
@@ -289,14 +289,14 @@ VastStarryRiver/打包/复制bundle到CDN目录
 
 流程：
 
-1. 删除本地 `CDN/yoo`；
+1. 删除本地 `CDN/{WeChat|DouYin}/yoo`（仅当前激活平台子目录）；
 2. 找到 `MyPackage` 最新数字版本目录；
-3. 将该目录顶层文件复制到 `CDN/yoo`。
+3. 将该目录顶层文件复制到 `CDN/{WeChat|DouYin}/yoo`。
 
 远程目录必须满足：
 
 ```text
-{InvariableConst.CDNPath}/yoo/{YooAsset清单和Bundle文件}
+{SdkManager.GetCDNPath()}/yoo/{YooAsset清单和Bundle文件}
 ```
 
 注意：
@@ -409,12 +409,12 @@ VastStarryRiver/打包/复制unityweb.bin到CDN目录
 复制到：
 
 ```text
-CDN/
+CDN/{WeChat|DouYin}/
 ```
 
 匹配到第一个符合条件的文件后即 `break`，因此同一目录存在多个候选文件时只复制首个。
 
-该步骤与 YooAsset 的 `CDN/yoo` 不同，属于平台 WebGL 数据文件发布。
+该步骤与 YooAsset 的 `CDN/{WeChat|DouYin}/yoo` 不同，属于平台 WebGL 数据文件发布。
 
 ## 12. 推荐的完整构建顺序
 
@@ -424,15 +424,15 @@ CDN/
 
 1. 激活目标平台 Build Profile；
 2. 确认只激活正确的平台宏；
-3. 检查 Profile 的 AppID、输出路径和方向（CDN 由打包菜单按 `InvariableConst.CDNPath` 自动写入）；
-4. 确认 `InvariableConst.CDNPath` 为目标地址；
+3. 检查 Profile 的 AppID、输出路径和方向（CDN 由打包菜单按当前平台常量自动写入）；
+4. 确认 `CDNPathWeChat` / `CDNPathDouYin` 为对应平台目标地址；
 5. 修改 Excel 后导出 Excel 配置；
 6. 等待脚本编译成功；
 7. 导出所有 HybridCLR DLL；
 8. 复制热更新 DLL；
 9. 复制 AOT 元数据 DLL；
 10. 构建 YooAsset；
-11. 复制 Bundle 到 `CDN/yoo`；
+11. 复制 Bundle 到 `CDN/{WeChat|DouYin}/yoo`；
 12. 上传/发布 CDN 内容；
 13. 上传云函数（`UOS/Func Stateless/Open Panel`）并切换为远程调用模式（首次发布还需在 UOS 控制台配置 `ResetDayRank` 定时触发器，见 NewProjectSetup §7）；
 14. 构建微信或抖音小游戏；
@@ -451,7 +451,7 @@ CDN/
 4. 复制 `HotUpdate.dll.bin`；
 5. 若 AOT 依赖未变化，可不一定重复制元数据，完整流水线建议一并复制；
 6. 构建 YooAsset 新版本；
-7. 复制并上传 `CDN/yoo`；
+7. 复制并上传 `CDN/{WeChat|DouYin}/yoo`；
 8. 验证远程新清单和 Bundle；
 9. 在已发布基础包上启动验证热更新。
 
@@ -508,7 +508,7 @@ HotUpdate 源码/生成配置
   -> ConfigUtils.SaveSafeFile
   -> GameAssets/DLL/MiniGame/HotUpdate.dll.bin
   -> YooAsset Bundle
-  -> CDN/yoo
+  -> CDN/{WeChat|DouYin}/yoo
   -> 客户端下载
   -> 解密
   -> Assembly.Load

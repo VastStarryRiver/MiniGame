@@ -227,7 +227,7 @@ HotUpdateOver
 职责：
 
 1. 若 `YooAssets.Initialized` 已为 true，直接跳到 `HotUpdateOver`（跳过清单检查与资源下载）；
-2. 否则以 `InvariableConst.CDNPath` 为 CDN 根（小游戏远程根为 `CDNPath + "/yoo"`，见下方「小游戏」分支）；
+2. 否则以 `SdkManager.GetCDNPath()` 为 CDN 根（小游戏远程根为 `GetCDNPath() + "/yoo"`，见下方「小游戏」分支）；
 3. 初始化 YooAsset，并设置 `YooAssets.SetOperationSystemMaxTimeSlice(1000)`；
 4. 创建或获取包 `MyPackage`；
 5. 设置为默认包；
@@ -242,7 +242,7 @@ EditorSimulateModeHelper.SimulateBuild("MyPackage")
 小游戏：
 
 ```text
-CDN 根地址 = InvariableConst.CDNPath + "/yoo"
+CDN 根地址 = SdkManager.GetCDNPath() + "/yoo"
 defaultHostServer = fallbackHostServer（主备同址，备线未单独配置）
 WebPlayModeParameters
   -> RemoteServices（IRemoteServices 实现，提供主/备 URL 拼接）
@@ -705,7 +705,7 @@ ConfigManager.ClearAll();
 
 ## 13. CDN 根地址
 
-运行时 CDN 根地址为编译期常量 `InvariableConst.CDNPath`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{CDNPath}/yoo`。完整配置、打包写入、本地暂存目录与留空后果见 HotUpdateBuildAdapt §4。
+运行时 CDN 根地址由 `SdkManager.GetCDNPath()` 按平台返回 `CDNPathWeChat` 或 `CDNPathDouYin`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{GetCDNPath()}/yoo`。完整配置、打包写入、本地暂存目录与留空后果见 HotUpdateBuildAdapt §4。
 
 ## 14. 工具类
 

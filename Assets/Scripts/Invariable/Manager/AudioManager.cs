@@ -19,6 +19,7 @@ namespace Invariable
         private float m_bgmVolume = 1f;
         private float m_sfxVolume = 1f;
         private bool m_mute = false;
+        private bool m_volumeSettingsLoaded = false;
 
         /// <summary>
         /// 实例是否存在
@@ -51,7 +52,6 @@ namespace Invariable
             m_instance = this;
             m_sfxSources = new Dictionary<AudioClip, AudioSource>();
             m_sfxLruList = new List<AudioClip>();
-            LoadVolumeSettings();
         }
 
         private void OnDestroy()
@@ -69,6 +69,8 @@ namespace Invariable
         /// </summary>
         public void PlayBGM(AudioClip clip)
         {
+            EnsureVolumeSettingsLoaded();
+
             if (clip == null)
             {
                 return;
@@ -101,6 +103,8 @@ namespace Invariable
         /// </summary>
         public void PlaySFX(AudioClip clip)
         {
+            EnsureVolumeSettingsLoaded();
+
             if (clip == null)
             {
                 return;
@@ -245,6 +249,7 @@ namespace Invariable
         /// </summary>
         public void SetMasterVolume(float volume)
         {
+            EnsureVolumeSettingsLoaded();
             m_masterVolume = Mathf.Clamp01(volume);
             ApplyAllVolumes();
             SaveVolumeSettings();
@@ -255,6 +260,7 @@ namespace Invariable
         /// </summary>
         public void SetBGMVolume(float volume)
         {
+            EnsureVolumeSettingsLoaded();
             m_bgmVolume = Mathf.Clamp01(volume);
             ApplyBgmVolume();
             SaveVolumeSettings();
@@ -265,6 +271,7 @@ namespace Invariable
         /// </summary>
         public void SetSFXVolume(float volume)
         {
+            EnsureVolumeSettingsLoaded();
             m_sfxVolume = Mathf.Clamp01(volume);
             ApplyAllSfxVolumes();
             SaveVolumeSettings();
@@ -275,6 +282,7 @@ namespace Invariable
         /// </summary>
         public void SetMute(bool mute)
         {
+            EnsureVolumeSettingsLoaded();
             m_mute = mute;
             ApplyAllVolumes();
             SaveVolumeSettings();
@@ -416,6 +424,20 @@ namespace Invariable
         {
             ApplyBgmVolume();
             ApplyAllSfxVolumes();
+        }
+
+        /// <summary>
+        /// 首次使用时从本地存储加载音量设置
+        /// </summary>
+        private void EnsureVolumeSettingsLoaded()
+        {
+            if (m_volumeSettingsLoaded)
+            {
+                return;
+            }
+
+            m_volumeSettingsLoaded = true;
+            LoadVolumeSettings();
         }
 
         /// <summary>

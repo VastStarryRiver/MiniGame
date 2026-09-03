@@ -116,30 +116,37 @@ namespace MyTools
         [MenuItem("VastStarryRiver/打包/复制bundle到CDN目录", false, 32)]
         public static void MoveBundleFileToCDN()
         {
-            string path2 = ConfigUtils.CdnPath + "/yoo";
+            string targetDir = "";
 
-            if (Directory.Exists(path2))
+#if MINIGAME_SUBPLATFORM_WEIXIN
+            targetDir = $"{ConfigUtils.CdnPath}/WeChat/yoo";
+
+#elif MINIGAME_SUBPLATFORM_DOUYIN
+            targetDir = $"{ConfigUtils.CdnPath}/DouYin/yoo";
+#endif
+
+            if (Directory.Exists(targetDir))
             {
-                Directory.Delete(path2, true);
+                Directory.Delete(targetDir, true);
             }
 
-            ConfigUtils.InitDirectory(path2);
+            ConfigUtils.InitDirectory(targetDir);
 
-            string path = AssetBundleTool.GetOutPath();
+            string sourceDir = AssetBundleTool.GetOutPath();
 
-            if (!Directory.Exists(path))
+            if (!Directory.Exists(sourceDir))
             {
                 return;
             }
 
-            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            DirectoryInfo directoryInfo = new DirectoryInfo(sourceDir);
 
             FileInfo[] fileInfos = directoryInfo.GetFiles();
 
             foreach (FileInfo item in fileInfos)
             {
                 string sourceFilePath = item.FullName.Replace("\\", "/");
-                string targetFilePath = $"{path2}/{Path.GetFileName(sourceFilePath)}";
+                string targetFilePath = $"{targetDir}/{Path.GetFileName(sourceFilePath)}";
                 File.Copy(sourceFilePath, targetFilePath);
             }
         }
@@ -150,21 +157,38 @@ namespace MyTools
         [MenuItem("VastStarryRiver/打包/复制unityweb.bin到CDN目录", false, 33)]
         public static void MoveCodeFileToCDN()
         {
-            string path = "";
+            string sourceDir = "";
+            string targetDir = "";
 
 #if MINIGAME_SUBPLATFORM_WEIXIN
-            path = $"{ConfigUtils.MiniBuildPath}/WeChat/webgl";
+            sourceDir = $"{ConfigUtils.MiniBuildPath}/WeChat/webgl";
+            targetDir = $"{ConfigUtils.CdnPath}/WeChat";
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
-            path = $"{ConfigUtils.MiniBuildPath}/DouYin/webgl";
+            sourceDir = $"{ConfigUtils.MiniBuildPath}/DouYin/webgl";
+            targetDir = $"{ConfigUtils.CdnPath}/DouYin";
 #endif
 
-            if (!Directory.Exists(path))
+            if (!Directory.Exists(sourceDir))
             {
                 return;
             }
 
-            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            if (Directory.Exists(targetDir))
+            {
+                DirectoryInfo targetDirectoryInfo = new DirectoryInfo(targetDir);
+                FileInfo[] oldFiles = targetDirectoryInfo.GetFiles();
+
+                foreach (FileInfo oldFile in oldFiles)
+                {
+                    if (oldFile.Name.Contains(".webgl.data.unityweb.bin.br") || oldFile.Name.Contains(".webgl.data.unityweb.bin.txt"))
+                    {
+                        oldFile.Delete();
+                    }
+                }
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(sourceDir);
 
             FileInfo[] fileInfos = directoryInfo.GetFiles();
 
@@ -176,7 +200,8 @@ namespace MyTools
                 }
 
                 string sourceFilePath = item.FullName.Replace("\\", "/");
-                string targetFilePath = $"{ConfigUtils.CdnPath}/{Path.GetFileName(sourceFilePath)}";
+                string targetFilePath = $"{targetDir}/{Path.GetFileName(sourceFilePath)}";
+                ConfigUtils.InitDirectory(targetFilePath);
                 File.Copy(sourceFilePath, targetFilePath);
 
                 break;
@@ -191,7 +216,7 @@ namespace MyTools
         public static bool ApplyCDNPathToWeChatConfigs()
         {
 #if MINIGAME_SUBPLATFORM_WEIXIN
-            string cdnPath = InvariableConst.CDNPath;
+            string cdnPath = InvariableConst.CDNPathWeChat;
             UnityEngine.Object miniGameConfig = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>("Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset");
 
             if (miniGameConfig == null)
@@ -249,7 +274,7 @@ namespace MyTools
         public static bool ApplyCDNPathToDouYinConfigs()
         {
 #if MINIGAME_SUBPLATFORM_DOUYIN
-            string cdnPath = InvariableConst.CDNPath;
+            string cdnPath = InvariableConst.CDNPathDouYin;
             BuildProfile profile = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/DouYin Profile.asset");
 
             if (profile == null)

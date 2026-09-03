@@ -57,15 +57,22 @@ namespace Invariable
             {
                 AddOnShowListener();
                 AddGameUpdateListener();
-                callBack?.Invoke();
+                callBack?.Invoke(); // 回调即成功
             });
 
 #elif MINIGAME_SUBPLATFORM_DOUYIN
             TT.InitSDK((code, env) =>
             {
-                AddOnShowListener();
-                AddGameUpdateListener();
-                callBack?.Invoke();
+                if (code == 0) // 无错误码即成功
+                {
+                    AddOnShowListener();
+                    AddGameUpdateListener();
+                    callBack?.Invoke();
+                }
+                else
+                {
+                    GameLog.Error($"抖音 SDK 初始化失败 错误码: {code}");
+                }
             });
 #endif
         }
@@ -354,8 +361,8 @@ namespace Invariable
                 return;
             }
 
-            m_platformNickName = nickName ?? "";
-            m_platformAvatarUrl = avatarUrl ?? "";
+            m_platformNickName = nickName;
+            m_platformAvatarUrl = avatarUrl;
 
             if (!string.IsNullOrEmpty(nickName))
             {
@@ -502,14 +509,14 @@ namespace Invariable
         private void RequestDouYinUserInfo(Action<bool> userInfoCallBack, RectTransform authAnchor)
         {
             int requestId = m_douYinUserInfoRequestId;
-            TT.GetUserInfoAuth(auth =>
+            TT.GetSetting((setting) =>
             {
                 if (requestId != m_douYinUserInfoRequestId)
                 {
                     return;
                 }
 
-                if (auth)
+                if (setting != null && setting.UserInfo)
                 {
                     RequestDouYinUserInfoDirect(userInfoCallBack, authAnchor, true);
                 }
@@ -519,7 +526,7 @@ namespace Invariable
                     authAnchor.gameObject.SetActive(true);
                     userInfoCallBack?.Invoke(false);
                 }
-            }, err =>
+            }, (err) =>
             {
                 if (requestId != m_douYinUserInfoRequestId)
                 {
@@ -527,7 +534,7 @@ namespace Invariable
                 }
 
                 m_platformUserInfoLoading = false;
-                GameLog.Error($"抖音 GetUserInfoAuth 失败: {err}");
+                GameLog.Info($"抖音 GetSetting 失败: {err}");
                 authAnchor.gameObject.SetActive(true);
                 userInfoCallBack?.Invoke(false);
             });
@@ -539,7 +546,7 @@ namespace Invariable
         private void RequestDouYinUserInfoDirect(Action<bool> userInfoCallBack, RectTransform authAnchor, bool showAnchorOnFail)
         {
             int requestId = m_douYinUserInfoRequestId;
-            TT.GetUserInfo(false, userInfo =>
+            TT.GetUserInfo(false, delegate (ref TTUserInfo userInfo)
             {
                 if (requestId != m_douYinUserInfoRequestId)
                 {
@@ -1045,7 +1052,7 @@ namespace Invariable
                 ["query"] = ""
             };
 
-            TT.ShareAppMessage(data, () =>
+            TT.ShareAppMessage(data, (res) =>
             {
                 GameLog.Info("分享成功");
             }, (errMsg) =>
@@ -1099,6 +1106,14 @@ namespace Invariable
             string packageRoot = "yoo";
             createParameters.WebServerFileSystemParameters = TiktokFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices);
 #endif
+        }
+
+        /// <summary>
+        /// 获取当前平台 CDN 根地址
+        /// </summary>
+        public string GetCDNPath()
+        {
+            return IsDouYin() ? InvariableConst.CDNPathDouYin : InvariableConst.CDNPathWeChat;
         }
         #endregion
     }

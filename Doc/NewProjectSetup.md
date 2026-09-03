@@ -20,7 +20,7 @@
 |---|---|
 | `Assets/Resources/UOSSettings.asset`（及 `.meta`） | UOS AppID / AppSecret / AppServiceSecret（加密） |
 | `Assets/UOSLauncherEncrypt/` | UOSSettings 加密密钥 |
-| `Assets/Settings/`（含 Build Profiles） | 微信/抖音 Profile：AppID、输出路径等（CDN 由打包菜单按 `InvariableConst.CDNPath` 自动写入） |
+| `Assets/Settings/`（含 Build Profiles） | 微信/抖音 Profile：AppID、输出路径等（CDN 由打包菜单按当前平台常量自动写入） |
 | `Assets/WX-WASM-SDK-V2/` | 微信 WASM SDK 本地内容 |
 | `Assets/Editor/UnityOnlineServicesData/` | UOS 编辑器数据（含 CDN 设置） |
 | `Assets/Editor/UOSEnvironments.asset`（及 `.meta`） | UOS 环境配置 |
@@ -47,7 +47,7 @@
 https://a.unity.cn/client_api/v1/buckets/{bucketUuid}/release_by_badge/{badge}/content
 ```
 
-将该地址记为 `{新CDN根地址}`，后续写入 `InvariableConst.CDNPath`，打包时自动同步平台配置。
+将该地址记为 `{新CDN根地址}`，后续分别写入 `InvariableConst.CDNPathWeChat` 与 `InvariableConst.CDNPathDouYin`（完整 URL，通常为 `{新CDN根地址}/WeChat` 与 `{新CDN根地址}/DouYin`），打包时自动同步平台配置。
 
 ### 3.3 记录三密钥
 
@@ -72,21 +72,39 @@ https://a.unity.cn/client_api/v1/buckets/{bucketUuid}/release_by_badge/{badge}/c
 | 微信公众平台 | 注册新小游戏 | `{微信AppID}`、`{微信AppSecret}` |
 | 抖音开放平台 | 注册新小游戏 | `{抖音AppID}`、`{抖音AppSecret}` |
 
-### 4.2 服务器域名配置（双侧一致）
+### 4.2 服务器域名配置
 
-在微信/抖音小游戏后台的服务器域名（或等价配置页）中，按下列规则添加。
+在微信/抖音小游戏后台的服务器域名（或等价配置页）中，按平台分别添加。格式以平台后台输入框规则为准（微信后台通常带 `https://`，抖音后台通常不带）。
 
-**request 合法域名、uploadFile 合法域名、downloadFile 合法域名** — 三类全部添加以下必需域名：
+**微信 request / uploadFile / downloadFile 合法域名** — 三类全部添加：
 
 ```text
 https://a.unity.cn
 https://a.unity3dcloud.cn
 https://a2.unity3dcloud.cn
 https://a3.unity3dcloud.cn
+https://metrics2.unity.cn
 https://p.unity.cn
 https://save.unity.cn
-https://uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com
 https://stateless.unity.cn
+https://thirdwx.qlogo.cn
+https://uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com
+https://wx.qlogo.cn
+```
+
+**抖音 request / uploadFile / downloadFile 合法域名** — 三类全部添加：
+
+```text
+a.unity.cn
+a.unity3dcloud.cn
+a2.unity3dcloud.cn
+a3.unity3dcloud.cn
+p.unity.cn
+save.unity.cn
+stateless.unity.cn
+uos-save-bluecloud-1301389817.cos.ap-shanghai.myqcloud.com
+douyinpic.com
+metrics2.unity.cn
 ```
 
 **DNS 预解析域名、预连接域名** — 只添加 4 个（通常不带 `https://`，以平台后台输入框规则为准）：
@@ -98,7 +116,7 @@ a2.unity3dcloud.cn
 a3.unity3dcloud.cn
 ```
 
-若后续接入其他 UOS 服务（例如额外云函数入口、数据上报域名），再按 UOS 官方文档补充。
+以上域名以 UOS 官方文档/控制台提示为准。若后续接入其他 UOS 服务（例如额外云函数入口、数据上报域名），再按 UOS 官方文档补充。
 
 ---
 
@@ -129,13 +147,14 @@ a3.unity3dcloud.cn
 
 文件：`Assets/Scripts/Invariable/Utils/InvariableConst.cs`（`#region 游戏资源`）
 
-将 `CDNPath` 改为 `{新CDN根地址}`：
+将两字段改为对应平台完整 URL：
 
 ```csharp
-public const string CDNPath = "{新CDN根地址}";
+public const string CDNPathDouYin = "{新CDN根地址}/DouYin";
+public const string CDNPathWeChat = "{新CDN根地址}/WeChat";
 ```
 
-运行时 YooAsset 远程根为 `{CDNPath}/yoo`。留空后果、打包写入与发布边界见 HotUpdateBuildAdapt §4。
+运行时 YooAsset 远程根为 `SdkManager.GetCDNPath() + "/yoo"`。留空后果、打包写入与发布边界见 HotUpdateBuildAdapt §4。
 
 ### 5.4 DLL/配置加密密钥
 
@@ -227,7 +246,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 项 | 新值 |
 |---|---|
 | 小游戏 AppID | `{微信AppID}` / `{抖音AppID}` |
-| CDN / 相关远程地址 | 与 `{新CDN根地址}` 策略一致（核对即可，打包菜单按 `CDNPath` 自动写入，无需手填） |
+| CDN / 相关远程地址 | 与 `{新CDN根地址}/WeChat`、`{新CDN根地址}/DouYin` 策略一致（核对即可，打包菜单按平台常量自动写入，无需手填） |
 | 构建输出路径 | 指向本机新工程下的路径（如 `{新工程根}/Build/WeChat`、`{新工程根}/Build/DouYin`） |
 | 屏幕方向、内存、压缩等 | 按新游戏需求核对 |
 
@@ -303,7 +322,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 新游戏首次或完整基础包发布的步骤顺序与 [HotUpdateBuildAdapt.md](./HotUpdateBuildAdapt.md) §12.1 一致，按该节执行。首发额外确认：
 
-- `InvariableConst.CDNPath` 已是 `{新CDN根地址}`
+- `CDNPathWeChat` / `CDNPathDouYin` 已是对应平台完整 URL
 - 云函数已上传且为远程调用模式，`ResetDayRank` 定时触发器已配置（第 7 章）
 - UOS CDN 上传目标为新 Bucket，Badge 与 `{新CDN根地址}` 一致
 - 用对应平台开发者工具打开构建产物，清缓存与保留缓存各测一轮
@@ -318,7 +337,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 - [ ] `CloudHelper.Secrets.GameId` 与 `CloudManager.CloudSaveGameId` 均为 `{新GameId}`
 - [ ] 工程内无其他游戏 CDN bucket UUID、无其他 GameId 残留（搜索残留值）
-- [ ] `InvariableConst.CDNPath` 指向 `{新CDN根地址}`（不可留空）
+- [ ] `CDNPathWeChat` / `CDNPathDouYin` 指向对应平台完整 URL（不可留空）
 - [ ] `InvariableConst.EncryptKey` / `EncryptIv` 已填合法长度（key 16/24/32 字节、iv 16 字节）
 - [ ] UOS Launcher 显示已绑定新 App
 - [ ] Func Stateless 面板：云函数已上传且为远程模式
@@ -337,7 +356,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 平台登录 → 云函数换取云存档令牌 | 必测 | 必测 |
 | 云存档读写（`kv_{新GameId}_player`） | 必测 | 必测 |
 | 世界榜/日榜上报/拉取（`kv_{新GameId}_rank_wx` / `kv_{新GameId}_rank_dy`，分榜不混） | 必测 | 必测 |
-| CDN 热更资源下载（`{CDN}/yoo`） | 必测 | 必测 |
+| CDN 热更资源下载（`{CDN}/{WeChat|DouYin}/yoo`） | 必测 | 必测 |
 | DLL 加载与主界面 | 必测 | 必测 |
 | 本地存档 | 必测 | 必测 |
 | 分享 / 激励视频等平台能力（若启用） | 配置后必测 | 配置后必测 |
@@ -371,7 +390,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 - [ ] 2. 版本控制初始化与忽略文件备份策略
 - [ ] 3. UOS 新 App / 三服务 / Bucket / 三密钥
 - [ ] 4. 微信+抖音注册与域名配置
-- [ ] 5. 工程内配置（UOS Link、CDNPath、EncryptKey/EncryptIv、GameId、Secrets、广告/分享常量、productName、Profile、CDN 目标）
+- [ ] 5. 工程内配置（UOS Link、CDNPathWeChat/CDNPathDouYin、EncryptKey/EncryptIv、GameId、Secrets、广告/分享常量、productName、Profile、CDN 目标）
 - [ ] 6. 游戏内容替换与导表
 - [ ] 7. 云函数上传并远程模式，ResetDayRank 定时触发器已配置
 - [ ] 8. 首发构建流水线跑通
