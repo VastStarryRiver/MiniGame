@@ -60,11 +60,11 @@
       "dependencies": {}
     },
     "com.code-philosophy.hybridclr": {
-      "version": "https://gitee.com/focus-creative-games/hybridclr_unity.git",
+      "version": "https://gitee.com/focus-creative-games/hybridclr_unity.git#v8.14.1",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "03083ad8f96253f84ed4cf2018c5f32690e29b7b"
+      "hash": "a0e0b502c6c1b9ce2d0983181f4555e6149ae249"
     },
     "com.coffee.ui-particle": {
       "version": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
@@ -91,7 +91,7 @@
         "com.unity.nuget.newtonsoft-json": "3.0.2",
         "com.unity.test-framework": "1.1.31"
       },
-      "hash": "4ce7dd3cc54e37e2ed6dc59cb5a047f3dccb3f50"
+      "hash": "30d22075093d1d35dfb0091c1c7550e9ad948577"
     },
     "com.esotericsoftware.spine.spine-csharp": {
       "version": "https://github.com/EsotericSoftware/spine-runtimes.git?path=spine-csharp/src#4.2",
@@ -121,11 +121,11 @@
       "hash": "d57272a041eef9793e8b778e6a75477c5a9e63da"
     },
     "com.qq.weixin.minigame": {
-      "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git",
+      "version": "https://gitee.com/wechat-minigame/minigame-tuanjie-transform-sdk.git#d288776c50578926c732496882bd6ab6684c778c",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "cefa752ab07f46e43a1a4ab3b180904cac6f1fdd"
+      "hash": "d288776c50578926c732496882bd6ab6684c778c"
     },
     "com.tuyoogame.yooasset": {
       "version": "2.3.19",
@@ -165,7 +165,7 @@
       "source": "builtin",
       "dependencies": {
         "com.unity.ide.visualstudio": "2.0.22",
-        "com.unity.ide.rider": "3.0.35",
+        "com.unity.ide.rider": "3.0.36",
         "com.unity.ide.vscode": "1.2.5",
         "com.unity.editorcoroutines": "1.0.0",
         "com.unity.performance.profile-analyzer": "1.2.3",
@@ -174,7 +174,7 @@
       }
     },
     "com.unity.ide.rider": {
-      "version": "3.0.35",
+      "version": "3.0.36",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -227,7 +227,7 @@
       "url": "https://packages.tuanjie.cn"
     },
     "com.unity.settings-manager": {
-      "version": "2.0.1",
+      "version": "2.1.0",
       "depth": 2,
       "source": "registry",
       "dependencies": {},

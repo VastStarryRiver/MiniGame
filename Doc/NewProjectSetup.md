@@ -4,11 +4,13 @@
 
 ## 1. 首次打开与环境恢复
 
-1. 用与源工程**相同版本**的团结引擎打开新工程目录。源工程版本见 `ProjectSettings/ProjectVersion.txt`（示例：`2022.3.61t9` / Tuanjie `1.6.8`）。版本不一致可能导致 HybridCLR、小游戏转换器、UOS 包行为差异。
+1. 用与源工程**相同版本**的团结引擎打开新工程目录。源工程版本见 `ProjectSettings/ProjectVersion.txt`（`2022.3.62t11` / Tuanjie `1.9.3`）。版本不一致可能导致 HybridCLR、小游戏转换器、UOS 包行为差异。
 2. 首次打开会重建 `Library/`，耗时较长，等待完成。
 3. Package Manager 会按 `Packages/manifest.json` 拉取依赖（含 UOS CDN / CloudSave / Func Stateless / Launcher、YooAsset、HybridCLR、微信小游戏 SDK、抖音 SDK、NuGetForUnity 等）。若有 git 包拉取失败，检查网络与凭据后重试。
 4. 使用 NuGetForUnity 还原 `Newtonsoft.Json`（与云函数、云存档 JSON 序列化相关）。
 5. 打开 Console，确认**无编译错误**后再进入后续步骤。若出现 `UOSSettings` 相关加载异常，先完成第 5 章「UOS Launcher 重新 Link」，或按编辑器提示使用 `UOS/Launcher/Fix settings by reimport` / `UOS/Launcher/Fix settings by delete`。
+6. HybridCLR 包为 `com.code-philosophy.hybridclr#v8.14.1`。换引擎大版本后打开 `HybridCLR/Installer` 重新安装，再执行 `HybridCLR/Generate/All`。微信 Publishing Settings 中 `Use Slim Format For global-metadata.dat` 必须关闭。
+7. 微信转换 SDK 钉在 `com.qq.weixin.minigame` 的指定 git 提交（见 `Packages/manifest.json`）。Package Manager 更新 git 包后确认 lock hash 与 manifest 一致。
 
 ---
 
@@ -20,7 +22,9 @@
 |---|---|
 | `Assets/Resources/UOSSettings.asset`（及 `.meta`） | UOS AppID / AppSecret / AppServiceSecret（加密） |
 | `Assets/UOSLauncherEncrypt/` | UOSSettings 加密密钥 |
-| `Assets/Settings/`（含 Build Profiles） | 微信/抖音 Profile：AppID、输出路径等（CDN 由打包菜单按当前平台常量自动写入） |
+| `Assets/Settings/`（含 Build Profiles） | 微信/抖音 Profile：AppID、输出路径等（CDN 由打包菜单按当前平台常量自动写入；须与下方 SDK 配置成对修改） |
+| `Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset` | 微信 SDK 构建配置，须与 WeChat Profile 成对修改 |
+| `Assets/Editor/StarkBuilderSetting.asset` | 抖音 SDK 构建配置，须与 DouYin Profile 成对修改 |
 | `Assets/WX-WASM-SDK-V2/` | 微信 WASM SDK 本地内容 |
 | `Assets/Editor/UnityOnlineServicesData/` | UOS 编辑器数据（含 CDN 设置） |
 | `Assets/Editor/UOSEnvironments.asset`（及 `.meta`） | UOS 环境配置 |
@@ -154,7 +158,7 @@ public const string CDNPathDouYin = "{新CDN根地址}/DouYin";
 public const string CDNPathWeChat = "{新CDN根地址}/WeChat";
 ```
 
-运行时 YooAsset 远程根为 `SdkManager.GetCDNPath() + "/yoo"`。留空后果、打包写入与发布边界见 HotUpdateBuildAdapt §4。
+运行时 YooAsset 远程根为 `SdkManager.Instance.GetCDNPath() + "/yoo"`。留空后果、打包写入与发布边界见 HotUpdateBuildAdapt §4。
 
 ### 5.4 DLL/配置加密密钥
 
@@ -250,7 +254,16 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 | 构建输出路径 | 指向本机新工程下的路径（如 `{新工程根}/Build/WeChat`、`{新工程根}/Build/DouYin`） |
 | 屏幕方向、内存、压缩等 | 按新游戏需求核对 |
 
-**重要：** Profile 含机器相关绝对路径。整目录复制后必须重新检查，不能沿用源机器路径。切平台时通过 Build Profile 正确激活，不要只改宏文本。
+**重要：** Profile 含机器相关绝对路径。整目录复制后必须重新检查，不能沿用源机器路径。
+
+切平台两步缺一不可：先切 minigame 子平台，域重载完成后再启用对应 Build Profile；顺序不可颠倒。手动操作一律在团结引擎 Build Profile 窗口勾选目标 Profile。不要只改宏文本。
+
+平台配置必须成对修改：
+
+- 微信：`Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset` ↔ `Assets/Settings/Build Profiles/WeChat Profile.asset`
+- 抖音：`Assets/Editor/StarkBuilderSetting.asset` ↔ `Assets/Settings/Build Profiles/DouYin Profile.asset`
+
+打包菜单只自动双写 `CDN` 字段，手动改 AppID、输出路径、方向、内存等其它字段时必须人工同步两侧。
 
 ### 5.9 编辑器 CDN 上传目标
 
@@ -258,7 +271,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 ### 5.10 明确无需改动的项
 
-- `YooAssetManager.LoadMetadataForAOTAssemblies("MiniGame", ...)` 中的 `"MiniGame"` 是团结引擎 **BuildTarget 名**（与 `EditorUserBuildSettings.activeBuildTarget.ToString()` 对应），**不是**产品名 / GameId。同引擎版本下保持不变。
+- `YooAssetManager.Instance.LoadMetadataForAOTAssemblies("MiniGame", ...)` 中的 `"MiniGame"` 是团结引擎 **BuildTarget 名**（与 `EditorUserBuildSettings.activeBuildTarget.ToString()` 对应），**不是**产品名 / GameId。同引擎版本下保持不变。
 - YooAsset Package 名默认 `MyPackage`，可沿用，除非团队另有规范。
 - `HotUpdate.asmdef` 引用 `Invariable` 与 `CloudService`（消费 Model DTO），统一写名称，**勿删**。项目内程序集之间用名称引用，第三方包用 GUID。
 
@@ -344,7 +357,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 - [ ] UOS 控制台已给 `ResetDayRank` 配置日榜定时触发器 cron `0 5 * * *`（需正式用户，cron 时区 UTC+8）
 - [ ] 微信隐私协议已配置（含 `scope.userInfo`）；抖音开放平台已开通 `scope.userInfo`
 - [ ] 头像实际域名已加入微信/抖音 MP 后台 downloadFile 合法域名
-- [ ] 微信/抖音 Build Profile AppID、输出路径已改为新值
+- [ ] 微信/抖音 Build Profile 与对应 SDK 配置（`MiniGameConfig.asset` / `StarkBuilderSetting.asset`）的 AppID、输出路径已成对改为新值
 - [ ] Console 无编译错误
 
 ### 9.2 真机 / 平台侧（双平台均测）
@@ -382,7 +395,42 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 ## 附录 B：关键菜单速查
 
-完整菜单清单见 `unity-mcp` 规则「项目菜单清单」。
+打包微信/抖音小游戏菜单会先跑前置校验并要求确认远程调用模式。
+
+### Config
+
+- `VastStarryRiver/Config/导出Excel配置`（产物：`GameAssets/Config/*.bytes` + `HotUpdate/Config/Generated/Config_*.cs` + `ConfigManager.Preload.cs`）
+- `VastStarryRiver/Config/校验配置数据`（Excel 与 bytes 全量比对）
+
+### DLL
+
+- `VastStarryRiver/DLL/导出所有DLL`
+- `VastStarryRiver/DLL/复制热更新DLL`
+- `VastStarryRiver/DLL/复制元数据DLL`
+
+### 资源处理
+
+- `VastStarryRiver/资源处理/设置音频资源`（按 `Audios/Bgm` 与 `Audios/Sfx` 分别设置 CompressedInMemory / DecompressOnLoad，Sfx 强制 Force To Mono，Bgm 不改）
+- `VastStarryRiver/资源处理/设置图片和图集`（Atlas 图集压缩/关可读；Atlas 源图与 Png 散图统一最佳模式：强制 Sprite、关可读、关 mipmap、压缩）
+
+### 构建
+
+- `VastStarryRiver/构建AssetBundle`
+
+### 打包
+
+- `VastStarryRiver/打包/复制bundle到CDN目录`
+- `VastStarryRiver/打包/打包微信小游戏`
+- `VastStarryRiver/打包/打包抖音小游戏`
+- `VastStarryRiver/打包/复制unityweb.bin到CDN目录`
+
+### UOS
+
+- `UOS/Func Stateless/Open Panel`（上传云函数；发布前需切远程调用，见 NewProjectSetup §7）
+- `UOS/Open Launcher`（关联 UOS App / 凭证）
+- `UOS/CDN/Manager`（切换 CDN 上传目标 Bucket）
+
+切平台与平台配置修改见 HotUpdateBuildAdapt §12（先切子平台再启用 Profile、配置成对修改），不要只改宏文本。
 
 ## 附录 C：准备进度勾选（可选）
 

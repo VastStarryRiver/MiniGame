@@ -54,6 +54,8 @@ PlayerSettings:
   unsupportedMSAAFallback: 0
   m_SpriteBatchVertexThreshold: 300
   m_MTRendering: 1
+  renderThreadParallel: 0
+  renderThreadExp: 0
   mipStripping: 0
   numberOfMipsStripped: 0
   numberOfMipsStrippedPerMipmapLimitGroup: {}
@@ -84,11 +86,12 @@ PlayerSettings:
   androidAutoRotationBehavior: 1
   androidUrasMode: 0
   disableBluetoothAudioUpdate: 0
+  enableURASMultiView: 0
   androidEnableSensors: 0
   androidPredictiveBackSupport: 0
   defaultIsNativeResolution: 1
   macRetinaSupport: 1
-  runInBackground: 0
+  runInBackground: 1
   captureSingleScreen: 0
   muteOtherAudioSources: 0
   Prepare IOS For Recording: 0
@@ -153,6 +156,7 @@ PlayerSettings:
   openHarmonyRenderOutsideSafeArea: 1
   openHarmonyResizableWindow: 0
   openHarmonyEnableLowLatencyAudio: 1
+  openHarmonyLaunchAccelerationAbility: 0
   openHarmonyFullscreenMode: 1
   openHarmonyAutoRotationBehavior: 1
   openHarmonyBlitType: 0
@@ -160,6 +164,8 @@ PlayerSettings:
   openHarmonyDefaultWindowHeight: 1080
   openHarmonyMinimumWindowWidth: 400
   openHarmonyMinimumWindowHeight: 300
+  openHarmonyMaximumWindowRatio: 10
+  openHarmonyMinimumWindowRatio: 0.1
   stadiaPresentMode: 0
   stadiaTargetFramerate: 0
   vulkanNumSwapchainBuffers: 3
@@ -217,11 +223,11 @@ PlayerSettings:
   VertexChannelCompressionMask: 4054
   iPhoneSdkVersion: 988
   iOSSimulatorArchitecture: 0
-  iOSTargetOSVersionString: 12.0
+  iOSTargetOSVersionString: 13.0
   tvOSSdkVersion: 0
   tvOSSimulatorArchitecture: 0
   tvOSRequireExtendedGameController: 0
-  tvOSTargetOSVersionString: 12.0
+  tvOSTargetOSVersionString: 13.0
   VisionOSSdkVersion: 0
   VisionOSTargetOSVersionString: 1.0
   uIPrerenderedIcon: 0
@@ -602,11 +608,23 @@ PlayerSettings:
   openGLRequireES31AEP: 0
   openGLRequireES32: 0
   m_TemplateCustomTags: {}
+  renderThreadMap:
+    Standalone: 0
+    WebGL: 0
+    WeixinMiniGame: 0
   mobileMTRendering:
     Android: 1
     OpenHarmony: 1
     iPhone: 1
     tvOS: 1
+  m_VirtualGeometryRuntimeMap:
+    Android: 1
+    Standalone: 1
+    iPhone: 1
+  m_VirtualGeometryDataEncodingMap:
+    Android: 1
+    Standalone: 2
+    iPhone: 1
   m_BuildTargetGroupLightmapEncodingQuality:
   - m_BuildTarget: Android
     m_EncodingQuality: 1
@@ -1066,8 +1084,9 @@ PlayerSettings:
   weixinMiniGameNameFilesAsHashes: 0
   weixinMiniGameShowDiagnostics: 0
   weixinMiniGameDataCaching: 0
-  weixinMiniGameDebugSymbols: 0
-  weixinMiniGameEmscriptenArgs: ' -s TOTAL_MEMORY=128MB'
+  weixinMiniGameDebugSymbols: 1
+  weixinMiniGameEmscriptenArgs: ' -s EXPORTED_FUNCTIONS=_main,_sbrk,_emscripten_stack_get_base,_emscripten_stack_get_end
+    -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s TOTAL_MEMORY=256MB -s EXPORTED_RUNTIME_METHODS=''["ccall","cwrap","stackTrace","addRunDependency","removeRunDependency","FS_createPath","FS_createDataFile","stackTrace","writeStackCookie","checkStackCookie","lengthBytesUTF8","stringToUTF8"]'''
   weixinMiniGameModulesDirectory: 
   weixinMiniGameTemplate: APPLICATION:Default
   weixinMiniGameAnalyzeBuildSize: 0
@@ -1090,8 +1109,11 @@ PlayerSettings:
   weixinMiniGameInjectStrippedMethodLogger: 0
   weixinMiniGameEnableDotNetWasmExceptionHandling: 1
   weixinMiniGamePreserveEventDelegate: 0
-  activeSubplatform: 8
+  activeSubplatform: 1
   serializedFileTypeTreeMemoryOptimization: 0
+  stripBuiltinResources: 0
+  minigameMTRendering: 0
+  weixinMiniGameInvariantPosition: 0
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
   cloudProjectId: 
@@ -1107,6 +1129,10 @@ PlayerSettings:
   androidEGLPriority: 0
   platformRequiresReadableAssets: 0
   virtualTexturingSupportEnabled: 0
-  packClustersForPlayer: 0
   insecureHttpOption: 0
   useStringInternPool: 0
+  renderThreadTakeSnapshotOnlyOnce: 0
+  miniGameRenderThreadSyncMode: 0
+  miniGameRenderThreadWorkerWaitMode: 1
+  miniGameRenderThreadWorkerWaitTimeout: 1
+  miniGameRenderThreadLoopMode: 2

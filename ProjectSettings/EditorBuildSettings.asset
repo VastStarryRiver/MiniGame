@@ -9,18 +9,20 @@ EditorBuildSettings:
     path: Assets/Scenes/Start.scene
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_BuildProfiles:
-  - enabled: 0
+  - enabled: 1
     path: Assets/Settings/Build Profiles/WeChat Profile.asset
     guid: 1c019138b824e034082d37a2ea3e2569
-  - enabled: 1
+  - enabled: 0
     path: Assets/Settings/Build Profiles/DouYin Profile.asset
     guid: 9f465842f16dc29489ed7c4c23f88083
   m_configObjects: {}
   m_SlimFeaturesWeixinMiniGame:
+    ACLDecompression: 0
     AllocateOverhead: 1
     DecompressASTC: 0
     DecompressDXT: 1
     DecompressETC: 1
     FreeTypeSfntPng: 1
     LightProbe: 2
+    RootMotion: 0
     UseStringInternPool: 2

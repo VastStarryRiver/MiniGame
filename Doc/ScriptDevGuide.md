@@ -982,7 +982,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 | Editor | 转发 `SetLocalData` / `GetLocalData` |
 | 微信/抖音 | 转发 `CloudManager` 云缓存；写后异步上传 |
 
-云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜上报：`CloudManager.Instance.ReportRankScore(rankKey, score)`。排行榜拉取：`CloudManager.Instance.GetRankList(rankKey, rankType, callBack)`，`rankType` 必填，世界榜传 `CloudRankTypes.World`，日榜传 `CloudRankTypes.Day`。编辑器桩：`GetRankList` 回空列表、`ReportRankScore` 回 true。资料键用 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要用挂载图集。云存档与排行榜契约见 FrameworkAndProcess §16。云函数/密钥约束见 `cloud-service` 规则。
+云初始化失败后 Set 静默丢弃、Get 返回默认值。排行榜上报：`CloudManager.Instance.ReportRankScore(rankKey, score)`。排行榜拉取：`CloudManager.Instance.GetRankList(rankKey, rankType, callBack)`，`rankType` 必填，世界榜传 `CloudRankTypes.World`，日榜传 `CloudRankTypes.Day`。编辑器桩：`GetRankList` 回空列表、`ReportRankScore` 回 true。资料键用 `CloudDataKeys.UserId` / `NickName` / `AvatarUrl`。昵称直接赋 `TextMeshProUGUI.text`；头像 URL 用 `Utils.SetRemoteImage`，不要用挂载图集。云存档与排行榜契约见 FrameworkAndProcess §16。云函数/密钥约束见 NewProjectSetup §7。
 
 存档修改应考虑：
 
@@ -996,7 +996,7 @@ string score = SdkManager.Instance.GetCloudData("Score", "0");
 
 推荐做法：
 
-1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`、云读写 `SetCloudData/GetCloudData`、用户信息 `SyncPlatformUserInfo(authAnchor, authCallBack, userInfoCallBack)` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth(authAnchor, authCallBack, userInfoCallBack)` / `DestroyPlatformUserInfoButton`，`authCallBack` 仅授权动作、`userInfoCallBack` 仅资料结果），避免重复实现；云存档/云函数与世界榜/日榜见 `CloudManager` 与 `cloud-service` 规则；
+1. 先确认 `SdkManager` 是否已有现成能力（如分享 `Share(string desc)`、环境判断 `IsWeChat()/IsDouYin()`、云读写 `SetCloudData/GetCloudData`、用户信息 `SyncPlatformUserInfo(authAnchor, authCallBack, userInfoCallBack)` / `TryGetPlatformUserInfo` / `RequestPlatformUserInfoAuth(authAnchor, authCallBack, userInfoCallBack)` / `DestroyPlatformUserInfoButton`，`authCallBack` 仅授权动作、`userInfoCallBack` 仅资料结果），避免重复实现；云存档/云函数与世界榜/日榜见 `CloudManager`、FrameworkAndProcess §16 与 NewProjectSetup §7；
 2. 在 `SdkManager` 添加平台无关的公共方法；
 3. 方法内部使用平台宏分支；
 4. Editor 分支提供可预测的模拟结果；

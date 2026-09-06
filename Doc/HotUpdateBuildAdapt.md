@@ -35,7 +35,14 @@ Assets/Settings/Build Profiles/
 └─ DouYin Profile.asset
 ```
 
-`EditorBuildSettings.asset` 中微信 Profile 为启用状态，抖音 Profile 为未启用状态。切平台时应通过团结引擎 Build Profile 正确激活，而不是只改宏文本。
+切平台两步缺一不可：
+
+1. 切换 minigame 子平台（`PlayerSettings.MiniGame.SetActiveSubplatform`），写入编译宏
+2. 启用对应 Build Profile（`EditorBuildSettings.buildProfiles` 目标 enabled，其余关闭）
+
+代码方式固定顺序：先切子平台 → 等域重载完成 → 再启用对应 Profile。顺序不可颠倒，域重载会清空 Profile enabled。手动操作一律在团结引擎 Build Profile 窗口勾选目标 Profile，引擎会同时完成子平台切换与 Profile 启用。不要只改宏文本。
+
+打包菜单由 `MINIGAME_SUBPLATFORM_WEIXIN` / `MINIGAME_SUBPLATFORM_DOUYIN` 编译期宏决定可用性。菜单开头跑 `PreBuildValidator`：CDNPath、Secrets、Profile enabled 与当前目标一致、平台宏唯一、当前目标平台的 SDK 配置与 Profile 成对字段一致，并通过对话框确认远程调用模式。硬条件失败或用户取消则中止打包。非目标平台的配对漂移只记日志，不阻断本次打包。
 
 > Profile 中包含 AppID、绝对构建路径等环境相关信息。CDN 字段由打包菜单按当前平台常量（`CDNPathWeChat` / `CDNPathDouYin`）自动写入，无需手填。文档不重复记录具体值；修改或分享时应注意凭据和环境隔离。
 
@@ -90,7 +97,7 @@ WechatFileSystem
 - 通过 `WX.GetCachePath` 判断缓存；
 - 支持清理全部或未使用 Bundle；
 - 创建时检查远程 URL 是否含双斜杠；
-- 远程根地址来自 `SdkManager.GetCDNPath()` 的 `/yoo` 子路径。
+- 远程根地址来自 `SdkManager.Instance.GetCDNPath()` 的 `/yoo` 子路径。
 
 ### 3.2 抖音
 
@@ -110,11 +117,11 @@ TiktokFileSystem
 
 - 使用 `TTFileSystemManager`；
 - 通过 URL 缓存接口判断和加载；
-- 远程根地址同样来自 `SdkManager.GetCDNPath()` 的 `/yoo` 子路径。
+- 远程根地址同样来自 `SdkManager.Instance.GetCDNPath()` 的 `/yoo` 子路径。
 
 ## 4. CDN 根地址配置
 
-运行时 CDN 根地址由 `SdkManager.GetCDNPath()` 按平台返回 `InvariableConst.CDNPathWeChat` 或 `InvariableConst.CDNPathDouYin`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{GetCDNPath()}/yoo`。
+运行时 CDN 根地址由 `SdkManager.Instance.GetCDNPath()` 按平台返回 `InvariableConst.CDNPathWeChat` 或 `InvariableConst.CDNPathDouYin`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{GetCDNPath()}/yoo`。
 
 打包微信/抖音小游戏时，菜单会把对应平台常量写入平台配置资产的 `CDN` 字段后再构建，无需手填 Profile：
 
@@ -160,6 +167,10 @@ Excel/*（xlsx/xls）
 - **表结构变更**：等待脚本重新编译后，再按完整 HybridCLR + YooAsset 流水线导出（见 §12.2）。
 
 ## 6. HybridCLR DLL 构建
+
+HybridCLR 包钉在 `v8.14.1`（`Packages/manifest.json` 的 `#v8.14.1`）。团结 1.9.3 必须使用该版本或更新：Installer 会拉取 `hybridclr` 分支 `v8.13.0` 与 `il2cpp_plus` 分支 `v2022-tuanjie-8.14.0`，并覆盖 `HybridCLRData/LocalIl2CppData-WindowsEditor`。引擎大版本升级后必须走一遍 `HybridCLR/Installer` 再 `HybridCLR/Generate/All`，不要沿用旧 il2cpp。
+
+微信 Player Settings 的 `Use Slim Format For global-metadata.dat`（`weixinMiniGameUseSlimMetaFileFormat`）必须保持关闭。1.9.3 空工程默认开启该选项，开启后 HybridCLR 无法在微信小游戏运行。
 
 编辑器菜单：
 
@@ -296,7 +307,7 @@ VastStarryRiver/打包/复制bundle到CDN目录
 远程目录必须满足：
 
 ```text
-{SdkManager.GetCDNPath()}/yoo/{YooAsset清单和Bundle文件}
+{SdkManager.Instance.GetCDNPath()}/yoo/{YooAsset清单和Bundle文件}
 ```
 
 注意：
@@ -315,7 +326,7 @@ VastStarryRiver/打包/复制bundle到CDN目录
 VastStarryRiver/打包/打包微信小游戏
 ```
 
-仅在微信宏激活时可用。
+仅在微信宏激活时可用。菜单开头先跑 `PreBuildValidator`，不通过则中止，不会写入 CDN 或调用 `WXConvertCore.DoExport()`。
 
 核心调用：
 
@@ -350,6 +361,8 @@ Profile 中包含：
 
 路径是机器相关配置。迁移工程目录后应重新检查。
 
+手动修改平台配置必须成对同步：`Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset` 与 `WeChat Profile.asset`。打包菜单只自动双写 `CDN` 字段，AppID、输出路径、方向、内存等其它字段需人工同步两侧。
+
 ## 10. 抖音小游戏构建
 
 菜单：
@@ -358,7 +371,7 @@ Profile 中包含：
 VastStarryRiver/打包/打包抖音小游戏
 ```
 
-仅在抖音宏激活时可用。
+仅在抖音宏激活时可用。菜单开头先跑 `PreBuildValidator`，不通过则中止，不会写入 CDN 或调用 `DouYinSubplatformInterface.Build`。
 
 核心调用：
 
@@ -389,6 +402,8 @@ Profile/Stark 设置中包含：
 - 方向；
 - 绝对输出路径。
 
+手动修改平台配置必须成对同步：`Assets/Editor/StarkBuilderSetting.asset` 与 `DouYin Profile.asset`。打包菜单只自动双写 `CDN` 字段，AppID、输出路径、方向、内存等其它字段需人工同步两侧。
+
 ## 11. 复制代码数据文件到 CDN
 
 菜单：
@@ -418,12 +433,12 @@ CDN/{WeChat|DouYin}/
 
 ## 12. 推荐的完整构建顺序
 
-切换平台后建议按以下顺序执行：
+切换平台后建议按以下顺序执行。上传 CDN 服务器与真机验证由用户完成。打包菜单会先跑前置校验并要求确认远程调用模式。
 
 ### 12.1 首次或基础包完整发布
 
-1. 激活目标平台 Build Profile；
-2. 确认只激活正确的平台宏；
+1. 按切平台顺序激活目标子平台与对应 Build Profile（先切子平台，域重载后再启用 Profile；手动则在 Build Profile 窗口勾选）；
+2. 确认只激活正确的平台宏，且 Profile enabled 与当前子平台一致；
 3. 检查 Profile 的 AppID、输出路径和方向（CDN 由打包菜单按当前平台常量自动写入）；
 4. 确认 `CDNPathWeChat` / `CDNPathDouYin` 为对应平台目标地址；
 5. 修改 Excel 后导出 Excel 配置；

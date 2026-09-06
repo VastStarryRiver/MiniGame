@@ -23,6 +23,11 @@ namespace MyTools
         [MenuItem("VastStarryRiver/打包/打包微信小游戏", false, 30)]
         public static void PackageProject_WeiXin()
         {
+            if (!PreBuildValidator.ConfirmReadyToPack(PreBuildValidator.MiniGamePackTarget.WeChat))
+            {
+                return;
+            }
+
 #if MINIGAME_SUBPLATFORM_WEIXIN
             if (!ApplyCDNPathToWeChatConfigs())
             {
@@ -75,6 +80,11 @@ namespace MyTools
         [MenuItem("VastStarryRiver/打包/打包抖音小游戏", false, 31)]
         public static void PackageProject_DouYin()
         {
+            if (!PreBuildValidator.ConfirmReadyToPack(PreBuildValidator.MiniGamePackTarget.DouYin))
+            {
+                return;
+            }
+
 #if MINIGAME_SUBPLATFORM_DOUYIN
             if (!ApplyCDNPathToDouYinConfigs())
             {

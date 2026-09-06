@@ -4,10 +4,10 @@
 
 | 类别 | 技术/版本 | 用途 | 依赖形态 |
 |---|---|---|---|
-| 引擎 | 团结引擎 1.6.8 / Unity 2022.3.61t9 | 游戏运行与小游戏构建 | 引擎本体 |
-| 热更新 | HybridCLR | 运行时加载 `HotUpdate.dll` | UPM 包；生成物在 `Assets/HybridCLRGenerate/` |
+| 引擎 | 团结引擎 1.9.3 / Unity 2022.3.62t11 | 游戏运行与小游戏构建 | 引擎本体 |
+| 热更新 | HybridCLR 8.14.1 | 运行时加载 `HotUpdate.dll` | UPM 包（`#v8.14.1`）；生成物在 `Assets/HybridCLRGenerate/`；本地 il2cpp 为 `v2022-tuanjie-8.14.0` |
 | 资源系统 | YooAsset 2.3.19 | Bundle、清单、下载、缓存和异步资源加载 | UPM 包；小游戏文件系统在 `Assets/ToolPackage/YooAsset` |
-| 微信平台 | `com.qq.weixin.minigame` + `Assets/WX-WASM-SDK-V2` + `cn.tuanjie.wx-uploader` | 小游戏转换、运行时 API 与上传 | UPM 转换工具 + Assets 内运行时 SDK + 上传器 |
+| 微信平台 | `com.qq.weixin.minigame`（git 提交钉死）+ `Assets/WX-WASM-SDK-V2` + `cn.tuanjie.wx-uploader` | 小游戏转换、运行时 API 与上传 | UPM 转换工具 + Assets 内运行时 SDK + 上传器 |
 | 抖音平台 | StarkSDK 6.9.0 | 抖音小游戏构建与运行时 API | `LocalPackages/com.bytedance.starksdk@6.9.0` 本地包 |
 | 异步 | UniTask 2.5.10 | 异步方法（`CloudManager` 云存档链路 async/await） | `Assets/ToolPackage/UniTask` 本地源码 |
 | UI | UGUI + TextMeshPro | 页面和文本 | TextMeshPro 在 `Assets/ToolPackage/TextMesh Pro` |
@@ -16,7 +16,7 @@
 | JSON | Newtonsoft.Json | 云存档序列化等 | NuGetForUnity；亦为 AOT 元数据 DLL 之一 |
 | 其他 | Spine、UIParticle、UOS CDN | 动画、UI 粒子和 CDN | UPM |
 | UOS 服务 | UOS Launcher / CloudSave / Func Stateless | 云存档与云函数 | UPM；另有 `Assets/UOSLauncherEncrypt`（Launcher 自带加密模块，勿改） |
-| 开发环境 | Unity MCP + Cursor IDE 集成 | 编辑器 AI 操作与 MCP 自测 | UPM git 包，仅编辑器 |
+| 开发环境 | Unity MCP + Cursor IDE 集成 | 编辑器集成 | UPM git 包（`com.coplaydev.unity-mcp`、`com.boxqkrtm.ide.cursor`），仅编辑器 |
 
 ## 2. 程序集架构
 
@@ -227,7 +227,7 @@ HotUpdateOver
 职责：
 
 1. 若 `YooAssets.Initialized` 已为 true，直接跳到 `HotUpdateOver`（跳过清单检查与资源下载）；
-2. 否则以 `SdkManager.GetCDNPath()` 为 CDN 根（小游戏远程根为 `GetCDNPath() + "/yoo"`，见下方「小游戏」分支）；
+2. 否则以 `SdkManager.Instance.GetCDNPath()` 为 CDN 根（小游戏远程根为 `GetCDNPath() + "/yoo"`，见下方「小游戏」分支）；
 3. 初始化 YooAsset，并设置 `YooAssets.SetOperationSystemMaxTimeSlice(1000)`；
 4. 创建或获取包 `MyPackage`；
 5. 设置为默认包；
@@ -242,7 +242,7 @@ EditorSimulateModeHelper.SimulateBuild("MyPackage")
 小游戏：
 
 ```text
-CDN 根地址 = SdkManager.GetCDNPath() + "/yoo"
+CDN 根地址 = SdkManager.Instance.GetCDNPath() + "/yoo"
 defaultHostServer = fallbackHostServer（主备同址，备线未单独配置）
 WebPlayModeParameters
   -> RemoteServices（IRemoteServices 实现，提供主/备 URL 拼接）
@@ -705,7 +705,7 @@ ConfigManager.ClearAll();
 
 ## 13. CDN 根地址
 
-运行时 CDN 根地址由 `SdkManager.GetCDNPath()` 按平台返回 `CDNPathWeChat` 或 `CDNPathDouYin`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{GetCDNPath()}/yoo`。完整配置、打包写入、本地暂存目录与留空后果见 HotUpdateBuildAdapt §4。
+运行时 CDN 根地址由 `SdkManager.Instance.GetCDNPath()` 按平台返回 `CDNPathWeChat` 或 `CDNPathDouYin`（`Assets/Scripts/Invariable/Utils/InvariableConst.cs`）。YooAsset 远程根为 `{GetCDNPath()}/yoo`。完整配置、打包写入、本地暂存目录与留空后果见 HotUpdateBuildAdapt §4。
 
 ## 14. 工具类
 
