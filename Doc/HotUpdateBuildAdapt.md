@@ -42,7 +42,7 @@ Assets/Settings/Build Profiles/
 
 代码方式固定顺序：先切子平台 → 等域重载完成 → 再启用对应 Profile。顺序不可颠倒，域重载会清空 Profile enabled。手动操作一律在团结引擎 Build Profile 窗口勾选目标 Profile，引擎会同时完成子平台切换与 Profile 启用。不要只改宏文本。
 
-打包菜单由 `MINIGAME_SUBPLATFORM_WEIXIN` / `MINIGAME_SUBPLATFORM_DOUYIN` 编译期宏决定可用性。菜单开头跑 `PreBuildValidator`：CDNPath、Secrets、Profile enabled 与当前目标一致、平台宏唯一、当前目标平台的 SDK 配置与 Profile 成对字段一致，并通过对话框确认远程调用模式。硬条件失败或用户取消则中止打包。非目标平台的配对漂移只记日志，不阻断本次打包。
+打包菜单由 `MINIGAME_SUBPLATFORM_WEIXIN` / `MINIGAME_SUBPLATFORM_DOUYIN` 编译期宏决定可用性。菜单开头跑 `PreBuildValidator`：CDNPath、本地源码里的 `CloudHelper.Secrets` 赋值（远程桩会剥掉密钥，不扫源码字段）、Profile enabled 与当前目标一致、平台宏唯一、当前目标平台的 SDK 配置与 Profile 成对字段一致。硬条件失败则中止打包。校验通过后只在控制台提醒自行确认远程调用模式，工程内无法验证 Func Stateless 是否已切远程。非目标平台的配对漂移只记日志，不阻断本次打包。
 
 > Profile 中包含 AppID、绝对构建路径等环境相关信息。CDN 字段由打包菜单按当前平台常量（`CDNPathWeChat` / `CDNPathDouYin`）自动写入，无需手填。文档不重复记录具体值；修改或分享时应注意凭据和环境隔离。
 
@@ -433,7 +433,7 @@ CDN/{WeChat|DouYin}/
 
 ## 12. 推荐的完整构建顺序
 
-切换平台后建议按以下顺序执行。上传 CDN 服务器与真机验证由用户完成。打包菜单会先跑前置校验并要求确认远程调用模式。
+切换平台后建议按以下顺序执行。上传 CDN 服务器与真机验证由用户完成。打包菜单会先跑前置校验。远程调用模式须由用户在 UOS / Func Stateless 面板自行确认，工程内无法验证。
 
 ### 12.1 首次或基础包完整发布
 

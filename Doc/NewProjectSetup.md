@@ -327,6 +327,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 提醒：
 
 - 远程模式下客户端只保留带 `[CloudFunc]` 的方法；密钥仅在服务端执行
+- 打包前置校验只在本地源码仍含 `Secrets` 赋值时扫字段；远程桩会剥掉密钥，不把缺失赋值当成未填。上传前须在本地模式确认已填齐
 - 每次改 `CloudService` / 云函数体后：重新上传 → 确认远程模式 → 再出基础包
 
 ---
@@ -395,7 +396,7 @@ Assets/Settings/Build Profiles/DouYin Profile.asset
 
 ## 附录 B：关键菜单速查
 
-打包微信/抖音小游戏菜单会先跑前置校验并要求确认远程调用模式。
+打包微信/抖音小游戏菜单会先跑前置校验。远程调用模式须由用户在 UOS / Func Stateless 面板自行确认，工程内无法验证。
 
 ### Config
 
